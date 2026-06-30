@@ -11,6 +11,7 @@ const _DIRS := [
 	"res://assets/world/presets",
 	"res://assets/data/archetypes",
 	"res://assets/visuals/parts",
+	"res://assets/visuals/characters/human/male",
 ]
 
 func _ready() -> void:
@@ -50,6 +51,10 @@ func _build_npc_assets() -> void:
 	for visual in main.part_visuals:
 		_save(visual, "res://assets/visuals/parts/main_%s.tres" % visual.part_id)
 		i += 1
+	if main.sprite_anim != null:
+		_save(main.sprite_anim, "res://assets/visuals/characters/human/male/human_male_sprite_anim.tres")
+		main.sprite_anim = load("res://assets/visuals/characters/human/male/human_male_sprite_anim.tres")
+	main.part_visuals.clear()
 	_save(main, "res://assets/data/archetypes/main_character.tres")
 	npc.free()
 

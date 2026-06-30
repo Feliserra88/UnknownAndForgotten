@@ -1,0 +1,26 @@
+---
+description: Bump VERSION (B), commit and optional push when user says BC or BCP
+alwaysApply: true
+---
+
+# Version bump — BC / BCP
+
+**Source of truth:** `VERSION` at the project root (`major`, `minor`, `bump` as `key=value`; display **X.Y.B**).
+
+When the user message is **`BCP`** (Bump + Commit + Push):
+
+1. Increment **`bump`** by 1 in `VERSION` (do not change `major` or `minor` unless the user asks).
+2. Stage `VERSION` (and only other files if they are part of the same explicit release step).
+3. Commit with a message like `bump version to X.Y.B` (use HEREDOC per git rules).
+4. **`git push`** to remote.
+
+When the user message is **`BC`** (Bump + Commit only):
+
+1. Same bump in `VERSION`.
+2. Commit only — **do not push**.
+
+Treat **`BC`** / **`BCP`** as standalone commands (trimmed message, case-insensitive).
+
+Follow all user git safety rules (no force push, no config changes, no amend unless allowed).
+
+The in-game label reads `VERSION` via autoload `Version` on next run.

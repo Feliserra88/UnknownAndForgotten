@@ -12,6 +12,7 @@ var terrain_layer: TileMapLayer
 var objects_layer: TileMapLayer
 var structures_layer: TileMapLayer
 var modifiers_layer: TileMapLayer
+var layers: Node2D
 
 var tile_catalog: TileCatalog
 var height_field: MapHeightField
@@ -51,10 +52,24 @@ func configure(catalog: TileCatalog, modifiers: Array, region: Rect2i) -> void:
 	_modifiers.clear()
 	Log.info(_LOG, "init", "configured region=%s tiles=%d" % [region, catalog.tiles.size()])
 
-## Converts a logical cell (x, y, z) to its 2D world position, offsetting by z * height_step.
+## Converts a logical cell (x, y, z) to the global position where an actor's feet stand.
+## Uses the bottom vertex of the isometric diamond (map_to_local is the cell center).
 func grid_to_world(cell: Vector3i) -> Vector2:
-	var base := ground_layer.map_to_local(Vector2i(cell.x, cell.y))
-	return base + Vector2(0, -cell.z * height_step)
+	_ensure_layers()
+	var local := ground_layer.map_to_local(Vector2i(cell.x, cell.y))
+	local += _tile_foot_offset() + Vector2(0, -cell.z * height_step)
+	return ground_layer.to_global(local)
+
+## Node2D parent for actors; shares y-sort with tile layers (see docs/GAME_DESIGN.md §3.4).
+func get_actor_parent() -> Node2D:
+	_ensure_layers()
+	return layers
+
+func _tile_foot_offset() -> Vector2:
+	if ground_layer == null or ground_layer.tile_set == null:
+		return Vector2.ZERO
+	var tile_h := float(ground_layer.tile_set.tile_size.y)
+	return Vector2(0, tile_h * 0.5)
 
 ## Returns the map cell (x, y) under [param world_pos].
 func world_to_cell(world_pos: Vector2) -> Vector2i:
@@ -148,6 +163,7 @@ func _ensure_layers() -> void:
 	objects_layer = $Layers/Objects
 	structures_layer = $Layers/Structures
 	modifiers_layer = $Layers/Modifiers
+	layers = $Layers
 
 func _tile_def_on(layer: TileMapLayer, cell: Vector2i) -> TileDef:
 	if layer == null or layer.get_cell_source_id(cell) == -1:

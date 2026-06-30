@@ -185,6 +185,7 @@ No usar singletons globales ad hoc fuera de `autoload/` aprobados.
 |----------|-----------------|
 | `Config` | Lee y expone `venv.ini`; recarga en caliente si se define soporte. |
 | `Log` | Única salida de trazas; respeta gates por módulo. |
+| `Version` | Lee `VERSION` (major/minor/bump) y expone `get_string()` como `X.Y.B`. |
 | `EventBus` | Bus de eventos de dominio (opcional al inicio; reservar nombre). |
 
 Registrar en `project.godot` bajo `[autoload]`. Ningún otro autoload sin actualizar este documento.
@@ -199,6 +200,13 @@ Registrar en `project.godot` bajo `[autoload]`. Ningún otro autoload sin actual
 - Las claves de log siguen: `LOG_<MODULO>_LEVEL=0|1|2` (módulo en MAYÚSCULAS, p. ej. `LOG_CHARACTER_LEVEL`).
 
 No duplicar estas opciones en `project.godot` salvo settings editor-only (render, input map).
+
+### Versión del proyecto (`VERSION`)
+
+- Archivo en la raíz: **`VERSION`** (`major`, `minor`, `bump` como `key=value`; también acepta una línea `X.Y.B`).
+- Formato mostrado: **X.Y.B**.
+- Leer solo vía autoload **`Version`** (no parsear el archivo en módulos).
+- Comandos del agente: **`BC`** = incrementar `bump` + commit; **`BCP`** = lo mismo + push (regla `.cursor/rules/bump-commit.mdc`).
 
 ---
 

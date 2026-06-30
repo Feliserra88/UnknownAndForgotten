@@ -12,6 +12,8 @@ extends Resource
 @export var base_vitals: VitalsTemplate
 @export var body_part_map: BodyPartMap
 @export var part_visuals: Array[PartVisualDef] = []
+## Optional full-body spritesheet rig; when set, appearance uses AnimatedSprite2D instead of cutout slots.
+@export var sprite_anim: Resource
 @export var default_factions: Array[StringName] = []
 @export var default_traits: Array[StringName] = []
 
@@ -43,6 +45,13 @@ func resolve_body_part_map() -> BodyPartMap:
 	for a in _chain():
 		if a.body_part_map != null:
 			return a.body_part_map
+	return null
+
+## Returns the nearest non-null sprite animation definition walking up the parent chain.
+func resolve_sprite_anim() -> Resource:
+	for a in _chain():
+		if a.sprite_anim != null:
+			return a.sprite_anim
 	return null
 
 ## Returns part visuals merged from root to leaf; nearer archetypes override by part_id.

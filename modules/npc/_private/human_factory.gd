@@ -3,6 +3,10 @@ extends RefCounted
 ## main-character archetype. Internal to the npc module; exposed via the NpcModule facade.
 
 const _NPC_SCENE := preload("res://scenes/npc/npc_base.tscn")
+const _SpriteAnimDef := preload("res://modules/appearance/npc_sprite_anim_def.gd")
+const _IDLE_SHEET := preload("res://assets/visuals/characters/human/male/HumanMaleIdle.png")
+const _WALK_RIGHT := preload("res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png")
+const _WALK_LEFT := preload("res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png")
 
 ## Builds the archetype chain and returns the leaf "human" archetype (parents wired in).
 static func build_chain() -> NpcArchetype:
@@ -35,8 +39,23 @@ static func build_random_main_character(gen_seed: int) -> NpcArchetype:
 	main.parent = build_chain()
 	main.display_name_key = "npc.main_character.name"
 	main.base_attributes = _random_attributes(rng)
-	main.part_visuals = _random_visuals(rng)
+	main.sprite_anim = build_male_sprite_anim()
 	return main
+
+## Builds the male human sprite set (idle 8-way + walk left/right at 64×64).
+static func build_male_sprite_anim() -> Resource:
+	var frame := Config.get_int("NPC_SPRITE_FRAME_SIZE", 64)
+	var def := _SpriteAnimDef.new()
+	def.frame_size = Vector2i(frame, frame)
+	def.idle_texture = _IDLE_SHEET
+	def.idle_hframes = 8
+	def.walk_right_texture = _WALK_RIGHT
+	def.walk_right_hframes = 5
+	def.walk_left_texture = _WALK_LEFT
+	def.walk_left_hframes = 5
+	def.walk_fps = float(Config.get_int("NPC_WALK_FPS", 8))
+	def.feet_anchor = Vector2(0.5, Config.get_float("NPC_FEET_ANCHOR_Y", 0.8))
+	return def
 
 static func _default_visuals() -> Array[PartVisualDef]:
 	return [
@@ -46,19 +65,6 @@ static func _default_visuals() -> Array[PartVisualDef]:
 		_visual(&"arm_right", Color(0.40, 0.45, 0.65), Vector2i(6, 20), Vector2(13, -2), 1),
 		_visual(&"leg_left", Color(0.28, 0.28, 0.34), Vector2i(7, 18), Vector2(-6, 22), 0),
 		_visual(&"leg_right", Color(0.28, 0.28, 0.34), Vector2i(7, 18), Vector2(6, 22), 0),
-	]
-
-static func _random_visuals(rng: RandomNumberGenerator) -> Array[PartVisualDef]:
-	var skin := _random_skin(rng)
-	var shirt := _random_color(rng, 0.3, 0.8)
-	var pants := _random_color(rng, 0.15, 0.5)
-	return [
-		_visual(&"body", shirt, Vector2i(20, 28), Vector2(0, 0), 0),
-		_visual(&"head", skin, Vector2i(16, 16), Vector2(0, -22), 2),
-		_visual(&"arm_left", shirt, Vector2i(6, 20), Vector2(-13, -2), 1),
-		_visual(&"arm_right", shirt, Vector2i(6, 20), Vector2(13, -2), 1),
-		_visual(&"leg_left", pants, Vector2i(7, 18), Vector2(-6, 22), 0),
-		_visual(&"leg_right", pants, Vector2i(7, 18), Vector2(6, 22), 0),
 	]
 
 static func _random_attributes(rng: RandomNumberGenerator) -> AttributeSet:

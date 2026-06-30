@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://modules/appearance/npc_appearance_controller.gd" id="2_appearance"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_npc"]
-radius = 8.0
+radius = 24.0
 
 [node name="NpcRoot" type="Node2D"]
 y_sort_enabled = true

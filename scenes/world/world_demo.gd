@@ -26,7 +26,12 @@ func _ready() -> void:
 	var gen_seed := Config.get_int("WORLD_GEN_DEFAULT_SEED", 1337)
 	var request := world_gen.build_field_request(region, gen_seed)
 	world_gen.generate(request, world)
+	if world.ground_layer != null:
+		world.ground_layer.update_internals()
 	var spawn_cell := _find_walkable(world, region)
+	call_deferred("_finish_demo_setup", world, spawn_cell)
+
+func _finish_demo_setup(world: WorldModule, spawn_cell: Vector2i) -> void:
 	_frame_camera(world, spawn_cell)
 	_spawn_main_character(world, spawn_cell)
 
@@ -38,15 +43,33 @@ func _spawn_main_character(world: WorldModule, cell: Vector2i) -> void:
 		return
 	var body := npc.spawn(archetype, world.cell3(cell), world)
 	if body != null:
-		world.add_child.call_deferred(body)
-		body.set_deferred("global_position", world.grid_to_world(world.cell3(cell)))
+		var actor_parent := world.get_actor_parent()
+		actor_parent.add_child(body)
+		body.global_position = world.grid_to_world(world.cell3(cell))
+		_attach_player_controller(body)
+		Log.info(_LOG, "spawn_player", "cell=%s pos=%s" % [cell, body.global_position])
+
+func _attach_player_controller(body: Node2D) -> void:
+	body.add_to_group(&"player")
+	var ctrl: Node = load("res://scenes/world/main_character_controller.gd").new()
+	body.add_child(ctrl)
+	if body is NpcBody:
+		var npc_body := body as NpcBody
+		if npc_body.instance != null:
+			npc_body.instance.orientation = &"front"
+		var appearance := body.get_node_or_null("Appearance") as NpcAppearanceController
+		if appearance != null:
+			appearance.set_orientation(&"front")
 
 func _resolve_main_character(npc: NpcModule) -> NpcArchetype:
+	var archetype: NpcArchetype = null
 	if main_character != null:
-		return main_character
-	if ResourceLoader.exists(_MAIN_CHARACTER_PATH):
-		return load(_MAIN_CHARACTER_PATH)
-	return npc.build_random_character(Config.get_int("WORLD_GEN_DEFAULT_SEED", 1337))
+		archetype = main_character
+	elif ResourceLoader.exists(_MAIN_CHARACTER_PATH):
+		archetype = load(_MAIN_CHARACTER_PATH)
+	else:
+		archetype = npc.build_random_character(Config.get_int("WORLD_GEN_DEFAULT_SEED", 1337))
+	return npc.ensure_walk_sprite(archetype)
 
 func _frame_camera(world: WorldModule, cell: Vector2i) -> void:
 	var cam := world.get_node_or_null("CameraRig") as CameraRig
