@@ -1,0 +1,20 @@
+---
+description: Referencia obligatoria a docs/GAME_DESIGN.md para mecánicas y diseño jugable
+alwaysApply: true
+---
+
+# Diseño de juego
+
+Ante cualquier cambio que afecte **mecánicas, NPCs, mundo, combate, equipo, estado, interfaz o generación de mapas**:
+
+1. **Leer** `docs/GAME_DESIGN.md` y aplicar sus reglas.
+2. **Usar APIs Godot** para mapa/cámara (§2–4, `world-map.mdc`) y NPCs (§5–8): `TileMapLayer`, `MapHeightField`, `Camera2D`, Resources, `PackedScene`.
+3. **Respetar** vista isométrica 2,5D, rejilla **x/y/z** (altura por tile), movimiento 4-dir en x/y.
+4. **Separar** arquetipo (qué es el NPC) de facción (a qué grupo pertenece); ver `npc-entities.mdc`.
+5. **Localizar** todo texto visible al jugador con claves + `tr()` (ver `localization.mdc` y §9 de `GAME_DESIGN.md`).
+6. **Usar identificadores en inglés** en código aunque la petición esté en español (ver `coding-style.mdc`).
+7. **GUI** — paneles movibles `UfPanel`, widgets desacoplados (ver `gui-panels.mdc`, §10).
+8. **Herramientas de artista** — módulos de alto reuso + fine-tuning → `EditorPlugin` que use la API pública (§11, `editor-artist-tools.mdc`). Ej.: `uf_map_editor`, `uf_npc_editor`.
+9. **Actualizar** `docs/GAME_DESIGN.md` si el cambio introduce o altera reglas de diseño.
+
+Si hay conflicto entre petición puntual y diseño documentado, priorizar el documento salvo indicación explícita del usuario.

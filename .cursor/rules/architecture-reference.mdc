@@ -1,0 +1,19 @@
+---
+description: Referencia obligatoria a docs/ARCHITECTURE.md al crear o modificar módulos
+alwaysApply: true
+---
+
+# Arquitectura del proyecto
+
+Antes de **añadir o modificar cualquier módulo** de código (scripts GDScript, autoloads, carpetas bajo `res://modules/`, servicios en `res://core/` o `res://autoload/`):
+
+1. **Consultar** la documentación oficial de Godot (sección 2 de `ARCHITECTURE.md`): usar APIs nativas del motor y seguir su metodología de proyecto/escenas/recursos.
+2. **Leer** `docs/ARCHITECTURE.md` y aplicar su estructura, capas y convenciones.
+3. **Respetar** el flujo de dependencias: escenas → módulos → core → autoloads. Nunca importar `_private/` de otro módulo.
+4. **Actualizar** `docs/ARCHITECTURE.md` (tabla de módulos, autoloads, convenciones) si el cambio introduce un módulo nuevo, autoload o patrón distinto.
+5. **Justificar** un módulo nuevo: su dominio no debe encajar en ningún módulo existente.
+6. **Herramientas de artista** — si el módulo tendrá alto reuso y fine-tuning artístico, planificar addon (`editor-artist-tools.mdc`, `GAME_DESIGN.md` §11).
+
+Si hay conflicto entre una petición puntual y la arquitectura, priorizar la arquitectura salvo indicación explícita del usuario de revisarla.
+
+Para mecánicas de juego, consultar también `docs/GAME_DESIGN.md` (regla `game-design.mdc`).

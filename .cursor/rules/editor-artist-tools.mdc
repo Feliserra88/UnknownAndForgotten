@@ -1,0 +1,30 @@
+---
+description: Herramientas de editor obligatorias para módulos de alto reuso y fine-tuning artístico
+alwaysApply: true
+---
+
+# Herramientas de editor para artistas
+
+Norma general: `docs/GAME_DESIGN.md` §11.
+
+## Regla
+
+Si un módulo se usará **muchas veces** y requiere **fine-tuning manual** por un artista → **crear herramienta de editor** (`EditorPlugin` en `res://addons/uf_<dominio>_editor/`) que:
+
+1. Use solo la **API pública** del módulo.
+2. Permita crear **assets a mano** (mismo formato que runtime).
+3. **No duplique** lógica del módulo en el plugin.
+
+## Herramientas identificadas
+
+| Addon | Módulos | Uso |
+|-------|---------|-----|
+| `uf_map_editor` | `world`, `world_gen` | Mapas x/y/z, biomas, estructuras |
+| `uf_npc_editor` | `npc`, `appearance` | Arquetipos, rig, equipo/lesiones visual |
+| `uf_gui_tools` | `gui` | Paneles domain desde `UfPanel` + widgets |
+
+## Al implementar módulo artístico
+
+- [ ] ¿Reuso alto + fine-tuning? → planificar addon.
+- [ ] ¿API pública suficiente? → extender módulo antes del plugin.
+- [ ] Documentar formato de asset y registrar en §12 de `GAME_DESIGN.md`.

@@ -1,0 +1,15 @@
+---
+description: venv.ini como única fuente de verdad para config runtime
+alwaysApply: true
+---
+
+# Configuración runtime (`venv.ini`)
+
+- Archivo por defecto: **`venv.ini`** en la raíz del proyecto.
+- Formato: **`clave=valor`**, una entrada por línea; comentarios con `#`.
+- Es la **única fuente de verdad** para opciones modificables en ejecución (debug, toggles de mecánicas, niveles de log, etc.).
+- Leer config **solo** vía autoload `Config` (cuando exista), nunca parsear el archivo ad hoc en módulos.
+- Valores por defecto en código solo como fallback si falta la clave.
+- No duplicar estas claves en `project.godot` salvo settings exclusivos del editor.
+
+Al añadir opción nueva: documentar clave en `venv.ini` (comentario) y en `docs/ARCHITECTURE.md` si afecta a un módulo.

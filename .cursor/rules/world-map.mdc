@@ -1,0 +1,25 @@
+---
+description: Mapas con coordenadas x/y/z y MapHeightField por celda
+globs: "**/*.{gd,tres,tscn}"
+alwaysApply: false
+---
+
+# Mapas y escenarios (x, y, z)
+
+Ver `docs/GAME_DESIGN.md` §3–4. Cada tile/celda contempla **x, y, z**; distintas celdas pueden tener distinta altura (`z`).
+
+## Reglas
+
+- Coordenada lógica: **`Vector3i(x, y, z)`** (`GridCell`).
+- **x/y** → `TileMapLayer` (`Vector2i`, terrains, colisión).
+- **z** → **`MapHeightField`** (módulo `world`); Godot no persiste altura por celda en el tilemap 2D.
+- Generación procedural: escribir tiles **y** alturas (`set_cells_terrain_connect` + `height_field.set_height`).
+- Pathfinding: `AStarGrid2D` en x/y; validar **Δz** y `max_climb` en módulo `grid`.
+- Presentación: `map_to_local(Vector2i(x,y))` + offset por `z` (`y_sort_origin`, `height_step`).
+- NPCs/props: `grid_cell: Vector3i`; usar `grid_to_world()`.
+
+## Prohibido
+
+- Asumir mapa plano (`z = 0`) sin documentarlo.
+- Guardar solo `Vector2i` para posición de entidades jugables.
+- Matrices de tiles paralelas que dupliquen lo que ya guarda `TileMapLayer` (salvo `MapHeightField` para z).

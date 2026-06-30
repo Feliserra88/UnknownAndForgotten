@@ -1,0 +1,29 @@
+---
+description: API pública vs privada, desacoplamiento y justificación de módulos
+globs: "**/*.gd"
+alwaysApply: false
+---
+
+# Contrato de módulos
+
+Al modificar o crear scripts:
+
+## Público vs privado
+
+- **Público**: métodos/propiedades sin `_`; forman la API del módulo. Documentados con doc comment (propósito actual).
+- **Privado**: prefijo `_` y archivos en `_private/`. Solo accesibles dentro del mismo módulo.
+- La fachada (`modules/<nombre>/<nombre>.gd`) expone la API; delega implementación a `_private/`.
+
+## APIs parametrizadas
+
+- Preferir parámetros y opciones antes que duplicar funciones o crear módulos gemelos.
+- Evitar exponer estado interno mutable; devolver datos o emitir señales.
+
+## Nuevo módulo
+
+Crear módulo solo si la funcionalidad **no corresponde** a uno existente. Indicar en el cambio por qué no encaja en los actuales.
+
+## Prohibido
+
+- Importar desde `modules/*/\_private/` ajeno.
+- Acceder a miembros `_` de otro script/módulo.

@@ -1,0 +1,35 @@
+---
+description: Texto visible al jugador desacoplado via claves y tr() de Godot
+globs: "**/*.{gd,tscn,csv,tres,res}"
+alwaysApply: false
+---
+
+# Localización (i18n)
+
+Todo string que el jugador pueda ver debe estar **desacoplado del código**. Ver `docs/GAME_DESIGN.md` §10.
+
+## Reglas
+
+- Usar **`tr("clave.estable")`** (Godot `TranslationServer`); ficheros en `res://locale/` (CSV o PO).
+- Claves en inglés, formato `<dominio>.<entidad>.<campo>` (p. ej. `item.iron_sword.name`).
+- Recursos y datos: campos `*_key`, nunca texto literal visible (`name_key`, no `name: "Espada..."`).
+- Al añadir clave: entrada en **todos** los idiomas activos (`en`, `es`, …).
+- Aunque el usuario pida un texto en español entre comillas, en código va la **clave**; el español va en el CSV/PO.
+
+## Prohibido
+
+- Literales de UI/diálogo/descripción en `.gd`, `.tscn` o recursos de contenido.
+- Usar el texto traducido como clave.
+
+## Permitido en código
+
+- Identificadores en inglés (`bandits`, `display_name_key`).
+- Trazas de `Log` (no visibles al jugador).
+
+```gdscript
+# ✅
+label.text = tr(item.name_key)
+
+# ❌
+label.text = "Espada de hierro"
+```

@@ -1,0 +1,30 @@
+---
+description: Estilo de código, refactors, nombres y documentación
+globs: "**/*.gd"
+alwaysApply: false
+---
+
+# Estilo de código GDScript
+
+## Refactors y limpieza
+
+- Tras renombrar o refactorizar: **no** crear wrappers de compatibilidad legacy. Actualizar todos los usos.
+- Eliminar código muerto y funciones huérfanas. Si el usuario pide conservar algo obsoleto, marcarlo explícitamente (p. ej. `# LEGACY: mantener por petición — <motivo>`).
+- Código simple y directo; evitar abstracciones innecesarias.
+
+## Nombres
+
+- **Idioma inglés obligatorio** para funciones, variables, clases, señales, enums, constantes y archivos de código — aunque la petición del usuario esté en español o use comillas para un nombre concreto (p. ej. «bandidos» → `bandits`, «arquero» → `archer`).
+- Texto visible al jugador → claves de localización + `tr()` (ver `localization.mdc`); no literales en código.
+- Funciones y variables **autoexplicativas** y lo **más cortas posible** sin perder claridad.
+- Módulos y archivos en `snake_case`; códigos de log en 3 letras MAYÚSCULAS.
+
+## Documentación
+
+- **Toda función** lleva doc comment que explique su propósito leyendo solo ese texto.
+- La doc refleja el comportamiento **actual**; no acumular historial de cambios en comentarios.
+
+## Salida y config
+
+- No usar `print()` ni `push_warning()` directos en lógica de juego → usar `Log` (ver regla de logging).
+- No hardcodear opciones runtime → usar `Config` / `venv.ini`.

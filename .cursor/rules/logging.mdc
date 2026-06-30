@@ -1,0 +1,40 @@
+---
+description: Trazas centralizadas vía módulo Log y gates en venv.ini
+globs: "**/*.gd"
+alwaysApply: false
+---
+
+# Logging
+
+Toda traza pasa por el autoload **`Log`**. No usar `print()`, `print_r()` ni equivalentes en código de juego.
+
+## Formato
+
+```
+YYYY/MM/DD hh:mm:ss [COD] tipo mensaje
+```
+
+- **COD**: 3 letras del módulo (`CHA`, `CFG`, `LOG`…).
+- **tipo**: categoría breve (`init`, `warn`, `err`, `evt`…).
+
+## Gates en `venv.ini`
+
+Por módulo: `LOG_<MODULO>_LEVEL=x` (módulo en MAYÚSCULAS, p. ej. `LOG_CHARACTER_LEVEL`).
+
+| Valor | Comportamiento |
+|-------|----------------|
+| `0` | Sin traza |
+| `1` | Resumen (eventos relevantes, errores) |
+| `2` | Detalle (1 traza por evento interno) |
+
+Al crear módulo: asignar código de 3 letras, añadir clave en `venv.ini` y fila en tabla de `docs/ARCHITECTURE.md`.
+
+```gdscript
+# ✅
+Log.info("CHA", "evt", "spawn id=%s" % id)
+
+Log.detail("CHA", "move", "pos=%s" % pos)
+
+# ❌
+print("spawn")
+```

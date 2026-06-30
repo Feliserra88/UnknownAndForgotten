@@ -1,0 +1,40 @@
+---
+description: NPCs via custom Resources, PackedScene y estado runtime duplicado
+globs: "**/*.{gd,tres,tscn}"
+alwaysApply: false
+---
+
+# Entidades NPC (Godot)
+
+Ver `docs/GAME_DESIGN.md` §5–8. Godot no tiene sistema RPG integrado; usar **Resources + escenas + composición**.
+
+## Reglas
+
+- **Definición** → `Resource` (`.tres`) con `class_name`: `NpcArchetype`, `FactionDef`, `ItemDef`, `AttributeSet`, `StatusEffectDef`, etc.
+- **Runtime** → `NpcInstanceData` (`RefCounted`) o `.duplicate(true)` al spawn; **nunca** mutar `.tres` compartidos cargados con `load()`.
+- **Spawn** → `PackedScene.instantiate()` + `initialize(instance)` (inyección de dependencias).
+- **Arquetipos** → jerarquía de Resources (`parent: NpcArchetype`), no herencia profunda de scripts GDScript.
+- **Facciones** → `FactionDef` + `add_to_group("faction_%s" % id)`.
+- **Grid** → `Vector3i` (`grid_cell`); **`MapHeightField`** para altura por `(x, y)`; posicionar con `grid_to_world`, no solo `map_to_local`.
+- **Cuerpo** → `Node2D` en rejilla; `CharacterBody2D` solo si hay movimiento continuo.
+- **Animación** → `AnimationTree` / `AnimationNodeStateMachine`; vitals/efectos en módulo `status`, no en el árbol.
+- **Apariencia modular** → rig por **slots** (`BaseLayer` / `EquipmentLayer` / `InjuryLayer`); API `NpcAppearanceController`; ver §5.5.
+- **Equipar/desequipar** → cambiar capas visuales + `base_coverage`; lesiones con `InjuryVisualDef` (`replace`/`overlay`).
+- **Texto visible** → `display_name_key` + `tr()` (ver `localization.mdc`).
+
+## Prohibido
+
+- Clase GDScript por cada raza/tipo (`extends Wolf`, `extends Archer`…) salvo comportamiento único no expresable como datos.
+- Stats/inventario/vitals en variables sueltas sin `NpcInstanceData` o Resource duplicado.
+- `get_node("/root/...")` desde el NPC para autoconfigurarse.
+
+```gdscript
+# ✅
+var body = archetype.resolve_scene().instantiate()
+var data = NpcInstanceData.new()
+data.apply_archetype(archetype)
+body.initialize(data)
+
+# ❌
+archetype.base_vitals.health -= 10  # muta .tres compartido
+```
