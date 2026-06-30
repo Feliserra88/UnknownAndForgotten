@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="PartVisualDef" format=3]
+[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://ckrytu83vm1ff"]
 
-[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_xtkak"]
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1_xtkak"]
 
 [resource]
 script = ExtResource("1_xtkak")

@@ -1,12 +1,11 @@
 @tool
 extends VBoxContainer
-## Dock UI for the map editor. Reads its own controls and calls the plugin's public actions
-## (prepare, generate, paint toggles, save/load presets and maps). Built entirely in code.
+## Dock UI for the map editor. Calls plugin methods via callv (EditorPlugin has no custom API type).
 
 const _TILE_IDS: Array[StringName] = [&"grass", &"dirt_path", &"pond_water", &"rock_wall", &"bush", &"open_door"]
 const _LAYER_NAMES := ["Ground", "Terrain", "Objects", "Structures"]
 
-var _plugin
+var _plugin: EditorPlugin
 var _width: SpinBox
 var _height: SpinBox
 var _seed: SpinBox
@@ -19,14 +18,17 @@ var _preset_path: LineEdit
 var _map_name: LineEdit
 var _status: Label
 
-## Stores the owning plugin and builds the dock controls.
-func setup(plugin) -> void:
+func setup(plugin: EditorPlugin) -> void:
 	_plugin = plugin
 	_build()
 
 func _build() -> void:
 	add_theme_constant_override("separation", 4)
 	_title("UF Map Editor")
+	var hint := Label.new()
+	hint.text = "Open world_root.tscn, then Generate or Prepare."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(hint)
 
 	_title("Area / seed")
 	_width = _spin("Width", 4, 256, 28)
@@ -35,29 +37,29 @@ func _build() -> void:
 	_water = _spin("Water bodies (-1 = biome)", -1, 32, -1)
 	_path = _spin("Paths (-1 = biome)", -1, 16, -1)
 
-	_button("Prepare blank map", func(): _plugin.prepare(_region()))
-	_button("Generate field map", func(): _plugin.generate(_region(), int(_seed.value), int(_water.value), int(_path.value)))
+	_button("Prepare flat grass", _on_prepare_pressed)
+	_button("Generate field map", _on_generate_pressed)
 
 	_separator()
 	_title("Manual painting")
 	_tile = _options("Tile", _tile_labels())
-	_tile.item_selected.connect(func(i): _plugin.selected_tile = _TILE_IDS[i])
+	_tile.item_selected.connect(_on_tile_selected)
 	_layer = _options("Layer", _LAYER_NAMES)
-	_layer.item_selected.connect(func(i): _plugin.selected_layer = i)
+	_layer.item_selected.connect(_on_layer_selected)
 	_mode = _options("Mode", ["Paint tile", "Edit height (wheel)"])
-	_mode.item_selected.connect(func(i): _plugin.mode = i)
+	_mode.item_selected.connect(_on_mode_selected)
 	var paint := CheckButton.new()
 	paint.text = "Paint enabled (select WorldRoot)"
-	paint.toggled.connect(func(on): _plugin.paint_enabled = on)
+	paint.toggled.connect(_on_paint_toggled)
 	add_child(paint)
 
 	_separator()
 	_title("Presets / save")
 	_preset_path = _line("res://assets/world/presets/field_default.tres")
-	_button("Save preset", func(): _plugin.save_preset(_preset_path.text, _region(), int(_seed.value), int(_water.value), int(_path.value)))
+	_button("Save preset", _on_save_preset_pressed)
 	_button("Load preset", _on_load_preset)
 	_map_name = _line("field_map")
-	_button("Save map + scene", func(): _plugin.save_map(_map_name.text))
+	_button("Save map + scene", _on_save_map_pressed)
 
 	_separator()
 	_status = Label.new()
@@ -65,20 +67,57 @@ func _build() -> void:
 	_status.custom_minimum_size = Vector2(0, 48)
 	add_child(_status)
 
-## Updates the dock status line with [param text].
+func _plugin_call(method: StringName, args: Array = []) -> Variant:
+	if _plugin == null:
+		set_status("Map editor plugin not ready — reload the project.")
+		return null
+	if not _plugin.has_method(method):
+		set_status("Missing plugin method: %s" % method)
+		return null
+	return _plugin.callv(method, args)
+
+func _plugin_set(prop: StringName, value: Variant) -> void:
+	if _plugin != null:
+		_plugin.set(prop, value)
+
+func _on_prepare_pressed() -> void:
+	_plugin_call(&"prepare_field_map", [_region()])
+
+func _on_generate_pressed() -> void:
+	_plugin_call(&"generate_field_map", [_region(), int(_seed.value), int(_water.value), int(_path.value)])
+
+func _on_save_preset_pressed() -> void:
+	_plugin_call(&"save_preset", [_preset_path.text, _region(), int(_seed.value), int(_water.value), int(_path.value)])
+
+func _on_save_map_pressed() -> void:
+	_plugin_call(&"save_map", [_map_name.text])
+
+func _on_tile_selected(index: int) -> void:
+	_plugin_set(&"selected_tile", _TILE_IDS[index])
+
+func _on_layer_selected(index: int) -> void:
+	_plugin_set(&"selected_layer", index)
+
+func _on_mode_selected(index: int) -> void:
+	_plugin_set(&"mode", index)
+
+func _on_paint_toggled(on: bool) -> void:
+	_plugin_set(&"paint_enabled", on)
+
 func set_status(text: String) -> void:
 	if _status != null:
 		_status.text = text
 
 func _on_load_preset() -> void:
-	var request: WorldGenRequest = _plugin.load_preset(_preset_path.text)
-	if request == null:
+	var request: Resource = _plugin_call(&"load_preset", [_preset_path.text])
+	if request == null or not (request is WorldGenRequest):
 		return
-	_width.value = request.area.size.x
-	_height.value = request.area.size.y
-	_seed.value = request.gen_seed
-	_water.value = request.water_body_count
-	_path.value = request.path_count
+	var req := request as WorldGenRequest
+	_width.value = req.area.size.x
+	_height.value = req.area.size.y
+	_seed.value = req.gen_seed
+	_water.value = req.water_body_count
+	_path.value = req.path_count
 
 func _region() -> Rect2i:
 	return Rect2i(0, 0, int(_width.value), int(_height.value))

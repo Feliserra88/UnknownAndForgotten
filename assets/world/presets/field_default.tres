@@ -1,10 +1,20 @@
-[gd_resource type="Resource" script_class="WorldGenRequest" format=3]
+[gd_resource type="Resource" script_class="WorldGenRequest" format=3 uid="uid://ca1km7u4tmuck"]
 
-[ext_resource type="Resource" path="res://assets/world/biomes/field.tres" id="1_js46o"]
-[ext_resource type="Script" path="res://modules/world_gen/world_gen_request.gd" id="2_wmdo7"]
+[ext_resource type="Script" uid="uid://dd5aiud6fvqga" path="res://modules/world_gen/biome_def.gd" id="1_js46o"]
+[ext_resource type="Script" uid="uid://basfs0n6vwq02" path="res://modules/world_gen/world_gen_request.gd" id="2_wmdo7"]
+
+[sub_resource type="Resource" id="Resource_bo71n"]
+script = ExtResource("1_js46o")
+id = &"field"
+display_name_key = "biome.field.name"
+ground_tile = &"grass"
+water_tile = &"pond_water"
+path_tile = &"dirt_path"
+scatter_tiles = Array[StringName]([&"bush", &"rock_wall"])
+scatter_chance = 0.04
 
 [resource]
 script = ExtResource("2_wmdo7")
-biome = ExtResource("1_js46o")
+biome = SubResource("Resource_bo71n")
 area = Rect2i(0, 0, 28, 28)
 gen_seed = 1337

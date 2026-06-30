@@ -1,24 +1,12 @@
-[gd_resource type="Resource" script_class="NpcSpriteAnimDef" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="NpcSpriteAnimDef" format=3 uid="uid://sn8wo23wfdwa"]
 
-[ext_resource type="Script" path="res://modules/appearance/npc_sprite_anim_def.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleIdle.png" id="2_idle"]
-[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png" id="3_walk_r"]
-[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png" id="4_walk_l"]
+[ext_resource type="Script" uid="uid://dfr63m67gml1h" path="res://modules/appearance/npc_sprite_anim_def.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dhmdj6txtr5x4" path="res://assets/visuals/characters/human/male/HumanMaleIdle.png" id="2_idle"]
+[ext_resource type="Texture2D" uid="uid://blij0syl5xfsp" path="res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png" id="3_walk_r"]
+[ext_resource type="Texture2D" uid="uid://jjtcdmj2vnnb" path="res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png" id="4_walk_l"]
 
 [resource]
 script = ExtResource("1_script")
-frame_size = Vector2i(64, 64)
 idle_texture = ExtResource("2_idle")
-idle_hframes = 8
 walk_right_texture = ExtResource("3_walk_r")
-walk_right_hframes = 5
 walk_left_texture = ExtResource("4_walk_l")
-walk_left_hframes = 5
-walk_fps = 8.0
-feet_anchor = Vector2(0.5, 0.8)
-idle_frame_by_orientation = {
-&"front": 0,
-&"side_right": 2,
-&"back": 4,
-&"side_left": 6
-}

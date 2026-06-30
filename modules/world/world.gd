@@ -1,11 +1,17 @@
+@tool
 class_name WorldModule
 extends Node2D
 ## Public facade for the map: tile read/write, height field and grid<->world conversion.
 ## Holds the standard TileMapLayers and exposes queries (passability, vision, cover, modifiers).
+## @tool: scene root receives height_field / tile_catalog synced from the map editor session.
 
 const _LOG := "WLD"
 
 enum Layer { GROUND, TERRAIN, OBJECTS, STRUCTURES }
+
+func _ready() -> void:
+	if Engine.is_editor_hint():
+		_ensure_layers()
 
 var ground_layer: TileMapLayer
 var terrain_layer: TileMapLayer
@@ -28,24 +34,47 @@ var _modifiers: Dictionary = {}
 
 ## Builds the placeholder tilesets from [param catalog] and [param modifiers], assigns them to
 ## every layer, and prepares the height field for [param region]. Must run before painting.
-func configure(catalog: TileCatalog, modifiers: Array, region: Rect2i) -> void:
-	_ensure_layers()
+## Pass [param shared_tileset] / [param shared_modifier_pack] from uf_map_editor to avoid
+## rebuilding TileSets on every click (prevents editor crashes).
+func configure(
+	catalog: TileCatalog,
+	modifiers: Array,
+	region: Rect2i,
+	shared_tileset: TileSet = null,
+	shared_modifier_pack: Dictionary = {},
+) -> void:
+	if not _ensure_layers():
+		push_error("[%s] configure: map layers are not wired" % _LOG)
+		return
+	clear_all_cells()
 	tile_catalog = catalog
 	height_step = Config.get_int("WORLD_HEIGHT_STEP", height_step)
 	var tile_size := Vector2i(Config.get_int("WORLD_TILE_WIDTH", 64), Config.get_int("WORLD_TILE_HEIGHT", 32))
-	_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
+	if shared_tileset != null:
+		_tileset = shared_tileset
+	else:
+		_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
 	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer]:
-		layer.tile_set = _tileset
-		layer.y_sort_enabled = true
-	var overlay := PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
-	_modifier_tileset = overlay["tileset"]
-	_modifier_source_id = overlay["source_id"]
-	_modifier_coords = overlay["coords"]
+		if layer != null and is_instance_valid(layer):
+			if layer.tile_set != _tileset:
+				layer.tile_set = _tileset
+			layer.y_sort_enabled = true
+	if shared_modifier_pack.has("tileset"):
+		_modifier_tileset = shared_modifier_pack["tileset"]
+		_modifier_source_id = shared_modifier_pack["source_id"]
+		_modifier_coords = shared_modifier_pack["coords"]
+	else:
+		var overlay := PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
+		_modifier_tileset = overlay["tileset"]
+		_modifier_source_id = overlay["source_id"]
+		_modifier_coords = overlay["coords"]
 	_modifier_defs.clear()
 	for m in modifiers:
 		_modifier_defs[m.id] = m
-	modifiers_layer.tile_set = _modifier_tileset
-	modifiers_layer.y_sort_enabled = true
+	if modifiers_layer != null and is_instance_valid(modifiers_layer):
+		if modifiers_layer.tile_set != _modifier_tileset:
+			modifiers_layer.tile_set = _modifier_tileset
+		modifiers_layer.y_sort_enabled = true
 	height_field = MapHeightField.new()
 	height_field.height_step = height_step
 	height_field.resize(region)
@@ -89,7 +118,10 @@ func set_tile(layer: int, cell: Vector2i, tile_id: StringName) -> void:
 	if def == null:
 		Log.warn(_LOG, "set_tile unknown id=%s" % tile_id)
 		return
-	_layer(layer).set_cell(cell, def.source_id, def.atlas_coords)
+	var map_layer := _layer(layer)
+	if map_layer == null or not is_instance_valid(map_layer):
+		return
+	map_layer.set_cell(cell, def.source_id, def.atlas_coords)
 
 ## Clears any tile on [param layer] at [param cell].
 func clear_tile(layer: int, cell: Vector2i) -> void:
@@ -110,7 +142,7 @@ func get_tile_def_at(cell: Vector2i) -> TileDef:
 
 ## Applies [param modifier] (a TileModifierDef) to [param cell] and shows its overlay.
 func add_modifier(cell: Vector2i, modifier: TileModifierDef) -> void:
-	if modifier == null:
+	if modifier == null or modifiers_layer == null or not is_instance_valid(modifiers_layer):
 		return
 	_modifiers.get_or_add(cell, []).append(modifier)
 	if _modifier_coords.has(modifier.id):
@@ -154,16 +186,152 @@ func provides_cover(cell: Vector2i, dir: int) -> bool:
 	var def := get_tile_def_at(cell)
 	return def != null and def.provides_cover_to(dir)
 
-## Resolves the layer node references from the scene; safe to call repeatedly.
-func _ensure_layers() -> void:
-	if ground_layer != null:
+## Clears every painted cell on all map layers (required before swapping TileSet in the editor).
+func clear_all_cells() -> void:
+	if not _ensure_layers():
 		return
-	ground_layer = $Layers/Ground
-	terrain_layer = $Layers/Terrain
-	objects_layer = $Layers/Objects
-	structures_layer = $Layers/Structures
-	modifiers_layer = $Layers/Modifiers
-	layers = $Layers
+	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer, modifiers_layer]:
+		if layer == null or not is_instance_valid(layer):
+			continue
+		if Engine.is_editor_hint():
+			for cell in layer.get_used_cells():
+				layer.erase_cell(cell)
+		else:
+			layer.clear()
+
+## Resolves the layer node references from the scene; safe to call repeatedly.
+func ensure_layers() -> void:
+	_ensure_layers()
+
+## Wires TileMapLayer nodes from [param root] (uf_map_editor session; root is not this node).
+func bind_edited_root(root: Node2D) -> void:
+	var layers_node := root.get_node_or_null("Layers")
+	if layers_node == null:
+		push_error("[WLD] bind_edited_root: missing Layers node on %s" % root.name)
+		return
+	ground_layer = layers_node.get_node_or_null("Ground") as TileMapLayer
+	terrain_layer = layers_node.get_node_or_null("Terrain") as TileMapLayer
+	objects_layer = layers_node.get_node_or_null("Objects") as TileMapLayer
+	structures_layer = layers_node.get_node_or_null("Structures") as TileMapLayer
+	modifiers_layer = layers_node.get_node_or_null("Modifiers") as TileMapLayer
+	layers = layers_node as Node2D
+
+## Forces TileMapLayer redraw after procedural or manual edits.
+func refresh_map_layers() -> void:
+	if not _ensure_layers():
+		return
+	if Engine.is_editor_hint():
+		return
+	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer, modifiers_layer]:
+		if layer != null and is_instance_valid(layer):
+			layer.queue_redraw()
+
+## Returns a canvas-space rect covering [param region] (for editor framing).
+func get_map_canvas_rect(region: Rect2i) -> Rect2:
+	_ensure_layers()
+	var min_p := Vector2(INF, INF)
+	var max_p := Vector2(-INF, -INF)
+	var corners := [
+		region.position,
+		region.position + Vector2i(region.size.x - 1, 0),
+		region.position + Vector2i(0, region.size.y - 1),
+		region.position + region.size - Vector2i.ONE,
+	]
+	for c in corners:
+		var p := ground_layer.to_global(ground_layer.map_to_local(c))
+		min_p = min_p.min(p)
+		max_p = max_p.max(p)
+	return Rect2(min_p, max_p - min_p)
+
+## Off-tree world used by uf_map_editor so generation does not touch the edited scene.
+static func create_scratch() -> WorldModule:
+	var world := WorldModule.new()
+	world.name = "ScratchWorld"
+	var layers_node := Node2D.new()
+	layers_node.name = "Layers"
+	world.add_child(layers_node)
+	for layer_name in ["Ground", "Terrain", "Objects", "Structures", "Modifiers"]:
+		var layer := TileMapLayer.new()
+		layer.name = layer_name
+		layers_node.add_child(layer)
+	world.ensure_layers()
+	return world
+
+## Copies tilesets, cells, height and modifier state from [param source] into this world.
+func apply_map_from(source: WorldModule) -> void:
+	apply_map_metadata_from(source)
+	apply_map_layer_from(source, &"ground")
+	apply_map_layer_from(source, &"terrain")
+	apply_map_layer_from(source, &"objects")
+	apply_map_layer_from(source, &"structures")
+	apply_map_layer_from(source, &"modifiers")
+
+## Copies catalog, height field and modifier bookkeeping from [param source].
+func apply_map_metadata_from(source: WorldModule) -> void:
+	if source == null:
+		return
+	_tileset = source._tileset
+	_modifier_tileset = source._modifier_tileset
+	_modifier_source_id = source._modifier_source_id
+	_modifier_coords = source._modifier_coords.duplicate(true)
+	_modifier_defs = source._modifier_defs.duplicate(true)
+	_modifiers = source._modifiers.duplicate(true)
+	tile_catalog = source.tile_catalog
+	height_field = source.height_field.duplicate(true) if source.height_field != null else null
+
+## Copies one TileMapLayer from [param source] by [param layer_key].
+func apply_map_layer_from(source: WorldModule, layer_key: StringName) -> void:
+	if source == null or not source._ensure_layers() or not _ensure_layers():
+		return
+	match layer_key:
+		&"ground":
+			_copy_layer_from(source.ground_layer, ground_layer, _tileset)
+		&"terrain":
+			_copy_layer_from(source.terrain_layer, terrain_layer, _tileset)
+		&"objects":
+			_copy_layer_from(source.objects_layer, objects_layer, _tileset)
+		&"structures":
+			_copy_layer_from(source.structures_layer, structures_layer, _tileset)
+		&"modifiers":
+			_copy_layer_from(source.modifiers_layer, modifiers_layer, _modifier_tileset)
+
+func _copy_layer_from(src: TileMapLayer, dst: TileMapLayer, tileset: TileSet) -> void:
+	if src == null or dst == null or not is_instance_valid(dst):
+		return
+	if tileset != null:
+		dst.tile_set = tileset.duplicate(true) as TileSet if Engine.is_editor_hint() else tileset
+	if Engine.is_editor_hint():
+		for cell in dst.get_used_cells():
+			dst.erase_cell(cell)
+	else:
+		dst.clear()
+	for cell in src.get_used_cells():
+		dst.set_cell(
+			cell,
+			src.get_cell_source_id(cell),
+			src.get_cell_atlas_coords(cell),
+			src.get_cell_alternative_tile(cell),
+		)
+
+func _ensure_layers() -> bool:
+	if ground_layer != null and is_instance_valid(ground_layer):
+		return true
+	ground_layer = null
+	terrain_layer = null
+	objects_layer = null
+	structures_layer = null
+	modifiers_layer = null
+	layers = null
+	var layers_node := get_node_or_null("Layers")
+	if layers_node == null:
+		return false
+	ground_layer = layers_node.get_node_or_null("Ground") as TileMapLayer
+	terrain_layer = layers_node.get_node_or_null("Terrain") as TileMapLayer
+	objects_layer = layers_node.get_node_or_null("Objects") as TileMapLayer
+	structures_layer = layers_node.get_node_or_null("Structures") as TileMapLayer
+	modifiers_layer = layers_node.get_node_or_null("Modifiers") as TileMapLayer
+	layers = layers_node as Node2D
+	return ground_layer != null
 
 func _tile_def_on(layer: TileMapLayer, cell: Vector2i) -> TileDef:
 	if layer == null or layer.get_cell_source_id(cell) == -1:

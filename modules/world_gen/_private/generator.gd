@@ -16,11 +16,25 @@ static func generate(request: WorldGenRequest, world: WorldModule) -> Dictionary
 	var path_cells := _place_paths(biome, world, region, request, rng)
 	_scatter(biome, world, region, rng, water_cells, path_cells)
 	_apply_modifiers(world, region, water_cells, rng)
-	_validate_water(world, biome, water_cells)
-	_validate_paths(world, biome, path_cells)
-	var walkable := _count_walkable(world, region)
-	Log.info(_LOG, "gen", "seed=%d water=%d path=%d walkable=%d" % [request.gen_seed, water_cells.size(), path_cells.size(), walkable])
+	var walkable := 0
+	if Engine.is_editor_hint():
+		walkable = _count_walkable_fast(world, region)
+	else:
+		_validate_water(world, biome, water_cells)
+		_validate_paths(world, biome, path_cells)
+		walkable = _count_walkable(world, region)
+		Log.info(_LOG, "gen", "seed=%d water=%d path=%d walkable=%d" % [request.gen_seed, water_cells.size(), path_cells.size(), walkable])
 	return {"water": water_cells, "paths": path_cells, "walkable": walkable}
+
+## Editor-safe walkable count: reads only ground/terrain layers, no custom-data lookups.
+static func _count_walkable_fast(world: WorldModule, region: Rect2i) -> int:
+	var count := 0
+	for x in region.size.x:
+		for y in region.size.y:
+			var cell := region.position + Vector2i(x, y)
+			if world.ground_layer != null and world.ground_layer.get_cell_source_id(cell) != -1:
+				count += 1
+	return count
 
 static func _generate_height(biome: BiomeDef, world: WorldModule, region: Rect2i) -> void:
 	var noise := FastNoiseLite.new()

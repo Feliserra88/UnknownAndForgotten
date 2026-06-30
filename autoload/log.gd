@@ -1,6 +1,8 @@
+@tool
 extends Node
 ## Central logging facility. Every trace passes through here, gated per module by venv.ini.
 ## Format: "YYYY/MM/DD hh:mm:ss [COD] type message" (see docs/ARCHITECTURE.md section 9).
+## @tool: callable from @tool modules while the map editor runs in the Godot editor.
 
 enum Level { OFF = 0, SUMMARY = 1, DETAIL = 2 }
 

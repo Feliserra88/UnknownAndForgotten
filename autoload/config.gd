@@ -1,6 +1,8 @@
+@tool
 extends Node
 ## Reads runtime configuration from venv.ini and exposes typed getters.
 ## Single source of truth for runtime-modifiable options (see docs/ARCHITECTURE.md section 8).
+## @tool: editor plugins and @tool modules (uf_map_editor, WorldModule) call getters in the editor.
 
 const _CONFIG_PATH := "res://venv.ini"
 
@@ -9,24 +11,32 @@ var _values: Dictionary = {}
 func _ready() -> void:
 	_load()
 
+func _ensure_loaded() -> void:
+	if _values.is_empty():
+		_load()
+
 ## Reloads every value from venv.ini, discarding the previous snapshot.
 func reload() -> void:
 	_load()
 
 ## Returns the raw string value for [param key], or [param default] when absent.
 func get_string(key: String, default: String = "") -> String:
+	_ensure_loaded()
 	return str(_values[key]) if _values.has(key) else default
 
 ## Returns [param key] parsed as int, or [param default] when absent or invalid.
 func get_int(key: String, default: int = 0) -> int:
+	_ensure_loaded()
 	return int(_values[key]) if _values.has(key) else default
 
 ## Returns [param key] parsed as float, or [param default] when absent.
 func get_float(key: String, default: float = 0.0) -> float:
+	_ensure_loaded()
 	return float(_values[key]) if _values.has(key) else default
 
 ## Returns [param key] parsed as bool ("true"/"1"/"yes"), or [param default] when absent.
 func get_bool(key: String, default: bool = false) -> bool:
+	_ensure_loaded()
 	if not _values.has(key):
 		return default
 	var raw := str(_values[key]).strip_edges().to_lower()
@@ -34,6 +44,7 @@ func get_bool(key: String, default: bool = false) -> bool:
 
 ## Returns true when [param key] is present in the loaded configuration.
 func has(key: String) -> bool:
+	_ensure_loaded()
 	return _values.has(key)
 
 func _load() -> void:

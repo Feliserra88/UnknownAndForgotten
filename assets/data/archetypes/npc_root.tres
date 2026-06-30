@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="NpcArchetype" format=3]
+[gd_resource type="Resource" script_class="NpcArchetype" format=3 uid="uid://dq7b55pjra7gw"]
 
-[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_72i7w"]
-[ext_resource type="Script" path="res://modules/npc/npc_archetype.gd" id="2_2c76x"]
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1_72i7w"]
+[ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="2_2c76x"]
 
 [resource]
 script = ExtResource("2_2c76x")

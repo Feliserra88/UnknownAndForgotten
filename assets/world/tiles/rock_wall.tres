@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="TileDef" format=3]
+[gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://p4q2yppqunnf"]
 
-[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_rwa20"]
-[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="2_id2wh"]
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_rwa20"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="2_id2wh"]
 
 [resource]
 script = ExtResource("2_id2wh")

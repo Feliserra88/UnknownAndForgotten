@@ -1,19 +1,19 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://kft5dvql2a5y"]
 
-[ext_resource type="Script" path="res://modules/npc/npc_body.gd" id="1_body"]
-[ext_resource type="Script" path="res://modules/appearance/npc_appearance_controller.gd" id="2_appearance"]
+[ext_resource type="Script" uid="uid://b6i27kjxfvodo" path="res://modules/npc/npc_body.gd" id="1_body"]
+[ext_resource type="Script" uid="uid://dd02nvuxpd4fm" path="res://modules/appearance/npc_appearance_controller.gd" id="2_appearance"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_npc"]
 radius = 24.0
 
-[node name="NpcRoot" type="Node2D"]
+[node name="NpcRoot" type="Node2D" unique_id=2072379780]
 y_sort_enabled = true
 script = ExtResource("1_body")
 
-[node name="Appearance" type="Node2D" parent="."]
+[node name="Appearance" type="Node2D" parent="." unique_id=2058671448]
 script = ExtResource("2_appearance")
 
-[node name="Area2D" type="Area2D" parent="."]
+[node name="Area2D" type="Area2D" parent="." unique_id=1982063047]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=2135193877]
 shape = SubResource("CircleShape2D_npc")
