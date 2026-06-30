@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TileDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_rwa20"]
+[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="2_id2wh"]
+
+[resource]
+script = ExtResource("2_id2wh")
+id = &"rock_wall"
+display_name_key = "tile.rock_wall.name"
+tags = 132
+placeholder_color = Color(0.55, 0.55, 0.58, 1)

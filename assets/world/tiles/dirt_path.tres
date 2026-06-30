@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TileDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_7cg85"]
+[ext_resource type="Script" path="res://modules/world/tile_placement_rule.gd" id="2_3811a"]
+[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="3_n0l0s"]
+
+[sub_resource type="Resource" id="Resource_7x7wa"]
+script = ExtResource("2_3811a")
+is_linear = true
+min_collinear_neighbors = 2
+
+[resource]
+script = ExtResource("3_n0l0s")
+id = &"dirt_path"
+display_name_key = "tile.dirt_path.name"
+tags = 3
+placement_rule = SubResource("Resource_7x7wa")
+placeholder_color = Color(0.62, 0.47, 0.3, 1)

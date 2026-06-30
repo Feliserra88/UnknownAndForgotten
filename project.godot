@@ -13,11 +13,25 @@ config_version=5
 config/name="U&F"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+run/main_scene="res://scenes/world/world_root.tscn"
+
+[autoload]
+
+Config="*res://autoload/config.gd"
+Log="*res://autoload/log.gd"
 
 [display]
 
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/uf_map_editor/plugin.cfg")
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/translations.en.translation", "res://locale/translations.es.translation")
 
 [physics]
 

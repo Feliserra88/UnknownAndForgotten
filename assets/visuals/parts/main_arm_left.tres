@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3]
+
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_rm2ai"]
+
+[resource]
+script = ExtResource("1_rm2ai")
+part_id = &"arm_left"
+placeholder_color = Color(0.39564943, 0.6129364, 0.40169716, 1)
+size = Vector2i(6, 20)
+offset = Vector2(-13, -2)
+z_index = 1

@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://modules/world/world.gd" id="1_world"]
+[ext_resource type="Script" path="res://modules/camera/camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scenes/world/world_demo.gd" id="3_demo"]
+
+[node name="WorldRoot" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_world")
+
+[node name="Layers" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Ground" type="TileMapLayer" parent="Layers"]
+
+[node name="Terrain" type="TileMapLayer" parent="Layers"]
+
+[node name="Objects" type="TileMapLayer" parent="Layers"]
+y_sort_enabled = true
+
+[node name="Structures" type="TileMapLayer" parent="Layers"]
+y_sort_enabled = true
+
+[node name="Modifiers" type="TileMapLayer" parent="Layers"]
+
+[node name="CameraRig" type="Node2D" parent="."]
+script = ExtResource("2_camera")
+
+[node name="Camera2D" type="Camera2D" parent="CameraRig"]
+
+[node name="DemoRunner" type="Node" parent="."]
+script = ExtResource("3_demo")

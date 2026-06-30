@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3]
+
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_0wp31"]
+
+[resource]
+script = ExtResource("1_0wp31")
+part_id = &"head"
+placeholder_color = Color(0.45, 0.32, 0.24, 1)
+offset = Vector2(0, -22)
+z_index = 2

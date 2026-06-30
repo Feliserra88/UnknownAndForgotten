@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldGenRequest" format=3]
+
+[ext_resource type="Resource" path="res://assets/world/biomes/field.tres" id="1_js46o"]
+[ext_resource type="Script" path="res://modules/world_gen/world_gen_request.gd" id="2_wmdo7"]
+
+[resource]
+script = ExtResource("2_wmdo7")
+biome = ExtResource("1_js46o")
+area = Rect2i(0, 0, 28, 28)
+gen_seed = 1337

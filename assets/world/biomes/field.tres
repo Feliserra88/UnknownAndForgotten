@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BiomeDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world_gen/biome_def.gd" id="1_dnibk"]
+
+[resource]
+script = ExtResource("1_dnibk")
+id = &"field"
+display_name_key = "biome.field.name"
+ground_tile = &"grass"
+water_tile = &"pond_water"
+path_tile = &"dirt_path"
+scatter_tiles = Array[StringName]([&"bush", &"rock_wall"])
+scatter_chance = 0.04

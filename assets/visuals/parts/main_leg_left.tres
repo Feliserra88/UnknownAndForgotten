@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3]
+
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_xtkak"]
+
+[resource]
+script = ExtResource("1_xtkak")
+part_id = &"leg_left"
+placeholder_color = Color(0.2575522, 0.16460225, 0.17781432, 1)
+size = Vector2i(7, 18)
+offset = Vector2(-6, 22)

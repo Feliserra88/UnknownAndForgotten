@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="NpcArchetype" format=3]
+
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_72i7w"]
+[ext_resource type="Script" path="res://modules/npc/npc_archetype.gd" id="2_2c76x"]
+
+[resource]
+script = ExtResource("2_2c76x")
+id = &"npc"
+display_name_key = "archetype.npc.name"

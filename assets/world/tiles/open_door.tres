@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TileDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_455rx"]
+[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="2_sqwd6"]
+[ext_resource type="Script" path="res://modules/world/tile_side_rules.gd" id="3_3eyuf"]
+
+[sub_resource type="Resource" id="Resource_v7vor"]
+script = ExtResource("3_3eyuf")
+passable = Array[bool]([true, false, true, false])
+blocks_vision = Array[bool]([false, true, false, true])
+
+[resource]
+script = ExtResource("2_sqwd6")
+id = &"open_door"
+display_name_key = "tile.open_door.name"
+tags = 34
+side_rules = SubResource("Resource_v7vor")
+placeholder_color = Color(0.78, 0.66, 0.42, 1)

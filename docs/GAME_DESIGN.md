@@ -253,6 +253,44 @@ Pipeline:
 
 **WFC u otros algoritmos** solo si terrains de Godot no cubren el caso; deben escribir resultado final en `TileMapLayer`.
 
+### 4.6 Modelo de tile (`TileDef`)
+
+El tile es un `Resource` reutilizable (`class_name TileDef`, `.tres` en `res://assets/world/tiles/`). Propiedades:
+
+| Propiedad | Tipo | Función |
+|-----------|------|---------|
+| `id`, `display_name_key` | `StringName`, clave i18n | Identidad y nombre localizado |
+| `tags` | `@export_flags` (bitmask) | Tipos **no exclusivos**: `Ground, Walkable, Wall, Water, Hazard, Interactable, Cover, VisionBlocker` (ver `TileTags`). Un tile combina varios |
+| `side_rules` | `TileSideRules` | Reglas **por lado** (índice N/E/S/W): `passable[]`, `blocks_vision[]`, `provides_cover[]`. Ej.: puerta abierta transitable N/S pero no E/O; muro que tapa visión solo por un lado |
+| `placement_rule` | `TilePlacementRule` | Restricciones para generación procedural (§4.6.1) |
+| `allowed_modifiers` | `Array[TileModifierDef]` | Modificadores aplicables (§4.6.2) |
+| `placeholder_color` | `Color` | Diamante placeholder; sustituible por arte |
+| `source_id`, `atlas_coords` | int, `Vector2i` | Mapeo al `TileSet` (asignado al construir el atlas) |
+
+Consultas de comportamiento (fachada `world`): `is_walkable_from(dir)`, `blocks_vision_from(dir)`, `provides_cover_to(dir)` combinan `tags` y `side_rules` (las reglas por lado prevalecen cuando existen). `world.can_move(from, dir)` valida además `|Δz| ≤ max_climb` contra `MapHeightField`.
+
+#### 4.6.1 Restricciones de colocación (`TilePlacementRule`)
+
+| Campo | Uso |
+|-------|-----|
+| `forbid_isolated` | Rechaza tiles sueltos (p. ej. agua) |
+| `min_cluster_size`, `max_cluster_size` | Tamaño del cuerpo (p. ej. agua entre 6 y 24) |
+| `roundness_min` (0..1) | Compacidad mínima → cuerpos **redondeados** |
+| `is_linear`, `min_collinear_neighbors` | Trazados lineales (camino = 2 vecinos: delante/detrás) |
+| `allowed_neighbors`, `forbidden_neighbors` | Adyacencias permitidas/prohibidas |
+
+El generador (`world_gen`) **coloca** respetando estas reglas (blobs redondeados para agua, polilíneas conectadas para caminos) y luego **valida**, emitiendo `Log.warn` si un cuerpo queda fuera de rango/forma o un camino tiene celdas mal conectadas.
+
+#### 4.6.2 Modificadores de tile (`TileModifierDef`)
+
+Estados opcionales sobre un tile (`mojado`, `nevado`, `ardiendo`): **dato + overlay visual**.
+
+- Dato: `adds_tags` (p. ej. ardiendo añade `Hazard`), `movement_cost_mult`, `permanent`.
+- Visual: `overlay_texture`/`overlay_color` dibujados en la capa `modifiers` (`TileMapLayer` propia).
+- Aplicación runtime vía `world.add_modifier(cell, def)` / `clear_modifiers(cell)`; el dato y el overlay van juntos.
+
+Assets generados (placeholder): tiles en `res://assets/world/tiles/`, catálogo `field_catalog.tres`, modificadores en `res://assets/world/modifiers/`, bioma `biomes/field.tres`, presets `presets/`.
+
 ---
 
 ## 5. NPCs — arquitectura Godot

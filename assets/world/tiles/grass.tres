@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TileDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_mfmo4"]
+[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="2_g14k6"]
+
+[resource]
+script = ExtResource("2_g14k6")
+id = &"grass"
+display_name_key = "tile.grass.name"
+tags = 3
+placeholder_color = Color(0.45, 0.72, 0.36, 1)

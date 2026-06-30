@@ -1,0 +1,15 @@
+keys,en,es
+tile.grass.name,Grass,Hierba
+tile.dirt_path.name,Dirt Path,Camino de tierra
+tile.pond_water.name,Pond Water,Agua de estanque
+tile.rock_wall.name,Rock Wall,Muro de roca
+tile.bush.name,Bush,Arbusto
+tile.open_door.name,Open Door,Puerta abierta
+modifier.wet.name,Wet,Mojado
+modifier.snowy.name,Snowy,Nevado
+modifier.burning.name,Burning,Ardiendo
+biome.field.name,Field,Campo
+archetype.npc.name,Creature,Criatura
+archetype.humanoid.name,Humanoid,Humanoide
+archetype.human.name,Human,Humano
+npc.main_character.name,Wanderer,Errante

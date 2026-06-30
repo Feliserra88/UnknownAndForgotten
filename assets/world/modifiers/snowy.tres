@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TileModifierDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_cidwt"]
+
+[resource]
+script = ExtResource("1_cidwt")
+id = &"snowy"
+display_name_key = "modifier.snowy.name"
+overlay_color = Color(0.95, 0.97, 1, 0.55)
+movement_cost_mult = 1.5

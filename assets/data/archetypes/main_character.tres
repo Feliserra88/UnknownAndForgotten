@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="NpcArchetype" format=3]
+
+[ext_resource type="Script" path="res://modules/attributes/attribute_set.gd" id="1_oe16l"]
+[ext_resource type="Resource" path="res://assets/data/archetypes/human.tres" id="2_pr8m8"]
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="3_wdraj"]
+[ext_resource type="Resource" path="res://assets/visuals/parts/main_body.tres" id="4_615cn"]
+[ext_resource type="Resource" path="res://assets/visuals/parts/main_head.tres" id="5_5t5bd"]
+[ext_resource type="Resource" path="res://assets/visuals/parts/main_arm_left.tres" id="6_5yryb"]
+[ext_resource type="Resource" path="res://assets/visuals/parts/main_arm_right.tres" id="7_fbmym"]
+[ext_resource type="Resource" path="res://assets/visuals/parts/main_leg_left.tres" id="8_iss7d"]
+[ext_resource type="Resource" path="res://assets/visuals/parts/main_leg_right.tres" id="9_d1i5r"]
+[ext_resource type="Script" path="res://modules/npc/npc_archetype.gd" id="10_8e05v"]
+
+[sub_resource type="Resource" id="Resource_woraw"]
+script = ExtResource("1_oe16l")
+strength = 9
+agility = 4
+willpower = 7
+vitality = 6
+perception = 7
+charisma = 9
+
+[resource]
+script = ExtResource("10_8e05v")
+id = &"main_character"
+parent = ExtResource("2_pr8m8")
+display_name_key = "npc.main_character.name"
+base_attributes = SubResource("Resource_woraw")
+part_visuals = Array[ExtResource("3_wdraj")]([ExtResource("4_615cn"), ExtResource("5_5t5bd"), ExtResource("6_5yryb"), ExtResource("7_fbmym"), ExtResource("8_iss7d"), ExtResource("9_d1i5r")])

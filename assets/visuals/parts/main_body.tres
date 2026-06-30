@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3]
+
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_a815p"]
+
+[resource]
+script = ExtResource("1_a815p")
+part_id = &"body"
+placeholder_color = Color(0.39564943, 0.6129364, 0.40169716, 1)
+size = Vector2i(20, 28)
