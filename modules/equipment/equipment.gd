@@ -1,3 +1,4 @@
+@tool
 class_name EquipmentModule
 extends RefCounted
 ## Public facade for items and equipment (see docs/GAME_DESIGN.md section 7). Loads ItemDef assets,
@@ -22,6 +23,9 @@ func list_items() -> Array[ItemDef]:
 	var out: Array[ItemDef] = []
 	var dir := DirAccess.open(DIR)
 	if dir == null:
+		dir = DirAccess.open(ProjectSettings.globalize_path(DIR))
+	if dir == null:
+		Log.warn(_LOG, "list_items: cannot open %s" % DIR)
 		return out
 	for file in dir.get_files():
 		if not file.ends_with(".tres"):

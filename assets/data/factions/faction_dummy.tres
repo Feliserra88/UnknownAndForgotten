@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FactionDef" format=3 uid="uid://cwrxrtkan61me"]
+
+[ext_resource type="Script" uid="uid://uwotr6tx6iij" path="res://modules/faction/faction_def.gd" id="1_faction"]
+
+[resource]
+script = ExtResource("1_faction")
+id = &"faction_dummy"
+display_name_key = "faction.dummy.name"
+granted_modifier_ids = Array[StringName]([&"modifier_dummy"])
+ally_to = Array[StringName]([&"faction_dummy"])
+tags = Array[StringName]([&"dummy", &"test"])

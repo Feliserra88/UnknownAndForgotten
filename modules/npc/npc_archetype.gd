@@ -1,3 +1,4 @@
+@tool
 class_name NpcArchetype
 extends Resource
 ## Data-driven archetype node (see docs/GAME_DESIGN.md section 5.3). Hierarchy is modelled as a

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pbixc0jl24hy"
-path="res://.godot/imported/iron_helmet.svg-d7066c22380d79c94a7e55a13cf3a06a.ctex"
+uid="uid://hns8j0gmvwnn"
+path="res://.godot/imported/equipo_humano_cabeza_dummy.svg-c29fdb45ff10690bc530483bdfe2dc21.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/visuals/equipment/icons/iron_helmet.svg"
-dest_files=["res://.godot/imported/iron_helmet.svg-d7066c22380d79c94a7e55a13cf3a06a.ctex"]
+source_file="res://assets/visuals/equipment/icons/dummy/equipo_humano_cabeza_dummy.svg"
+dest_files=["res://.godot/imported/equipo_humano_cabeza_dummy.svg-c29fdb45ff10690bc530483bdfe2dc21.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pvip75xd4lqi"
-path="res://.godot/imported/leather_vest.svg-cdb8720af01aafea94de8ba2551f090b.ctex"
+uid="uid://tu1uskp5gfw4"
+path="res://.godot/imported/equipo_humano_anillo_2_dummy.svg-9fc43a328693a39f767451b6db2e3571.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/visuals/equipment/icons/leather_vest.svg"
-dest_files=["res://.godot/imported/leather_vest.svg-cdb8720af01aafea94de8ba2551f090b.ctex"]
+source_file="res://assets/visuals/equipment/icons/dummy/equipo_humano_anillo_2_dummy.svg"
+dest_files=["res://.godot/imported/equipo_humano_anillo_2_dummy.svg-9fc43a328693a39f767451b6db2e3571.ctex"]
 
 [params]
 

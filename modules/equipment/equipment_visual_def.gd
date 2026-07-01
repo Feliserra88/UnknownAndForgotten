@@ -1,3 +1,4 @@
+@tool
 class_name EquipmentVisualDef
 extends Resource
 ## How an equipped item is drawn over a body part's EquipmentLayer (see docs/GAME_DESIGN.md

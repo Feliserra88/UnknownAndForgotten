@@ -1,3 +1,4 @@
+@tool
 class_name BodyPartMap
 extends Resource
 ## Catalogue of anatomical part ids for an archetype (humanoid vs quadruped, ...).

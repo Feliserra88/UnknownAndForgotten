@@ -1,3 +1,4 @@
+@tool
 class_name FactionDef
 extends Resource
 ## Data-driven faction: group membership plus the modifiers and relations it carries

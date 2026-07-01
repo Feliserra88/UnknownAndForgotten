@@ -1,3 +1,4 @@
+@tool
 class_name InspectionLayoutDef
 extends Resource
 ## Layout for an NPC inspection panel: a background silhouette plus normalized rectangles where

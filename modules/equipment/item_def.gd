@@ -1,3 +1,4 @@
+@tool
 class_name ItemDef
 extends Resource
 ## Data-driven equipable item (see docs/GAME_DESIGN.md section 7). Binds an inventory slot to an

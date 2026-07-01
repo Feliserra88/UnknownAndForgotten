@@ -1,3 +1,4 @@
+@tool
 class_name ModifierDef
 extends Resource
 ## Data-driven stat/behaviour overlay applied on top of an NPC's base attributes

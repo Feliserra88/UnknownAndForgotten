@@ -1,3 +1,4 @@
+@tool
 class_name NpcSpriteAnimDef
 extends Resource
 ## Full-body sprite set for an NPC: idle 8-way sheet plus walk sheets per facing.

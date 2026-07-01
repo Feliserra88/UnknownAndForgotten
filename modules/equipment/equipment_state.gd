@@ -1,3 +1,4 @@
+@tool
 class_name EquipmentState
 extends RefCounted
 ## Mutable runtime equipment for a single NPC: maps slot -> item id. Owned per instance,

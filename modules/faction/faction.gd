@@ -1,3 +1,4 @@
+@tool
 class_name FactionModule
 extends RefCounted
 ## Public facade for factions (see docs/GAME_DESIGN.md section 6). Loads FactionDef assets and
@@ -20,7 +21,7 @@ func load_def(id: StringName) -> FactionDef:
 ## Returns every FactionDef asset found in DIR.
 func list_defs() -> Array[FactionDef]:
 	var out: Array[FactionDef] = []
-	var dir := DirAccess.open(DIR)
+	var dir := _open_dir(DIR)
 	if dir == null:
 		return out
 	for file in dir.get_files():
@@ -30,6 +31,14 @@ func list_defs() -> Array[FactionDef]:
 		if def != null:
 			out.append(def)
 	return out
+
+func _open_dir(dir_path: String) -> DirAccess:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		dir = DirAccess.open(ProjectSettings.globalize_path(dir_path))
+	if dir == null:
+		Log.warn(_LOG, "cannot open dir %s" % dir_path)
+	return dir
 
 ## Returns the modifier ids granted by every faction in [param faction_ids] (deduplicated).
 func granted_modifier_ids(faction_ids: Array) -> Array[StringName]:

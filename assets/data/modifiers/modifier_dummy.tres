@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ModifierDef" format=3 uid="uid://b6kr2dexqpued"]
+
+[ext_resource type="Script" uid="uid://d2yjaw77ox5vn" path="res://modules/modifier/modifier_def.gd" id="1_modifier"]
+
+[resource]
+script = ExtResource("1_modifier")
+id = &"modifier_dummy"
+display_name_key = "modifier.dummy.name"
+additive = {
+"charisma": 1,
+"perception": 2
+}
+tags = Array[StringName]([&"dummy"])

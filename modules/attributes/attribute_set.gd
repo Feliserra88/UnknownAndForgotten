@@ -1,3 +1,4 @@
+@tool
 class_name AttributeSet
 extends Resource
 ## Base character attributes (see docs/GAME_DESIGN.md section 8.7). Saveable as a .tres asset.

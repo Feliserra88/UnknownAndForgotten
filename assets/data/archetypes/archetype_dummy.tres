@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="NpcArchetype" format=3 uid="uid://ig1q7d6dovb1"]
+
+[ext_resource type="Script" uid="uid://buy15ctorbxdb" path="res://modules/attributes/attribute_set.gd" id="1_attrs"]
+[ext_resource type="Resource" uid="uid://cj4v8gmnkrbnh" path="res://assets/data/archetypes/humanoid.tres" id="2_humanoid"]
+[ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="3_arch"]
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="3_lm5nd"]
+
+[sub_resource type="Resource" id="Resource_attrs"]
+script = ExtResource("1_attrs")
+strength = 6
+agility = 6
+vitality = 6
+
+[resource]
+script = ExtResource("3_arch")
+id = &"archetype_dummy"
+parent = ExtResource("2_humanoid")
+display_name_key = "archetype.dummy.name"
+base_attributes = SubResource("Resource_attrs")
+tags = Array[StringName]([&"humanoid", &"dummy"])
+default_factions = Array[StringName]([&"faction_dummy"])
+default_modifiers = Array[StringName]([&"modifier_dummy"])

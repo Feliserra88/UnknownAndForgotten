@@ -25,7 +25,10 @@ func build_from_layout(layout: InspectionLayoutDef) -> void:
 		child.queue_free()
 	_region = UfLayoutRegion.new()
 	_region.name = "InspectionArea"
-	_region.region_min_size = layout.background_size
+	var region_size := layout.background_size
+	if region_size.x < 16.0 or region_size.y < 16.0:
+		region_size = Vector2(220, 320)
+	_region.region_min_size = region_size
 	content.add_child(_region)
 
 	var background := TextureRect.new()
@@ -40,6 +43,8 @@ func build_from_layout(layout: InspectionLayoutDef) -> void:
 	for entry in layout.slots:
 		var slot_id := StringName(entry.get("slot_id", &""))
 		var rect: Rect2 = entry.get("rect", Rect2())
+		if rect.size == Vector2.ZERO:
+			continue
 		_add_slot(slot_id, rect)
 
 ## Sets [param item_id] with [param tex] on the slot [param slot_id], if present.
@@ -62,6 +67,7 @@ func _add_slot(slot_id: StringName, rect: Rect2) -> void:
 	var slot := _SlotScript.new() as UfEquipmentSlot
 	slot.slot_id = slot_id
 	slot.name = "Slot_%s" % slot_id
+	slot.custom_minimum_size = Vector2(28, 28)
 	slot.set_anchor(SIDE_LEFT, rect.position.x)
 	slot.set_anchor(SIDE_TOP, rect.position.y)
 	slot.set_anchor(SIDE_RIGHT, rect.position.x + rect.size.x)

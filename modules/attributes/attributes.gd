@@ -1,3 +1,4 @@
+@tool
 class_name AttributesModule
 extends RefCounted
 ## Public facade for character stats lifecycle (see docs/ARCHITECTURE.md section 5). Centralizes

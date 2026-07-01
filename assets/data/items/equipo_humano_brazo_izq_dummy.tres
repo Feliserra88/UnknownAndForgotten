@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3 uid="uid://m72d7t2o0l8h"]
+
+[ext_resource type="Script" uid="uid://h7cuyvaspxlq" path="res://modules/equipment/item_def.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://ttlf8jdqy5s5" path="res://modules/equipment/equipment_visual_def.gd" id="2_visual"]
+[ext_resource type="Texture2D" uid="uid://buk128ia1y11i" path="res://assets/visuals/equipment/icons/dummy/equipo_humano_brazo_izq_dummy.svg" id="3_icon"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+slot = &"arm_left"
+
+[resource]
+script = ExtResource("1_item")
+id = &"equipo_humano_brazo_izq_dummy"
+display_name_key = "item.equipo_humano_brazo_izq_dummy.name"
+slot = &"arm_left"
+allowed_archetype_tags = Array[StringName]([&"humanoid", &"dummy"])
+icon = ExtResource("3_icon")
+visual = SubResource("Resource_visual")

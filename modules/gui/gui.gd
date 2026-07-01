@@ -1,3 +1,4 @@
+@tool
 class_name GuiModule
 extends Node
 ## Public facade for game UI (see docs/GAME_DESIGN.md section 10). Creates movable UfPanel
@@ -59,6 +60,7 @@ func create_inspection_panel(layout: InspectionLayoutDef, title_key: String = "g
 	var panel := create_panel(&"inspection", title_key) as UfInspectionPanel
 	if panel == null:
 		return null
+	panel._ensure_structure()
 	if layout != null:
 		panel.build_from_layout(layout)
 	return panel

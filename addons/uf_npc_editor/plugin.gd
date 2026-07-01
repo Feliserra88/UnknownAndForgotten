@@ -34,3 +34,5 @@ func _get_plugin_icon() -> Texture2D:
 func _make_visible(visible: bool) -> void:
 	if _workspace != null:
 		_workspace.visible = visible
+		if visible:
+			_workspace.call_deferred("ensure_ready")

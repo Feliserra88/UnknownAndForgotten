@@ -1,7 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dp6ydmn6l7wxf"]
 
-[ext_resource type="Script" path="res://modules/gui/widgets/uf_equipment_slot.gd" id="1_slot"]
+[ext_resource type="Script" uid="uid://bgih7k8mubs0q" path="res://modules/gui/widgets/uf_equipment_slot.gd" id="1_slot"]
 
-[node name="UfEquipmentSlot" type="Panel"]
+[node name="UfEquipmentSlot" type="Panel" unique_id=981317227]
 custom_minimum_size = Vector2(40, 40)
 script = ExtResource("1_slot")

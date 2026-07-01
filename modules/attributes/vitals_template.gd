@@ -1,3 +1,4 @@
+@tool
 class_name VitalsTemplate
 extends Resource
 ## Maximum values for an NPC's vital variables (see docs/GAME_DESIGN.md section 8.2).

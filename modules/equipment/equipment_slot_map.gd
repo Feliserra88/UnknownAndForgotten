@@ -1,3 +1,4 @@
+@tool
 class_name EquipmentSlotMap
 extends Resource
 ## Catalogue of equipment (object) slots for an archetype, distinct from anatomical BodyPartMap

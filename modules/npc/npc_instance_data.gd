@@ -1,3 +1,4 @@
+@tool
 class_name NpcInstanceData
 extends RefCounted
 ## Mutable runtime state for a single NPC (see docs/GAME_DESIGN.md section 5.7).

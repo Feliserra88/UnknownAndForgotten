@@ -1,3 +1,4 @@
+@tool
 class_name NpcVitals
 extends Resource
 ## Runtime vital values for a single NPC instance, seeded from a VitalsTemplate.

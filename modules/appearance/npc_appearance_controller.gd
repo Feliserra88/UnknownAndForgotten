@@ -1,3 +1,4 @@
+@tool
 class_name NpcAppearanceController
 extends Node2D
 ## Builds and updates the NPC visual rig: cutout slots or a full-body AnimatedSprite2D
@@ -46,6 +47,13 @@ func set_equipment_texture(part_id: StringName, tex: Texture2D) -> void:
 		return
 	layer.texture = tex
 	layer.visible = tex != null
+	if tex != null:
+		var base := slot.get("base", null) as Sprite2D
+		if base != null and base.texture != null:
+			var base_size := base.texture.get_size()
+			var tex_size := tex.get_size()
+			if tex_size.x > 0.0 and tex_size.y > 0.0:
+				layer.scale = Vector2(base_size.x / tex_size.x, base_size.y / tex_size.y)
 
 ## Hides and clears the EquipmentLayer of [param part_id]'s slot.
 func clear_equipment_texture(part_id: StringName) -> void:

@@ -1,3 +1,4 @@
+@tool
 class_name NpcModule
 extends Node
 ## Public facade for NPC creation (see docs/GAME_DESIGN.md section 5.6). Resolves the archetype

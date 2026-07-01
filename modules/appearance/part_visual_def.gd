@@ -1,3 +1,4 @@
+@tool
 class_name PartVisualDef
 extends Resource
 ## Visual definition of a body part's base layer (see docs/GAME_DESIGN.md section 5.5.4).
