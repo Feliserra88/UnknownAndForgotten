@@ -21,7 +21,7 @@ func _ready() -> void:
 		_apply()
 
 func _apply() -> void:
-	var appearance := get_node_or_null("MotionPivot/Appearance") as NpcAppearanceController
+	var appearance := AppearanceModule.find_controller(self)
 	if appearance == null:
 		Log.warn(_LOG, "npc_body missing Appearance controller")
 		return

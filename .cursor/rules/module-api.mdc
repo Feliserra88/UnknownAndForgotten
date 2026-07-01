@@ -14,16 +14,37 @@ Al modificar o crear scripts:
 - **Privado**: prefijo `_` y archivos en `_private/`. Solo accesibles dentro del mismo módulo.
 - La fachada (`modules/<nombre>/<nombre>.gd`) expone la API; delega implementación a `_private/`.
 
+## Formas de módulo válidas
+
+No todo módulo necesita nodo fachada (ver `ARCHITECTURE.md` §5.1.1):
+
+- **Node facade** — gestiona estado/escena en árbol (`WorldModule`, `GuiModule`).
+- **RefCounted / static facade** — utilidades sin estado; contrato por funciones estáticas (`AttributesModule`, `AppearanceModule`).
+- **Resource-only** — el dominio son solo `Resource` `.tres` consumidos por otros módulos (`attributes`), opcionalmente con una static facade para su ciclo de vida.
+
 ## APIs parametrizadas
 
 - Preferir parámetros y opciones antes que duplicar funciones o crear módulos gemelos.
 - Evitar exponer estado interno mutable; devolver datos o emitir señales.
 
+## Comunicación
+
+- Preferir API directa parametrizada de la fachada de otro módulo.
+- Eventos de dominio desacoplados → `EventBus` con canales de `core/events.gd` (ver `events.mdc`).
+
 ## Nuevo módulo
 
 Crear módulo solo si la funcionalidad **no corresponde** a uno existente. Indicar en el cambio por qué no encaja en los actuales.
 
+## Matriz de dependencias (ver `ARCHITECTURE.md` §4.1)
+
+- `scenes`/`ui` → `modules` (API pública), `core`, `autoload`.
+- `modules` → `core`, `autoload`, API pública de otros `modules`, `EventBus`.
+- `core` → `autoload` (mínimo); `autoload` no depende de `modules`.
+- Validar con `godot --headless --path . --script res://tools/check_architecture.gd`.
+
 ## Prohibido
 
-- Importar desde `modules/*/\_private/` ajeno.
+- Importar desde `modules/*/_private/` ajeno (ni por ruta ni por `class_name`).
 - Acceder a miembros `_` de otro script/módulo.
+- Referenciar `res://scenes/` o `res://ui/` desde un módulo, salvo allowlist (§4.1: `npc`→`npc_base.tscn`, `gui`→`res://ui/`).

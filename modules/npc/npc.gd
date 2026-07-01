@@ -58,4 +58,10 @@ func spawn(archetype: NpcArchetype, cell: Vector3i, _world: WorldModule = null) 
 	body.add_to_group(&"npc")
 	for fid in instance.faction_ids:
 		body.add_to_group(StringName("faction_%s" % fid))
+	if not Engine.is_editor_hint():
+		EventBus.publish(GameEvents.NPC_SPAWNED, {
+			"uid": instance.uid,
+			"archetype_id": instance.archetype_id,
+			"cell": instance.grid_cell,
+		})
 	return body

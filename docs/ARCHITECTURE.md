@@ -106,16 +106,42 @@ venv.ini                   # Config runtime (clave=valor), raíz del proyecto
 **Dependencias permitidas (solo hacia abajo):**
 
 - `scenes` → `modules`, `core`, `autoload`
-- `modules` → `core`, `autoload`, **API pública** de otros `modules`
+- `ui` → `modules` (fachada `gui`), `core`, `autoload`
+- `modules` → `core`, `autoload`, **API pública** de otros `modules`, y `EventBus`
 - `core` → `autoload` (mínimo; preferir sin dependencias)
+- `autoload` → no depende de `modules` ni de `scenes`
 - `_private/` → solo recursos dentro del mismo módulo
 
 **Prohibido:**
 
-- Importar desde `_private/` de otro módulo
+- Importar desde `_private/` de otro módulo (ni por ruta ni por `class_name`)
+- Referenciar `res://scenes/` o `res://ui/` desde un módulo, salvo allowlist (§4.1)
 - Lógica de negocio pesada dentro de `.tscn` o scripts de escena (usar módulos)
 - `print()` / `push_warning()` directos (usar `Log`)
 - Leer config fuera del autoload `Config`
+
+### 4.1 Matriz de dependencias y validación
+
+La matriz se valida automáticamente con `tools/check_architecture.gd` (lint headless):
+
+```
+godot --headless --path . --script res://tools/check_architecture.gd
+```
+
+Reglas comprobadas:
+
+- **A** — un módulo no referencia `_private/` de otro módulo.
+- **B** — presentación (`scenes/`, `ui/`, addons `uf_*`) no referencia ningún `_private/` de módulo.
+- **C** — un módulo no referencia `res://scenes/` ni `res://ui/` salvo allowlist.
+
+**Allowlist (excepciones temporales, con TODO en `docs/ROADMAP.md`):**
+
+| Desde | Hacia | Motivo |
+|-------|-------|--------|
+| `modules/npc/` | `res://scenes/npc/npc_base.tscn` | Escena de presentación por defecto del NPC (pendiente inyectar por config) |
+| `modules/gui/` | `res://ui/` | La fachada `gui` compone y carga assets de UI (paneles, widgets, iconos) |
+
+Al añadir un módulo, o antes de cada release, correr el lint y mantenerlo en verde.
 
 ---
 
@@ -137,6 +163,18 @@ Cada módulo tiene:
 | Interno | Archivos bajo `_private/` | Solo el módulo propietario |
 
 La fachada delega en `_private/` y **no expone** tipos internos salvo que formen parte del contrato público documentado.
+
+### 5.1.1 Formas de módulo válidas
+
+No todos los módulos necesitan un nodo fachada:
+
+| Forma | Cuándo | Ejemplos |
+|-------|--------|----------|
+| **Node facade** | El módulo gestiona estado/escena o ciclo de vida en árbol | `world` (`WorldModule`), `gui` (`GuiModule`) |
+| **RefCounted / static facade** | Utilidades sin estado en árbol; contrato por funciones estáticas | `attributes` (`AttributesModule`), `appearance` (`AppearanceModule`) |
+| **Resource-only** | El dominio son solo datos (`Resource` `.tres`) consumidos por otros módulos; puede combinarse con una static facade para el ciclo de vida | `attributes` (`AttributeSet`, `VitalsTemplate`, `NpcVitals`) |
+
+Regla: el contrato público es el `class_name` + sus métodos/propiedades sin `_`. Otros módulos usan la fachada, nunca los internos.
 
 ### 5.2 Contrato de API
 
@@ -172,11 +210,32 @@ Orden de preferencia:
 
 No usar singletons globales ad hoc fuera de `autoload/` aprobados.
 
-### EventBus (cuando se implemente)
+### 6.1 EventBus (implementado)
 
-- Payload tipado (Dictionary con claves documentadas o Resource).
-- Emisor registra evento en `Log` nivel 1; detalle en nivel 2.
+Autoload `EventBus` (`autoload/event_bus.gd`) para eventos de dominio desacoplados. Los canales son constantes `StringName` del catálogo `core/events.gd` (`GameEvents`), compartido por emisores y suscriptores para no acoplar módulos entre sí.
+
+**API:**
+
+- `EventBus.publish(event: StringName, payload: Dictionary = {})`
+- `EventBus.subscribe(event: StringName, callable: Callable)`
+- `EventBus.unsubscribe(event: StringName, callable: Callable)`
+
+**Contrato:**
+
+- Cada canal se declara en `GameEvents` con su payload documentado (Dictionary con claves fijas).
+- Implementado sobre user signals de Godot (`add_user_signal` / `emit_signal`) → semántica nativa de connect/disconnect.
+- Trazas por `Log` código `EVT` (gate `LOG_EVENTBUS_LEVEL` en `venv.ini`): detalle por publicación en nivel 2.
 - Los módulos no asumen orden de recepción entre listeners.
+- Los publishers de módulo evitan emitir dentro del editor (`if not Engine.is_editor_hint()`).
+
+**Canales actuales (`core/events.gd`):**
+
+| Constante | Canal | Payload | Emisor |
+|-----------|-------|---------|--------|
+| `WORLD_GENERATED` | `world.generated` | `{ region: Rect2i, seed: int }` | `WorldGenModule.generate()` |
+| `NPC_SPAWNED` | `npc.spawned` | `{ uid: int, archetype_id: StringName, cell: Vector3i }` | `NpcModule.spawn()` |
+
+Ampliar el catálogo aquí al añadir eventos (ver backlog en `docs/ROADMAP.md`).
 
 ---
 
@@ -188,7 +247,7 @@ No usar singletons globales ad hoc fuera de `autoload/` aprobados.
 | `Log` | Única salida de trazas; respeta gates por módulo. |
 | `Version` | Lee `VERSION` (major/minor/bump) y expone `get_string()` como `X.Y.B`. |
 | `WindowPlacement` | Coloca/redimensiona la ventana del juego al arrancar según `GAME_WINDOW_*` en `venv.ini` (solo runtime). |
-| `EventBus` | Bus de eventos de dominio (opcional al inicio; reservar nombre). |
+| `EventBus` | Bus de eventos de dominio (`publish`/`subscribe`/`unsubscribe`); canales en `core/events.gd`. Código log `EVT`. |
 
 Registrar en `project.godot` bajo `[autoload]`. Ningún otro autoload sin actualizar este documento.
 
@@ -288,6 +347,9 @@ Antes de merge:
 - [ ] ¿Existe ya un módulo con esa responsabilidad? Si sí, extender en lugar de crear.
 - [ ] ¿API pública documentada y separada de `_private/`?
 - [ ] ¿Sin imports desde `_private/` ajeno?
+- [ ] ¿Sin referencias a `res://scenes/` o `res://ui/` desde el módulo (salvo allowlist §4.1)?
+- [ ] ¿Pasa `tools/check_architecture.gd` (lint de dependencias)?
+- [ ] ¿Eventos de dominio nuevos declarados en `core/events.gd` y documentados (§6.1)?
 - [ ] ¿Clave `LOG_<MODULO>_LEVEL` en `venv.ini` (y ejemplo en comentario)?
 - [ ] ¿Trazas solo vía `Log`?
 - [ ] ¿Opciones runtime solo en `venv.ini`?
@@ -304,17 +366,18 @@ Mantener tabla actualizada al crear módulos:
 |--------|---------|------------|--------------|-------------|
 | Config | `autoload/config.gd` | CFG | `LOG_CONFIG_LEVEL` | Lectura de `venv.ini` |
 | Log | `autoload/log.gd` | LOG | `LOG_LOG_LEVEL` | Sistema de trazas |
+| EventBus | `autoload/event_bus.gd` | EVT | `LOG_EVENTBUS_LEVEL` | Bus de eventos de dominio; canales en `core/events.gd` (`GameEvents`) |
 | World | `modules/world/` | WLD | `LOG_WORLD_LEVEL` | Tile (`TileDef`, flags, reglas por lado, modificadores), `MapHeightField`, capas `TileMapLayer`, consultas de paso/visión/cobertura |
 | World gen | `modules/world_gen/` | WGN | `LOG_WORLD_GEN_LEVEL` | `BiomeDef`, `WorldGenRequest`, generador con solver de restricciones (agua redondeada, caminos conectados); bioma `field` placeholder |
 | Camera | `modules/camera/` | CAM | `LOG_CAMERA_LEVEL` | Rig `Node2D` + `Camera2D` (pan; vista fija 0°) |
 | NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype` (cadena de datos), `NpcInstanceData`, spawn; cadena `npc`→`humanoid`→`human` |
-| Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | `BodyPartMap`, `PartVisualDef`, `NpcAppearanceController` (rig modular por slot) |
-| Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | `AttributeSet`, `VitalsTemplate`, `NpcVitals` |
+| Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | Fachada `AppearanceModule` (localiza/acciona el rig); `NpcAppearanceController`, `BodyPartMap`, `PartVisualDef` (rig modular por slot) |
+| Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | Fachada estática `AttributesModule` (ciclo de vida de stats); `AttributeSet`, `VitalsTemplate`, `NpcVitals` (Resource-only) |
 | GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`), widgets `Uf*` (`modules/gui/widgets/`), theme; fachada `GuiModule` que crea paneles y carga assets de `ui/domain/` |
 | Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, guardar presets/mapas |
 | Herramientas GUI | `addons/uf_gui_tools/` | — | — | `EditorPlugin` sobre API `gui`: compone paneles de dominio (`UfPanel` + widgets) y los guarda como `PackedScene` en `res://ui/domain/` |
 
-Core compartido: `core/direction.gd` (`Direction`, enum N/E/S/W). Herramienta de build de assets placeholder: `tools/asset_builder.tscn` (genera `.tres` reutilizables en `res://assets/`).
+Core compartido: `core/direction.gd` (`Direction`, enum N/E/S/W) y `core/events.gd` (`GameEvents`, catálogo de canales del `EventBus`). Herramientas: `tools/asset_builder.tscn` (genera `.tres` placeholder en `res://assets/`), `tools/validate_scripts.gd` (sintaxis) y `tools/check_architecture.gd` (lint de dependencias §4.1).
 
 ---
 

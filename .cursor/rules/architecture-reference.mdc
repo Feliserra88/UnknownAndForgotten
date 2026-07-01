@@ -9,10 +9,12 @@ Antes de **añadir o modificar cualquier módulo** de código (scripts GDScript,
 
 1. **Consultar** la documentación oficial de Godot (sección 2 de `ARCHITECTURE.md`): usar APIs nativas del motor y seguir su metodología de proyecto/escenas/recursos.
 2. **Leer** `docs/ARCHITECTURE.md` y aplicar su estructura, capas y convenciones.
-3. **Respetar** el flujo de dependencias: escenas → módulos → core → autoloads. Nunca importar `_private/` de otro módulo.
-4. **Actualizar** `docs/ARCHITECTURE.md` (tabla de módulos, autoloads, convenciones) si el cambio introduce un módulo nuevo, autoload o patrón distinto.
-5. **Justificar** un módulo nuevo: su dominio no debe encajar en ningún módulo existente.
-6. **Herramientas de artista** — si el módulo tendrá alto reuso y fine-tuning artístico, planificar addon (`editor-artist-tools.mdc`, `GAME_DESIGN.md` §11).
+3. **Respetar** el flujo de dependencias: escenas → módulos → core → autoloads. Nunca importar `_private/` de otro módulo ni referenciar `res://scenes/`/`res://ui/` desde un módulo (salvo allowlist §4.1).
+4. **Validar** la matriz de dependencias con el lint antes de merge: `godot --headless --path . --script res://tools/check_architecture.gd` (debe quedar en verde).
+5. **Actualizar** `docs/ARCHITECTURE.md` (tabla de módulos, autoloads, convenciones) si el cambio introduce un módulo nuevo, autoload o patrón distinto.
+6. **Justificar** un módulo nuevo: su dominio no debe encajar en ningún módulo existente.
+7. **Eventos de dominio** — usar `EventBus` con canales declarados en `core/events.gd` (`events.mdc`, `ARCHITECTURE.md` §6.1).
+8. **Herramientas de artista** — si el módulo tendrá alto reuso y fine-tuning artístico, planificar addon (`editor-artist-tools.mdc`, `GAME_DESIGN.md` §11).
 
 Si hay conflicto entre una petición puntual y la arquitectura, priorizar la arquitectura salvo indicación explícita del usuario de revisarla.
 

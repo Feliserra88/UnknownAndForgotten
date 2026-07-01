@@ -5,6 +5,10 @@ extends SceneTree
 const _PATHS := [
 	"res://addons/uf_map_editor/plugin.gd",
 	"res://addons/uf_map_editor/dock.gd",
+	"res://core/events.gd",
+	"res://autoload/event_bus.gd",
+	"res://modules/attributes/attributes.gd",
+	"res://modules/appearance/appearance.gd",
 	"res://modules/world/world.gd",
 	"res://modules/gui/gui.gd",
 	"res://modules/gui/uf_panel.gd",

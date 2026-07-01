@@ -1,0 +1,31 @@
+---
+description: Comunicación desacoplada entre módulos vía EventBus y catálogo GameEvents
+globs: "**/*.gd"
+alwaysApply: false
+---
+
+# Eventos de dominio (EventBus)
+
+Para comunicación desacoplada entre módulos (muchos suscriptores o sin acoplamiento temporal), usar el autoload **`EventBus`**. Para llamadas directas 1:1, preferir la API pública de la fachada del otro módulo.
+
+## Catálogo
+
+- Todo canal se declara como constante `StringName` en `core/events.gd` (`GameEvents`) con su **payload documentado** (Dictionary con claves fijas).
+- Registrarlo también en `GameEvents.all()` para que el bus predeclare su señal.
+- Documentar el canal en `docs/ARCHITECTURE.md` §6.1.
+
+## API
+
+```gdscript
+EventBus.publish(GameEvents.NPC_SPAWNED, {"uid": uid, "archetype_id": id, "cell": cell})
+EventBus.subscribe(GameEvents.NPC_SPAWNED, _on_npc_spawned)   # Callable(payload: Dictionary)
+EventBus.unsubscribe(GameEvents.NPC_SPAWNED, _on_npc_spawned)
+```
+
+## Reglas
+
+- Emisores y suscriptores dependen solo de `GameEvents` (en `core`), nunca entre sí.
+- No asumir orden de recepción entre listeners.
+- Los publishers de módulo evitan emitir en el editor: `if not Engine.is_editor_hint():`.
+- Trazas del bus vía `Log` código `EVT` (gate `LOG_EVENTBUS_LEVEL`).
+- No crear singletons ad hoc para eventos fuera de `EventBus`.

@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Config="*res://autoload/config.gd"
 Log="*res://autoload/log.gd"
+EventBus="*res://autoload/event_bus.gd"
 Version="*res://autoload/version.gd"
 WindowPlacement="*res://autoload/window_placement.gd"
 

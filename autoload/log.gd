@@ -10,6 +10,7 @@ enum Level { OFF = 0, SUMMARY = 1, DETAIL = 2 }
 const _MODULE_KEYS := {
 	"CFG": "CONFIG",
 	"LOG": "LOG",
+	"EVT": "EVENTBUS",
 	"WLD": "WORLD",
 	"WGN": "WORLD_GEN",
 	"CAM": "CAMERA",

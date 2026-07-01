@@ -14,8 +14,10 @@ Toda traza pasa por el autoload **`Log`**. No usar `print()`, `print_r()` ni equ
 YYYY/MM/DD hh:mm:ss [COD] tipo mensaje
 ```
 
-- **COD**: 3 letras del módulo (`CHA`, `CFG`, `LOG`…).
+- **COD**: 3 letras del módulo (`CHA`, `CFG`, `LOG`, `EVT`…).
 - **tipo**: categoría breve (`init`, `warn`, `err`, `evt`…).
+
+Códigos reservados de infraestructura: `CFG` (Config), `LOG` (Log), `EVT` (EventBus).
 
 ## Gates en `venv.ini`
 

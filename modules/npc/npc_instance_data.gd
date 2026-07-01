@@ -21,9 +21,8 @@ func apply_archetype(archetype: NpcArchetype) -> void:
 	_next_uid += 1
 	archetype_id = archetype.id
 	display_name_key = archetype.display_name_key
-	var base_attrs := archetype.resolve_attributes()
-	attributes = base_attrs.clone() if base_attrs != null else AttributeSet.new()
-	vitals = NpcVitals.from_template(archetype.resolve_vitals())
+	attributes = AttributesModule.clone_attributes(archetype.resolve_attributes())
+	vitals = AttributesModule.spawn_vitals(archetype.resolve_vitals())
 	faction_ids = archetype.default_factions.duplicate()
 	traits = archetype.default_traits.duplicate()
 

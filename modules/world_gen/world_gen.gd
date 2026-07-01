@@ -36,8 +36,15 @@ func build_field_request(area: Rect2i, gen_seed: int) -> WorldGenRequest:
 	return request
 
 ## Generates the map described by [param request] into [param world]; returns a report dict.
+## Publishes [constant GameEvents.WORLD_GENERATED] at runtime (skipped inside the editor).
 func generate(request: WorldGenRequest, world: WorldModule) -> Dictionary:
 	if request == null or request.biome == null:
 		Log.warn(_LOG, "generate: missing request or biome")
 		return {}
-	return _Generator.generate(request, world)
+	var report: Dictionary = _Generator.generate(request, world)
+	if not Engine.is_editor_hint():
+		EventBus.publish(GameEvents.WORLD_GENERATED, {
+			"region": request.area,
+			"seed": request.gen_seed,
+		})
+	return report
