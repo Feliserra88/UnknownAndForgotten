@@ -4,6 +4,7 @@
 
 [node name="UfLayoutRegion" type="Control" unique_id=847991059]
 custom_minimum_size = Vector2(240, 160)
+layout_mode = 3
+anchors_preset = 0
 size_flags_horizontal = 3
 script = ExtResource("1_region")
-region_min_size = Vector2(240, 160)
