@@ -77,13 +77,35 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 			_paint_at_canvas(event, world)
 			return true
 	elif mode == Mode.EDIT_HEIGHT and event is InputEventMouseButton and event.pressed:
+		var delta := 0
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_edit_height_at_canvas(event, world, 1)
-			return true
-		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_edit_height_at_canvas(event, world, -1)
+			delta = 1
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			delta = -1
+		if delta != 0:
+			_edit_height_at_canvas(event, world, delta)
 			return true
 	return false
+
+func _input(event: InputEvent) -> void:
+	if not paint_enabled or mode != Mode.EDIT_HEIGHT:
+		return
+	if not event is InputEventKey or not event.pressed or event.echo:
+		return
+	var delta := 0
+	match event.keycode:
+		KEY_EQUAL, KEY_KP_ADD:
+			delta = 1
+		KEY_MINUS, KEY_KP_SUBTRACT:
+			delta = -1
+		_:
+			return
+	var world := _active_world()
+	if world == null:
+		return
+	var cell := _cell_under_editor_mouse(world)
+	_apply_height_delta(world, cell, delta)
+	get_viewport().set_input_as_handled()
 
 func prepare_field_map(region: Rect2i) -> void:
 	_run_on_scratch(region, func(scratch: WorldModule) -> String:
@@ -189,6 +211,7 @@ func _active_world() -> WorldModule:
 	if _map_session.ground_layer == null or not is_instance_valid(_map_session.ground_layer):
 		set_dock_status("Scene root is missing Layers/Ground (open world_root.tscn).")
 		return null
+	_sync_scene_root_to_session(_map_session)
 	return _map_session
 
 func _is_world_node(node: Node) -> bool:
@@ -205,6 +228,16 @@ func _sync_session_to_scene_root(session: WorldModule) -> void:
 	scene_world.height_field = session.height_field
 	scene_world.tile_catalog = session.tile_catalog
 
+func _sync_scene_root_to_session(session: WorldModule) -> void:
+	var root := get_editor_interface().get_edited_scene_root()
+	if root == null or not (root is WorldModule):
+		return
+	var scene_world := root as WorldModule
+	if scene_world.height_field != null:
+		session.height_field = scene_world.height_field
+	if scene_world.tile_catalog != null:
+		session.tile_catalog = scene_world.tile_catalog
+
 func _editor_canvas_transform() -> Transform2D:
 	var vp := get_editor_interface().get_editor_viewport_2d()
 	if vp == null:
@@ -220,6 +253,13 @@ func _canvas_mouse_to_cell(world: WorldModule, event: InputEvent) -> Vector2i:
 	var canvas_pos: Vector2 = _editor_canvas_transform().affine_inverse() * mouse.position
 	return world.ground_layer.local_to_map(world.ground_layer.to_local(canvas_pos))
 
+func _cell_under_editor_mouse(world: WorldModule) -> Vector2i:
+	var vp := get_editor_interface().get_editor_viewport_2d()
+	if vp == null or world.ground_layer == null:
+		return Vector2i.ZERO
+	var canvas_pos: Vector2 = vp.global_canvas_transform.affine_inverse() * vp.get_mouse_position()
+	return world.ground_layer.local_to_map(world.ground_layer.to_local(canvas_pos))
+
 func _paint_at_canvas(event: InputEvent, world: WorldModule) -> void:
 	if world.tile_catalog == null:
 		set_dock_status("Generate or prepare the map before painting.")
@@ -229,9 +269,16 @@ func _paint_at_canvas(event: InputEvent, world: WorldModule) -> void:
 	get_editor_interface().mark_scene_as_unsaved()
 
 func _edit_height_at_canvas(event: InputEvent, world: WorldModule, delta: int) -> void:
+	_apply_height_delta(world, _canvas_mouse_to_cell(world, event), delta)
+
+func _apply_height_delta(world: WorldModule, cell: Vector2i, delta: int) -> void:
 	if world.height_field == null:
+		set_dock_status("No height data — Generate or Prepare the map first.")
 		return
-	var cell := _canvas_mouse_to_cell(world, event)
+	if not world.height_field.region.has_point(cell):
+		set_dock_status("Height at %s is outside the map region." % cell)
+		return
 	world.height_field.add_height(cell, delta)
 	_sync_session_to_scene_root(world)
-	set_dock_status("Height at %s = %d" % [cell, world.height_field.get_height(cell)])
+	get_editor_interface().mark_scene_as_unsaved()
+	set_dock_status("Height at %s = %d (z). Use +/- keys if wheel zoom steals input." % [cell, world.height_field.get_height(cell)])

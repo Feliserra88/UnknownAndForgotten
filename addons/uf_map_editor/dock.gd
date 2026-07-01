@@ -46,12 +46,16 @@ func _build() -> void:
 	_tile.item_selected.connect(_on_tile_selected)
 	_layer = _options("Layer", _LAYER_NAMES)
 	_layer.item_selected.connect(_on_layer_selected)
-	_mode = _options("Mode", ["Paint tile", "Edit height (wheel)"])
+	_mode = _options("Mode", ["Paint tile", "Edit height (wheel / +/-)"])
 	_mode.item_selected.connect(_on_mode_selected)
 	var paint := CheckButton.new()
-	paint.text = "Paint enabled (select WorldRoot)"
+	paint.text = "Paint enabled (select WorldRoot in scene tree)"
 	paint.toggled.connect(_on_paint_toggled)
 	add_child(paint)
+	var height_hint := Label.new()
+	height_hint.text = "Height: Generate map first, enable Paint, Mode = Edit height, hover a tile and use mouse wheel or +/- keys."
+	height_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(height_hint)
 
 	_separator()
 	_title("Presets / save")
