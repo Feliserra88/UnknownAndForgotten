@@ -70,6 +70,7 @@ res://
 │       └── ...
 ├── scenes/                # Escenas (.tscn): composición de nodos, mínima lógica
 ├── assets/                # Arte, audio, recursos (tilesets/, world/)
+├── local/                 # Workspace personal (gitignored salvo README); mapas WIP del editor
 ├── locale/                # Traducciones (CSV/PO): claves → en, es, …
 └── ui/                    # GUI: theme/, widgets/, panels/, domain/ (ver GAME_DESIGN §10)
 
@@ -257,7 +258,9 @@ Estructura de assets:
 
 ```
 res://assets/tilesets/     # TileSet .tres, atlas, terrain definitions
-res://assets/world/        # Máscaras de bioma, heightfields, TileMapPattern, estructuras
+res://assets/world/        # Definiciones (tiles, biomas, presets); mapas canónicos en maps/
+│   └── maps/              # Mapas baked estables (commit selectivo)
+res://local/world/maps/    # Sesión del uf_map_editor (editor_session.tscn); no en git
 res://assets/data/         # Resources de juego (.tres)
 │   ├── archetypes/        # NpcArchetype
 │   ├── factions/          # FactionDef
@@ -269,8 +272,10 @@ res://assets/data/         # Resources de juego (.tres)
 │   ├── equipment/         # EquipmentVisualDef
 │   └── injuries/          # InjuryVisualDef
 res://scenes/npc/          # npc_base.tscn, variantes por PackedScene
-res://scenes/world/        # Escena raíz del mapa (capas TileMapLayer + Camera2D)
+res://scenes/world/        # world_root.tscn (shell: capas vacías + cámara); tiles en local/ o maps/
 ```
+
+**Mapas y git:** `world_root.tscn` permanece pequeño en el repositorio. El editor carga `res://local/world/maps/editor_session.tscn` al abrir; **UF Map Editor** guarda ahí tras generar/pintar (`WorldModule.save_baked_map`). Mapas listos para compartir → copiar a `assets/world/maps/`.
 
 ---
 

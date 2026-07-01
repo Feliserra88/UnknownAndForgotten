@@ -187,10 +187,11 @@ func _copy_next_layer() -> void:
 
 func _finish_map_edit(world: WorldModule) -> void:
 	_sync_session_to_scene_root(world)
-	get_editor_interface().mark_scene_as_unsaved()
+	var save_err := world.save_baked_map(WorldModule.EDITOR_SESSION_MAP_PATH)
 	_queue_viewport_redraw()
 	if not _pending_status.is_empty():
-		set_dock_status(_pending_status)
+		var suffix := "" if save_err == OK else " (session save failed: %d)" % save_err
+		set_dock_status(_pending_status + suffix)
 
 func save_preset(path: String, region: Rect2i, gen_seed: int, water_count: int, path_count: int) -> void:
 	var request: WorldGenRequest = _world_gen.build_field_request(region, gen_seed)
@@ -215,15 +216,13 @@ func save_map(map_name: String) -> void:
 	if world == null or world.height_field == null:
 		set_dock_status("Nothing to save: prepare or generate first.")
 		return
-	var height_path := "res://assets/world/%s_height.tres" % map_name
-	DirAccess.make_dir_recursive_absolute("res://assets/world")
-	var err := ResourceSaver.save(world.height_field, height_path)
 	_sync_session_to_scene_root(world)
-	EditorInterface.save_scene()
+	var map_path := "res://local/world/maps/%s.tscn" % map_name
+	var err := world.save_baked_map(map_path)
 	if err == OK:
-		set_dock_status("Saved %s and scene." % height_path)
+		set_dock_status("Session map saved: %s" % map_path)
 	else:
-		set_dock_status("Height save failed (%d)." % err)
+		set_dock_status("Session map save failed (%d)." % err)
 
 func set_dock_status(text: String) -> void:
 	if _dock != null and _dock.has_method("set_status"):

@@ -6,12 +6,19 @@ extends Node2D
 ## @tool: scene root receives height_field / tile_catalog synced from the map editor session.
 
 const _LOG := "WLD"
+## Default path for editor-painted tile data (under gitignored `res://local/`).
+const EDITOR_SESSION_MAP_PATH := "res://local/world/maps/editor_session.tscn"
 
 enum Layer { GROUND, TERRAIN, OBJECTS, STRUCTURES }
+
+## When set, the editor loads baked tiles from this scene on open (see `save_baked_map`).
+@export_file("*.tscn") var editor_baked_map: String = EDITOR_SESSION_MAP_PATH
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		_ensure_layers()
+		if not editor_baked_map.is_empty():
+			load_baked_map(editor_baked_map)
 
 var ground_layer: TileMapLayer
 var terrain_layer: TileMapLayer
@@ -287,6 +294,60 @@ func get_map_canvas_rect(region: Rect2i) -> Rect2:
 		max_p = max_p.max(p)
 	return Rect2(min_p, max_p - min_p)
 
+## Writes tile layers (and optional height field) to [param map_path] for local/editor persistence.
+func save_baked_map(map_path: String) -> Error:
+	if not _ensure_layers():
+		return ERR_UNCONFIGURED
+	DirAccess.make_dir_recursive_absolute(map_path.get_base_dir())
+	var bake_root := Node2D.new()
+	bake_root.name = "BakedMap"
+	var layers_copy: Node2D = layers.duplicate(Node.DUPLICATE_USE_INSTANTIATION) as Node2D
+	bake_root.add_child(layers_copy)
+	layers_copy.owner = bake_root
+	for child in layers_copy.get_children():
+		child.owner = bake_root
+	var packed := PackedScene.new()
+	var pack_err := packed.pack(bake_root)
+	bake_root.queue_free()
+	if pack_err != OK:
+		return pack_err
+	var err := ResourceSaver.save(packed, map_path)
+	if err == OK and height_field != null:
+		err = ResourceSaver.save(height_field, _baked_height_path_for(map_path))
+	return err
+
+## Loads baked tiles from [param map_path] into this world (editor session restore).
+func load_baked_map(map_path: String) -> bool:
+	if map_path.is_empty() or not ResourceLoader.exists(map_path):
+		return false
+	var packed := load(map_path) as PackedScene
+	if packed == null:
+		return false
+	var inst := packed.instantiate()
+	var layers_node: Node2D = inst.get_node_or_null("Layers") as Node2D
+	if layers_node == null:
+		inst.queue_free()
+		return false
+	var wrapper := Node2D.new()
+	wrapper.name = "BakeWrapper"
+	inst.remove_child(layers_node)
+	wrapper.add_child(layers_node)
+	var temp := create_scratch()
+	temp.bind_edited_root(wrapper)
+	if temp.ground_layer != null:
+		temp._tileset = temp.ground_layer.tile_set
+	if temp.modifiers_layer != null:
+		temp._modifier_tileset = temp.modifiers_layer.tile_set
+	apply_map_from(temp)
+	_ensure_editor_tile_catalog()
+	var height_path := _baked_height_path_for(map_path)
+	if ResourceLoader.exists(height_path):
+		height_field = (load(height_path) as MapHeightField).duplicate(true)
+	wrapper.queue_free()
+	inst.queue_free()
+	Log.info(_LOG, "load_bake", map_path)
+	return true
+
 ## Off-tree world used by uf_map_editor so generation does not touch the edited scene.
 static func create_scratch() -> WorldModule:
 	var world := WorldModule.new()
@@ -360,6 +421,18 @@ func _copy_layer_from(src: TileMapLayer, dst: TileMapLayer, tileset: TileSet) ->
 			src.get_cell_atlas_coords(cell),
 			src.get_cell_alternative_tile(cell),
 		)
+
+func _baked_height_path_for(map_path: String) -> String:
+	return "%s_height.tres" % map_path.get_basename()
+
+func _ensure_editor_tile_catalog() -> void:
+	if tile_catalog != null:
+		return
+	var world_gen := WorldGenModule.new()
+	tile_catalog = world_gen.build_field_catalog()
+	world_gen.free()
+	if _tileset != null:
+		PlaceholderTileSet.assign_tile_mapping(tile_catalog.tiles, _tileset)
 
 func _ensure_layers() -> bool:
 	if ground_layer != null and is_instance_valid(ground_layer):

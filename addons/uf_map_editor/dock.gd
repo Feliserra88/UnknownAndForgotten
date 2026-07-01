@@ -26,7 +26,7 @@ func _build() -> void:
 	add_theme_constant_override("separation", 4)
 	_title("UF Map Editor")
 	var hint := Label.new()
-	hint.text = "Open world_root.tscn, then Generate or Prepare."
+	hint.text = "Open world_root.tscn, then Generate or Prepare. Tile data is kept in res://local/ (not git); use Save session map."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(hint)
 
@@ -63,12 +63,12 @@ func _build() -> void:
 	add_child(height_hint)
 
 	_separator()
-	_title("Presets / save")
+	_title("Presets / session save")
 	_preset_path = _line("res://assets/world/presets/field_default.tres")
 	_button("Save preset", _on_save_preset_pressed)
 	_button("Load preset", _on_load_preset)
-	_map_name = _line("field_map")
-	_button("Save map + scene", _on_save_map_pressed)
+	_map_name = _line("editor_session")
+	_button("Save session map", _on_save_map_pressed)
 
 	_separator()
 	_status = Label.new()
