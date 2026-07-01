@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StructureCatalog" format=3 uid="uid://df63xmgr7aic5"]
+
+[ext_resource type="Script" uid="uid://k1n68ub87obg" path="res://modules/world/structure_catalog.gd" id="1_cat"]
+[ext_resource type="Resource" uid="uid://bgt0bvses3a7q" path="res://assets/world/structures/dark_medieval_wood/pieces/wall_straight.tres" id="2_wall"]
+[ext_resource type="Resource" uid="uid://dev2uogojjftc" path="res://assets/world/structures/dark_medieval_wood/pieces/wall_corner.tres" id="3_corner"]
+[ext_resource type="Resource" uid="uid://f3rr4pfwdnsp" path="res://assets/world/structures/dark_medieval_wood/pieces/door_closed.tres" id="4_door"]
+[ext_resource type="Resource" uid="uid://cyk7nkvx3jtsm" path="res://assets/world/structures/dark_medieval_wood/pieces/window_shuttered.tres" id="5_window"]
+[ext_resource type="Resource" uid="uid://cftkl3e4cxbhy" path="res://assets/world/structures/dark_medieval_wood/pieces/roof_slope.tres" id="6_roof"]
+[ext_resource type="Script" uid="uid://ioq57wkawinu" path="res://modules/world/structure_piece_def.gd" id="7_piece_script"]
+
+[resource]
+script = ExtResource("1_cat")
+kit_id = &"dark_medieval_wood"
+display_name_key = "structure.kit.dark_medieval_wood.name"
+pieces = Array[ExtResource("7_piece_script")]([ExtResource("2_wall"), ExtResource("3_corner"), ExtResource("4_door"), ExtResource("5_window"), ExtResource("6_roof")])

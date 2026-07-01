@@ -20,7 +20,7 @@ Ver `docs/GAME_DESIGN.md` §3–4. Cada tile/celda contempla **x, y, z**; distin
 
 ## Arte de mapa (capas y Wang)
 
-Ver `docs/GAME_DESIGN.md` §4.6.3–4.6.4 y `pixellab-art.mdc`.
+Ver `docs/GAME_DESIGN.md` §4.6.3–4.6.7, `world-assets-layout.mdc` (carpetas PNG + `.tres`) y `pixellab-art.mdc` (PixelLab).
 
 | Capa | Contenido |
 |------|-----------|

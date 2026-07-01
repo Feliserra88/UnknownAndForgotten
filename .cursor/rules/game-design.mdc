@@ -15,7 +15,7 @@ Ante cualquier cambio que afecte **mecánicas, NPCs, mundo, combate, equipo, est
 6. **Usar identificadores en inglés** en código aunque la petición esté en español (ver `coding-style.mdc`).
 7. **GUI** — paneles movibles `UfPanel`, widgets desacoplados (ver `gui-panels.mdc`, §10).
 8. **Herramientas de artista** — módulos de alto reuso + fine-tuning → `EditorPlugin` que use la API pública (§11, `editor-artist-tools.mdc`). Ej.: `uf_map_editor`, `uf_npc_editor`.
-9. **Arte de mapa** — capas (`ground`/`terrain`/`objects`/`modifiers`), suelo plano seamless, props con `y_sort_origin_offset`, agua/transiciones Wang (`§4.6.3–4.6.4`, `pixellab-art.mdc`, `world-map.mdc`).
+9. **Arte de mapa** — capas (`ground`/`terrain`/`objects`/`modifiers`), layout de carpetas y `.tres` (`world-assets-layout.mdc`), PixelLab (`pixellab-art.mdc`), Wang (`world-map.mdc` §4.6.3–4.6.4).
 10. **Actualizar** `docs/GAME_DESIGN.md` si el cambio introduce o altera reglas de diseño.
 
 Si hay conflicto entre petición puntual y diseño documentado, priorizar el documento salvo indicación explícita del usuario.

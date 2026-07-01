@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StructurePieceDef" format=3 uid="uid://bgt0bvses3a7q"]
+
+[ext_resource type="Texture2D" uid="uid://c3i62qlgttgqr" path="res://assets/world/structures/dark_medieval_wood/pieces/art/wall_straight.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://ioq57wkawinu" path="res://modules/world/structure_piece_def.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = &"wall_straight"
+kit_id = &"dark_medieval_wood"
+display_name_key = "structure.dark_medieval_wood.wall_straight.name"
+sprite_texture = ExtResource("1_tex")
+y_sort_origin = 4
+connect_hints = 10

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TileCatalog" format=3 uid="uid://dgag5v4fqfuvr"]
+
+[ext_resource type="Script" uid="uid://chwcdt24pvuu5" path="res://modules/world/tile_catalog.gd" id="1_cat"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="2_tile_script"]
+[ext_resource type="Resource" path="res://assets/world/structures/dark_medieval_wood/floors/floor_interior.tres" id="3_int"]
+[ext_resource type="Resource" path="res://assets/world/structures/dark_medieval_wood/floors/floor_porch.tres" id="4_porch"]
+[ext_resource type="Resource" path="res://assets/world/structures/dark_medieval_wood/floors/floor_rotten.tres" id="5_rotten"]
+
+[resource]
+script = ExtResource("1_cat")
+tiles = Array[ExtResource("2_tile_script")]([ExtResource("3_int"), ExtResource("4_porch"), ExtResource("5_rotten")])

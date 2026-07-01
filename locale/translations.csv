@@ -18,6 +18,15 @@ decor.wildflower.name,Wildflower,Flor silvestre
 decor.grass_tuft.name,Grass tuft,Hierba
 terrain_set.field.name,Field terrain,Terreno del campo
 biome.field.name,Field,Campo
+structure.kit.dark_medieval_wood.name,Dark medieval wood kit,Kit madera medieval oscura
+structure.dark_medieval_wood.wall_straight.name,Wood wall straight,Pared madera recta
+structure.dark_medieval_wood.wall_corner.name,Wood wall corner,Esquina madera
+structure.dark_medieval_wood.door_closed.name,Wood door closed,Puerta madera cerrada
+structure.dark_medieval_wood.window_shuttered.name,Shuttered window,Ventana con postigos
+structure.dark_medieval_wood.roof_slope.name,Roof slope section,Tramo tejado inclinado
+tile.dmw_floor_interior.name,Wood floor interior,Suelo madera interior
+tile.dmw_floor_porch.name,Wood porch floor,Suelo porche madera
+tile.dmw_floor_rotten.name,Rotten wood floor,Suelo madera podrida
 archetype.npc.name,Creature,Criatura
 archetype.humanoid.name,Humanoid,Humanoide
 archetype.human.name,Human,Humano

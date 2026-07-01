@@ -46,8 +46,10 @@ var _modifier_defs: Dictionary = {}
 var _modifiers: Dictionary = {}
 var _prop_defs: Dictionary = {}
 var _decor_defs: Dictionary = {}
+var _structure_defs: Dictionary = {}
 var _terrain_set_defs: Dictionary = {}
 var _blocked_prop_cells: Dictionary = {}
+var _blocked_structure_cells: Dictionary = {}
 
 ## Builds the placeholder tilesets from [param catalog] and [param modifiers], assigns them to
 ## every layer, and prepares the height field for [param region]. Must run before painting.
@@ -61,6 +63,7 @@ func configure(
 	shared_modifier_pack: Dictionary = {},
 	sprite_catalog: MapSpriteCatalog = null,
 	terrain_sets: Array = [],
+	structure_catalog: StructureCatalog = null,
 ) -> void:
 	if not _ensure_layers():
 		push_error("[%s] configure: map layers are not wired" % _LOG)
@@ -95,7 +98,9 @@ func configure(
 		_modifier_defs[m.id] = m
 	_prop_defs.clear()
 	_decor_defs.clear()
+	_structure_defs.clear()
 	_blocked_prop_cells.clear()
+	_blocked_structure_cells.clear()
 	if sprite_catalog != null:
 		for p in sprite_catalog.props:
 			if p != null:
@@ -103,6 +108,7 @@ func configure(
 		for d in sprite_catalog.decors:
 			if d != null:
 				_decor_defs[d.id] = d
+	register_structure_catalog(structure_catalog)
 	_terrain_set_defs.clear()
 	for ts in terrain_sets:
 		if ts is TerrainSetDef:
@@ -117,8 +123,9 @@ func configure(
 	height_field.resize(region)
 	_modifiers.clear()
 	_clear_sprite_layers()
-	Log.info(_LOG, "init", "configured region=%s tiles=%d props=%d decors=%d terrains=%d" % [
-		region, catalog.tiles.size(), _prop_defs.size(), _decor_defs.size(), _terrain_set_defs.size(),
+	Log.info(_LOG, "init", "configured region=%s tiles=%d props=%d decors=%d structures=%d terrains=%d" % [
+		region, catalog.tiles.size(), _prop_defs.size(), _decor_defs.size(), _structure_defs.size(),
+		_terrain_set_defs.size(),
 	])
 
 ## Converts a logical cell (x, y, z) to the global position at the tile center (map_to_local).
@@ -238,6 +245,60 @@ func paint_terrain(cells: Array, terrain_set: TerrainSetDef, terrain_name: Strin
 func is_prop_blocked(cell: Vector2i) -> bool:
 	return _blocked_prop_cells.has(cell)
 
+## Returns the configured StructurePieceDef registered under [param id], or null.
+func get_structure_piece_def(id: StringName) -> StructurePieceDef:
+	return _structure_defs.get(id, null)
+
+## Loads structure piece definitions from [param catalog] (editor kits).
+func register_structure_catalog(catalog: StructureCatalog) -> void:
+	_structure_defs.clear()
+	if catalog == null:
+		return
+	for piece in catalog.pieces:
+		if piece != null and not piece.id.is_empty():
+			_structure_defs[piece.id] = piece
+
+## Places a modular structure sprite at [param cell] (Props layer, y-sort).
+func add_structure_piece(cell: Vector2i, piece: StructurePieceDef) -> Sprite2D:
+	if piece == null or not _ensure_layers():
+		return null
+	var existing := _MapSprites.find_structure_at(props_layer, cell)
+	if existing != null:
+		_unblock_structure_cells(existing)
+		existing.queue_free()
+	var sprite := _MapSprites.spawn_structure(props_layer, ground_layer, cell, piece)
+	if piece.blocks_cell:
+		for c in piece.footprint_cells(cell):
+			_blocked_structure_cells[c] = piece.id
+	return sprite
+
+## Removes the structure piece covering [param cell], if any.
+func remove_structure_piece_at(cell: Vector2i) -> bool:
+	if not _ensure_layers():
+		return false
+	var sprite := _MapSprites.remove_structure_at(props_layer, cell)
+	if sprite == null:
+		return false
+	_unblock_structure_cells(sprite)
+	return true
+
+## Returns whether a structure piece with [member StructurePieceDef.blocks_cell] occupies [param cell].
+func is_structure_blocked(cell: Vector2i) -> bool:
+	return _blocked_structure_cells.has(cell)
+
+## Returns the structure sprite covering [param cell], if any.
+func structure_piece_at(cell: Vector2i) -> Sprite2D:
+	return _MapSprites.find_structure_at(props_layer, cell)
+
+func _unblock_structure_cells(sprite: Sprite2D) -> void:
+	if sprite == null:
+		return
+	var anchor: Vector2i = sprite.get_meta(&"uf_cell", Vector2i.ZERO)
+	var footprint: Vector2i = sprite.get_meta(&"uf_footprint", Vector2i(1, 1))
+	for dx in maxi(footprint.x, 1):
+		for dy in maxi(footprint.y, 1):
+			_blocked_structure_cells.erase(anchor + Vector2i(dx, dy))
+
 ## Applies [param modifier] (a TileModifierDef) to [param cell] and shows its overlay.
 func add_modifier(cell: Vector2i, modifier: TileModifierDef) -> void:
 	if modifier == null or modifiers_layer == null or not is_instance_valid(modifiers_layer):
@@ -318,6 +379,7 @@ func clear_all_cells() -> void:
 			layer.clear()
 	_clear_sprite_layers()
 	_blocked_prop_cells.clear()
+	_blocked_structure_cells.clear()
 
 ## Resolves the layer node references from the scene; safe to call repeatedly.
 func ensure_layers() -> void:
@@ -410,6 +472,8 @@ func load_baked_map(map_path: String) -> bool:
 	if temp.modifiers_layer != null:
 		temp._modifier_tileset = temp.modifiers_layer.tile_set
 	apply_map_from(temp)
+	_ensure_editor_structure_catalog()
+	_rebuild_structure_blocked_from_props()
 	_ensure_editor_tile_catalog()
 	_refresh_editor_tilesets_from_catalog()
 	var height_path := _baked_height_path_for(map_path)
@@ -456,6 +520,7 @@ func apply_map_from(source: WorldModule) -> void:
 	apply_map_layer_from(source, &"modifiers")
 	_copy_sprite_layer_from(source.props_layer, props_layer)
 	_copy_sprite_layer_from(source.decor_layer, decor_layer)
+	_rebuild_structure_blocked_from_props()
 	_flatten_legacy_tile_layers()
 	_apply_cell_tile_layer_settings(ground_layer)
 	_clear_legacy_tile_map_layers()
@@ -472,8 +537,10 @@ func apply_map_metadata_from(source: WorldModule) -> void:
 	_modifiers = source._modifiers.duplicate(true)
 	_prop_defs = source._prop_defs.duplicate(true)
 	_decor_defs = source._decor_defs.duplicate(true)
+	_structure_defs = source._structure_defs.duplicate(true)
 	_terrain_set_defs = source._terrain_set_defs.duplicate(true)
 	_blocked_prop_cells = source._blocked_prop_cells.duplicate(true)
+	_blocked_structure_cells = source._blocked_structure_cells.duplicate(true)
 	tile_catalog = source.tile_catalog
 	height_field = source.height_field.duplicate(true) if source.height_field != null else null
 
@@ -506,6 +573,23 @@ func _copy_sprite_layer_from(src: Node2D, dst: Node2D) -> void:
 			var copy := child.duplicate() as Sprite2D
 			dst.add_child(copy)
 
+func _rebuild_structure_blocked_from_props() -> void:
+	_blocked_structure_cells.clear()
+	if props_layer == null:
+		return
+	for child in props_layer.get_children():
+		if not child is Sprite2D:
+			continue
+		if child.get_meta(&"uf_kind", &"") != &"structure":
+			continue
+		var piece_id: StringName = child.get_meta(&"uf_structure_id", &"")
+		var piece: StructurePieceDef = _structure_defs.get(piece_id, null)
+		if piece == null or not piece.blocks_cell:
+			continue
+		var anchor: Vector2i = child.get_meta(&"uf_cell", Vector2i.ZERO)
+		for c in piece.footprint_cells(anchor):
+			_blocked_structure_cells[c] = piece_id
+
 func _copy_layer_from(src: TileMapLayer, dst: TileMapLayer, tileset: TileSet) -> void:
 	if src == null or dst == null or not is_instance_valid(dst):
 		return
@@ -532,6 +616,13 @@ func _ensure_editor_tile_catalog() -> void:
 		return
 	var world_gen := WorldGenModule.new()
 	tile_catalog = world_gen.build_field_catalog()
+	world_gen.free()
+
+func _ensure_editor_structure_catalog() -> void:
+	if not _structure_defs.is_empty():
+		return
+	var world_gen := WorldGenModule.new()
+	register_structure_catalog(world_gen.build_dark_medieval_wood_catalog())
 	world_gen.free()
 
 ## Rebuilds TileSets from [param catalog] without clearing painted cells or the height field.

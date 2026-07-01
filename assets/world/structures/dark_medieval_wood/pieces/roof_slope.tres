@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StructurePieceDef" format=3 uid="uid://cftkl3e4cxbhy"]
+
+[ext_resource type="Script" uid="uid://ioq57wkawinu" path="res://modules/world/structure_piece_def.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = &"roof_slope"
+kit_id = &"dark_medieval_wood"
+display_name_key = "structure.dark_medieval_wood.roof_slope.name"
+piece_type = 4
+y_sort_origin = 8
+footprint = Vector2i(2, 1)
+connect_hints = 10
+blocks_cell = false

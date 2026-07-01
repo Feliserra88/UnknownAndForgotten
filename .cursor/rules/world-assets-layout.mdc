@@ -1,0 +1,69 @@
+---
+description: Esquema de carpetas y .tres al importar o crear arte de mapa (PNG + Resources)
+globs: assets/world/**,local/art/**,locale/translations.csv
+alwaysApply: false
+---
+
+# Layout de assets de mundo
+
+Al **descargar PixelLab**, **importar PNG** o **crear `.tres`**, seguir este esquema. Herramientas PixelLab: `pixellab-art.mdc`. Diseño: `docs/GAME_DESIGN.md` §4.6.
+
+## Regla base
+
+**`<categoria>/<id>.tres` + `<categoria>/art/<id>.png`**
+
+- El `.tres` y el PNG comparten el mismo **`id`** lógico (el del Resource).
+- El PNG va **solo** en la subcarpeta `art/` del mismo nivel que el `.tres`.
+- **Prohibido:** carpetas `art/pieces/`, `art/floors/` u otro `art/` global que separe PNG de su `.tres`.
+
+## Árbol canónico (`res://assets/world/`)
+
+| Tipo | `.tres` | PNG | Resource | Catálogo |
+|------|---------|-----|----------|----------|
+| Tile campo | `tiles/<id>.tres` | `tiles/art/<id>.png` | `TileDef` | `field_catalog.tres` |
+| Prop | `props/<id>.tres` | `props/art/<id>.png` | `MapPropDef` | `field_sprite_catalog.tres` |
+| Decor | `decors/<id>.tres` | `decors/art/<id>.png` | `MapDecorDef` | `field_sprite_catalog.tres` |
+| Modifier | `modifiers/<id>.tres` | `modifiers/art/<id>.png` | `TileModifierDef` | código / bioma |
+| Wang (intermedio) | — | `terrains/wang/*` | `TerrainSetDef` | `field_terrain_set.tres` |
+| Kit edificio | ver abajo | ver abajo | mixto | `structures/<kit>/` |
+
+### Kit de estructura (`structures/<kit_id>/`)
+
+```
+<kit_id>/
+├── README.md
+├── <kit_id>_catalog.tres              # StructureCatalog (piezas verticales)
+├── <kit_id>_floor_catalog.tres        # TileCatalog (suelos rombo del kit)
+├── floors/<id>.tres  +  floors/art/<id>.png   # TileDef
+└── pieces/<id>.tres  +  pieces/art/<id>.png   # StructurePieceDef
+```
+
+Suelos del kit curados → añadir a `field_catalog.tres` para el pincel del map editor.
+
+## Checklist al añadir arte
+
+1. Tipo y carpeta correctos (tabla arriba).
+2. Crear `.tres` con `id`, `display_name_key` y clave en `locale/translations.csv`.
+3. PNG en `art/` del **mismo nivel**; ruta en el `.tres` apunta ahí.
+4. Registrar en el catálogo correspondiente.
+5. Tras mover PNG, actualizar `source_file` en `.import` si Godot no reimporta solo.
+
+## Nombres y descartes
+
+- Sin sufijos de iteración en `assets/` (`_v1`, `_final`) — el nombre del archivo = `id`.
+- Arte malo → `res://local/art/` (gitignored); quitar `art_texture` / `sprite_texture` del `.tres` en `assets/`.
+- No dejar `.tres` con ruta a PNG inexistente; dejar textura null hasta tener arte válido.
+
+## Fuera de `assets/world/`
+
+| Ruta | Uso |
+|------|-----|
+| `local/world/maps/` | Sesión WIP del map editor (no versionar) |
+| `local/art/` | PNG descartados / experimentos |
+| `assets/world/maps/` | Mapas canónicos listos para compartir |
+
+## Prohibido
+
+- Mezclar PNG y `.tres` en la misma carpeta (salvo catálogos raíz `*_catalog.tres`).
+- PNG sueltos en `assets/world/` sin `.tres` (excepto pipeline Wang en `terrains/wang/`).
+- Duplicar el mismo `id` en otro tipo sin documentar (ej. `scatter_pebble` decor vs modifier).

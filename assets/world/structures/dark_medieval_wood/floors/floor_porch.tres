@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://52gd8iooghpp"]
+
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_jqfi2"]
+[ext_resource type="Texture2D" uid="uid://g8sk0frbbnek" path="res://assets/world/structures/dark_medieval_wood/floors/art/floor_porch.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = &"dmw_floor_porch"
+display_name_key = "tile.dmw_floor_porch.name"
+tags = 3
+art_texture = ExtResource("1_tex")
+placeholder_color = Color(0.42, 0.32, 0.24, 1)

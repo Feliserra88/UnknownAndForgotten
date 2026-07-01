@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://dnqp6g50x026j"]
+
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_6rhgv"]
+[ext_resource type="Texture2D" uid="uid://c1ggh7td4axvf" path="res://assets/world/structures/dark_medieval_wood/floors/art/floor_rotten.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = &"dmw_floor_rotten"
+display_name_key = "tile.dmw_floor_rotten.name"
+tags = 3
+art_texture = ExtResource("1_tex")
+placeholder_color = Color(0.28, 0.22, 0.18, 1)

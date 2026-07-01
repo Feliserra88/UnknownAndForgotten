@@ -27,6 +27,10 @@ func build_field_sprite_catalog() -> MapSpriteCatalog:
 func build_field_terrain_sets() -> Array:
 	return _Field.build_terrain_sets()
 
+## Loads the dark medieval wood modular building kit (structure pieces).
+func build_dark_medieval_wood_catalog() -> StructureCatalog:
+	return _Field.build_structure_catalog(&"dark_medieval_wood")
+
 ## Builds a default generation request for the field biome over [param area] with [param gen_seed].
 func build_field_request(area: Rect2i, gen_seed: int) -> WorldGenRequest:
 	var request := WorldGenRequest.new()

@@ -5,9 +5,10 @@ extends EditorPlugin
 
 const _DockScript := preload("res://addons/uf_map_editor/dock.gd")
 const _HeightOverlay := preload("res://addons/uf_map_editor/height_overlay.gd")
+const _StructureOverlay := preload("res://addons/uf_map_editor/structure_overlay.gd")
 const _WORLD_SCRIPT_PATH := "res://modules/world/world.gd"
 
-enum Mode { PAINT_TILE, EDIT_HEIGHT }
+enum Mode { PAINT_TILE, EDIT_HEIGHT, PLACE_STRUCTURE }
 
 var _dock: Control
 var _world_gen: WorldGenModule
@@ -19,6 +20,7 @@ var _field_catalog: TileCatalog
 var _field_modifiers: Array
 var _field_sprite_catalog: MapSpriteCatalog
 var _field_terrain_sets: Array
+var _structure_catalog: StructureCatalog
 var _field_tileset: TileSet
 var _field_modifier_pack: Dictionary
 var _session_tilesets_refreshed: bool = false
@@ -27,6 +29,7 @@ var paint_enabled: bool = false
 var mode: int = Mode.PAINT_TILE
 var show_height_overlay: bool = true
 var selected_tile: StringName = &"grass"
+var selected_structure_piece: StringName = &"wall_straight"
 var selected_layer: int = 0
 var _hover_cell: Vector2i = Vector2i(-999999, -999999)
 
@@ -60,6 +63,7 @@ func _cache_field_tilesets() -> void:
 	_field_modifiers = _world_gen.build_field_modifiers()
 	_field_sprite_catalog = _world_gen.build_field_sprite_catalog()
 	_field_terrain_sets = _world_gen.build_field_terrain_sets()
+	_structure_catalog = _world_gen.build_dark_medieval_wood_catalog()
 	var tile_size := Vector2i(
 		Config.get_int("WORLD_TILE_WIDTH", 64),
 		Config.get_int("WORLD_TILE_HEIGHT", 32),
@@ -92,6 +96,19 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 			if delta != 0:
 				_edit_height_at_canvas(event, world, delta)
 				return true
+	if mode == Mode.PLACE_STRUCTURE:
+		if event is InputEventMouseMotion:
+			var cell := _canvas_mouse_to_cell(world, event)
+			if cell != _hover_cell:
+				_hover_cell = cell
+				_queue_viewport_redraw()
+		elif event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				_place_structure_at_canvas(event, world)
+				return true
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				_erase_structure_at_canvas(event, world)
+				return true
 	if mode == Mode.PAINT_TILE:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			_paint_at_canvas(event, world)
@@ -102,23 +119,31 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 	return false
 
 func _forward_canvas_draw_over_viewport(overlay: Control) -> void:
-	if not _should_draw_height_overlay():
+	if not paint_enabled:
 		return
 	var world := _bound_world_silent()
-	if world == null or world.height_field == null or world.ground_layer == null:
+	if world == null or world.ground_layer == null:
 		return
 	var vp := get_editor_interface().get_editor_viewport_2d()
 	if vp == null:
 		return
 	var canvas_xform := vp.global_canvas_transform
-	_HeightOverlay.draw_field(
-		overlay,
-		world.ground_layer,
-		world.height_field,
-		canvas_xform,
-		_hover_cell,
-		mode == Mode.EDIT_HEIGHT,
-	)
+	if show_height_overlay and world.height_field != null:
+		_HeightOverlay.draw_field(
+			overlay,
+			world.ground_layer,
+			world.height_field,
+			canvas_xform,
+			_hover_cell,
+			mode == Mode.EDIT_HEIGHT,
+		)
+	if mode == Mode.PLACE_STRUCTURE:
+		var piece := _selected_structure_piece_def()
+		if piece != null:
+			_StructureOverlay.draw_preview(
+				overlay, world.ground_layer, canvas_xform, _hover_cell, piece)
+			_StructureOverlay.draw_connect_hints(
+				overlay, world.ground_layer, canvas_xform, _hover_cell, piece)
 
 func _input(event: InputEvent) -> void:
 	if not paint_enabled or mode != Mode.EDIT_HEIGHT:
@@ -143,6 +168,10 @@ func _input(event: InputEvent) -> void:
 func get_field_catalog() -> TileCatalog:
 	_cache_field_tilesets()
 	return _field_catalog
+
+func get_structure_catalog() -> StructureCatalog:
+	_cache_field_tilesets()
+	return _structure_catalog
 
 func refresh_field_tilesets() -> void:
 	var world := _bound_world_silent()
@@ -194,6 +223,7 @@ func _run_on_scratch(region: Rect2i, build_fn: Callable) -> void:
 		_field_modifier_pack,
 		_field_sprite_catalog,
 		_field_terrain_sets,
+		_structure_catalog,
 	)
 	_pending_status = build_fn.call(_scratch_world)
 	_copy_target = world
@@ -279,6 +309,7 @@ func _active_world() -> WorldModule:
 		_session_tilesets_refreshed = true
 	if _map_session.tile_catalog != null and _field_tileset != null:
 		WorldModule.assign_tile_mapping(_map_session.tile_catalog.tiles, _field_tileset)
+	_map_session.register_structure_catalog(_structure_catalog)
 	return _map_session
 
 func _is_world_node(node: Node) -> bool:
@@ -334,6 +365,29 @@ func _paint_at_canvas(event: InputEvent, world: WorldModule) -> void:
 	var cell := _canvas_mouse_to_cell(world, event)
 	world.set_tile(selected_layer, cell, selected_tile)
 	get_editor_interface().mark_scene_as_unsaved()
+
+func _place_structure_at_canvas(event: InputEvent, world: WorldModule) -> void:
+	var piece := _selected_structure_piece_def()
+	if piece == null:
+		set_dock_status("No structure piece selected.")
+		return
+	var cell := _canvas_mouse_to_cell(world, event)
+	world.add_structure_piece(cell, piece)
+	get_editor_interface().mark_scene_as_unsaved()
+	set_dock_status("Placed %s at %s." % [piece.id, cell])
+
+func _erase_structure_at_canvas(event: InputEvent, world: WorldModule) -> void:
+	var cell := _canvas_mouse_to_cell(world, event)
+	if world.remove_structure_piece_at(cell):
+		get_editor_interface().mark_scene_as_unsaved()
+		set_dock_status("Removed structure at %s." % cell)
+	else:
+		set_dock_status("No structure at %s." % cell)
+
+func _selected_structure_piece_def() -> StructurePieceDef:
+	if _structure_catalog == null:
+		return null
+	return _structure_catalog.get_piece(selected_structure_piece)
 
 func _edit_height_at_canvas(event: InputEvent, world: WorldModule, delta: int) -> void:
 	_apply_height_delta(world, _canvas_mouse_to_cell(world, event), delta)

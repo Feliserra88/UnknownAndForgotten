@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://bifa4i68vk487"]
+
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_r3kyp"]
+[ext_resource type="Texture2D" uid="uid://bxrsng5y702r5" path="res://assets/world/structures/dark_medieval_wood/floors/art/floor_interior.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = &"dmw_floor_interior"
+display_name_key = "tile.dmw_floor_interior.name"
+tags = 3
+art_texture = ExtResource("1_tex")
+placeholder_color = Color(0.35, 0.28, 0.22, 1)

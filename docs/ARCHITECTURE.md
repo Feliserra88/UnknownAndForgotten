@@ -319,7 +319,9 @@ Estructura de assets:
 
 ```
 res://assets/tilesets/     # TileSet .tres, atlas, terrain definitions
-res://assets/world/        # Definiciones (tiles, biomas, presets); mapas canónicos en maps/
+res://assets/world/        # Definiciones (tiles, biomas, presets, structure kits)
+                           # Patrón: <tipo>/*.tres + <tipo>/art/*.png (props, decors, tiles)
+                           # Kits: structures/<kit>/{floors,pieces}/ + art/ en cada uno
 │   └── maps/              # Mapas baked estables (commit selectivo)
 res://local/world/maps/    # Sesión del uf_map_editor (editor_session.tscn); no en git
 res://assets/data/         # Resources de juego (.tres)
@@ -379,7 +381,7 @@ Mantener tabla actualizada al crear módulos:
 | Modifier | `modules/modifier/` | MOD | `LOG_MODIFIER_LEVEL` | Fachada `ModifierModule` (Resource-only); `ModifierDef` (`kind` trait/malady/status/scaler, ops aditivas y multiplicativas por atributo, tags); `apply()` compone atributos efectivos |
 | Equipment | `modules/equipment/` | EQP | `LOG_EQUIPMENT_LEVEL` | Fachada `EquipmentModule`; `ItemDef`, `EquipmentVisualDef`, `EquipmentSlotMap`, `EquipmentState` (runtime slot→item); compatibilidad por slot/tags y resolución de visuales |
 | GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`, `UfInspectionPanel`), widgets `Uf*` (`modules/gui/widgets/`, incl. `UfEquipmentSlot`), theme; fachada `GuiModule` que crea paneles y carga assets de `ui/domain/` |
-| Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, guardar presets/mapas |
+| Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, colocar piezas de estructura (`StructurePieceDef`), guardar presets/mapas |
 | Herramientas GUI | `addons/uf_gui_tools/` | — | — | `EditorPlugin` sobre API `gui`: compone paneles de dominio (`UfPanel` + widgets) y los guarda como `PackedScene` en `res://ui/domain/` |
 | Editor de NPCs | `addons/uf_npc_editor/` | — | — | `EditorPlugin` de pantalla principal sobre API `npc`/`appearance`/`equipment`/`faction`/`modifier`/`gui`: 3 columnas (detalles, preview del rig, panel de inspección con drag-drop); edición en memoria (guardado de `.tres` diferido) |
 

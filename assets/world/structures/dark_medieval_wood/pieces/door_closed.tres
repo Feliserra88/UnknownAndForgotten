@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StructurePieceDef" format=3 uid="uid://f3rr4pfwdnsp"]
+
+[ext_resource type="Texture2D" uid="uid://crbwwxrccb23b" path="res://assets/world/structures/dark_medieval_wood/pieces/art/door_closed.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://ioq57wkawinu" path="res://modules/world/structure_piece_def.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = &"door_closed"
+kit_id = &"dark_medieval_wood"
+display_name_key = "structure.dark_medieval_wood.door_closed.name"
+piece_type = 2
+sprite_texture = ExtResource("1_tex")
+y_sort_origin = 2
+connect_hints = 4

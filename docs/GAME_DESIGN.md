@@ -373,14 +373,29 @@ Arte archivado / descartado (bloques 3D, props mal tileables) → `res://local/a
 
 Catálogo: `field_sprite_catalog.tres`. API: `world.add_prop()`, `world.add_decor()`.
 
-#### 4.6.6 Regiones Wang (`TerrainSetDef`, `TerrainRegionDef`)
+#### 4.6.6 Kits modulares (`StructurePieceDef`, `StructureCatalog`)
+
+Piezas verticales de edificio (pared, puerta, teja…) colocadas a mano en el editor como puzzle. **Suelos** del kit siguen siendo `TileDef` en `ground`; **piezas** son sprites en `Props` con meta `uf_kind=structure`.
+
+**Layout de carpetas y PNG:** regla Cursor `world-assets-layout.mdc` (`structures/<kit>/floors/` + `pieces/`, cada uno con `art/`).
+
+| Recurso | Capa | Placement | Gameplay |
+|---------|------|-----------|----------|
+| `StructurePieceDef` | `Props` | ancla en celda + `footprint` + `y_sort_origin` | Opcional: `blocks_cell`, `connect_hints` (solo editor) |
+| `StructureCatalog` | — | lista de piezas por `kit_id` | — |
+
+Catálogo ejemplo: `assets/world/structures/dark_medieval_wood/dark_medieval_wood_catalog.tres`. API: `world.add_structure_piece()`, `world.remove_structure_piece_at()`. Editor: `uf_map_editor` modo *Place structure piece* (clic izq. coloca, der. borra).
+
+Arte PixelLab: suelos → `create_isometric_tile`; piezas verticales → `create_map_object` (ver `pixellab-art.mdc`).
+
+#### 4.6.7 Regiones Wang (`TerrainSetDef`, `TerrainRegionDef`)
 
 - `TerrainSetDef`: `tileset` + `terrain_ids` (nombre lógico → índice Godot).
 - `TerrainRegionDef`: `terrain_set_id`, `terrain_name`, `placement_kind` (`BLOB` | `PATH`), `placement_rule`, contadores.
 
-Assets: tiles en `res://assets/world/tiles/art/`; props `props/art/`; decors `decors/art/`; Wang `terrains/wang/`; catálogo `field_catalog.tres`; sprites `field_sprite_catalog.tres`; terreno `terrains/field_terrain_set.tres`.
+Assets: tiles en `res://assets/world/tiles/` + `tiles/art/`; props `props/` + `props/art/`; decors `decors/art/`; kits de edificio `structures/<kit>/` con `floors/` (`TileDef` + `art/`) y `pieces/` (`StructurePieceDef` + `art/`); Wang `terrains/wang/`; catálogos raíz `field_catalog.tres`, `field_sprite_catalog.tres`; terreno `terrains/field_terrain_set.tres`.
 
-**Arte PixelLab (campo *field*):** seed de estilo **`42001`**, outline **`lineless`**, prompts con *seamless tileable*. Reglas Cursor `pixellab-art.mdc`, `world-map.mdc` §arte; MCP https://api.pixellab.ai/mcp/docs .
+**Arte PixelLab (campo *field*):** seed **`42001`**, outline **`lineless`**. Reglas: `world-assets-layout.mdc`, `pixellab-art.mdc`, `world-map.mdc`; MCP https://api.pixellab.ai/mcp/docs .
 
 ---
 
@@ -1206,7 +1221,7 @@ Registrar en `docs/ARCHITECTURE.md` al implementar.
 - [ ] ¿Respeta separación arquetipo / facción?
 - [ ] ¿Identificadores de código en inglés?
 - [ ] ¿Texto visible al jugador desacoplado (claves + `tr()`, §9)?
-- [ ] ¿Generación procedural respeta biomas, zonas manuales y estructuras prefab?
+- [ ] ¿Arte de mapa en `assets/world/` respeta `world-assets-layout.mdc` (`.tres` + `art/` por categoría)?
 - [ ] ¿Estado usa vitales + buff/debuff + malady + trait según corresponda?
 - [ ] ¿UI usa `UfPanel` movible, widgets desacoplados y localización (§9–10)?
 - [ ] ¿Paneles de dominio extienden la base sin reimplementar arrastre?

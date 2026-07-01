@@ -6,6 +6,8 @@ alwaysApply: false
 
 # PixelLab — arte de mapa (U&F)
 
+**Layout de carpetas y `.tres`:** `world-assets-layout.mdc` (obligatorio al guardar PNG o crear Resources).
+
 Documentación MCP: https://api.pixellab.ai/mcp/docs  
 Recurso Godot isométrico: `pixellab://docs/godot/isometric-tiles`  
 Diseño de capas y Wang: `docs/GAME_DESIGN.md` §4.6.3–4.6.4, regla `world-map.mdc`.
@@ -44,7 +46,7 @@ Diseño de capas y Wang: `docs/GAME_DESIGN.md` §4.6.3–4.6.4, regla `world-map
 
 **Parámetros:** `outline: lineless`, `shading: basic shading`, `detail: medium detail`, `size: 64`, `seed: 42001`.
 
-**Destino:** `res://assets/world/tiles/art/<id>.png` → `art_texture` en `assets/world/tiles/<id>.tres`.
+**Destinos** (detalle en `world-assets-layout.mdc`): campo → `tiles/`; kit → `structures/<kit>/floors/` o `pieces/`.
 
 **Fallback sin créditos:** `scripts/dev/generate_flat_ground_tiles.py` (diamante plano procedural).
 
@@ -78,9 +80,26 @@ Estado o decoración dispersa sobre un tile existente → capa `modifiers`, **no
 
 **Conversor Godot:** `tools/pixellab_wang_converter.gd` → `assets/world/terrains/field_combined.tres` (ver `assets/world/terrains/README.md`).
 
+## Kits de edificio (estructuras modulares)
+
+**Dos pipelines separados** — nunca mezclar suelo y piezas verticales en un solo `create_tiles_pro`.
+
+| Pieza | PixelLab | Prompt clave | Capa Godot |
+|-------|----------|--------------|------------|
+| Suelo interior / porche (rombo) | **`create_isometric_tile`** (`thin tile`, 64, `lineless`) | `flat top face only`, `seamless tileable`, `no block sides` | `ground` → `TileDef` |
+| Pared, esquina, puerta, ventana, teja | **`create_map_object`** (`low top-down`, transparente, `width`×`height` explícitos) | `vertical isometric 2.5D`, **un solo elemento**, evitar *house/shack/building* | `Props` → sprite libre + y-sort |
+
+**Una llamada = un tipo de asset.** Lista numerada en `tiles_pro` genera variaciones mezcladas inútiles.
+
+**Coherencia entre piezas:** tras elegir referencia (p. ej. mejor pared), `create_1_direction_object` con `style_images`.
+
+**Encaje tipo puzzle:** PixelLab no da metadata de snap — definir en Godot (`StructurePieceDef`). Layout del kit: `world-assets-layout.mdc` y `assets/world/structures/<kit>/README.md`.
+
+**Prohibido para paredes/tejados:** `create_isometric_tile` (`block` o `thin` con costados), `create_tiles_pro` batch mixto.
+
 ## Arte descartado
 
-PNG que no cumplen (bloques 3D, props en suelo, overlays mal tileados) → **`res://local/art/`** (gitignored). Quitar `art_texture` / `overlay_texture` del `.tres` correspondiente.
+PNG que no cumplen → **`res://local/art/`** (ver `world-assets-layout.mdc`). Quitar textura del `.tres` en `assets/`.
 
 ## Integración en código
 

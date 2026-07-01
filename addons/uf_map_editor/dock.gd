@@ -6,12 +6,14 @@ const _LAYER_NAMES := ["Ground", "Terrain", "Objects", "Structures"]
 
 var _plugin: EditorPlugin
 var _tile_ids: Array[StringName] = []
+var _structure_piece_ids: Array[StringName] = []
 var _width: SpinBox
 var _height: SpinBox
 var _seed: SpinBox
 var _water: SpinBox
 var _path: SpinBox
 var _tile: OptionButton
+var _structure_piece: OptionButton
 var _layer: OptionButton
 var _mode: OptionButton
 var _preset_path: LineEdit
@@ -48,7 +50,10 @@ func _build() -> void:
 	_button("Refresh tile catalog / visuals", _on_refresh_tiles_pressed)
 	_layer = _options("Layer", _LAYER_NAMES)
 	_layer.item_selected.connect(_on_layer_selected)
-	_mode = _options("Mode", ["Paint tile", "Edit height (wheel / +/-)"])
+	_structure_piece = _options("Structure piece", [])
+	_structure_piece.item_selected.connect(_on_structure_piece_selected)
+	refresh_structure_options()
+	_mode = _options("Mode", ["Paint tile", "Edit height (wheel / +/-)", "Place structure piece"])
 	_mode.item_selected.connect(_on_mode_selected)
 	var paint := CheckButton.new()
 	paint.text = "Paint enabled (select WorldRoot in scene tree)"
@@ -63,6 +68,10 @@ func _build() -> void:
 	height_hint.text = "Edit height: enable Paint, pick Edit height mode, hover a tile, wheel or +/- keys. Overlay tints each cell and shows z."
 	height_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(height_hint)
+	var structure_hint := Label.new()
+	structure_hint.text = "Place structure: enable Paint, pick Place structure mode, choose a piece. Left click places; right click removes. Floors still use Paint tile on Ground."
+	structure_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(structure_hint)
 
 	_separator()
 	_title("Presets / session save")
@@ -108,6 +117,38 @@ func _on_tile_selected(index: int) -> void:
 		return
 	_plugin_set(&"selected_tile", _tile_ids[index])
 
+func _on_structure_piece_selected(index: int) -> void:
+	if index < 0 or index >= _structure_piece_ids.size():
+		return
+	_plugin_set(&"selected_structure_piece", _structure_piece_ids[index])
+
+func refresh_structure_options() -> void:
+	var catalog: StructureCatalog = _plugin_call(&"get_structure_catalog")
+	if catalog == null or _structure_piece == null:
+		return
+	var selected: StringName = &"wall_straight"
+	if _plugin != null:
+		selected = _plugin.get("selected_structure_piece")
+	_structure_piece_ids = catalog.ids()
+	_structure_piece.clear()
+	var select_index := 0
+	for i in _structure_piece_ids.size():
+		var id := _structure_piece_ids[i]
+		var def := catalog.get_piece(id)
+		var label := String(id)
+		if def != null:
+			if not def.display_name_key.is_empty():
+				label = def.get_display_name()
+			if def.sprite_texture == null:
+				label += " (no texture)"
+		_structure_piece.add_item(label)
+		if id == selected:
+			select_index = i
+	if _structure_piece_ids.is_empty():
+		return
+	_structure_piece.select(select_index)
+	_on_structure_piece_selected(select_index)
+
 func refresh_tile_options() -> void:
 	var catalog: TileCatalog = _plugin_call(&"get_field_catalog")
 	if catalog == null or _tile == null:
@@ -146,6 +187,8 @@ func _on_mode_selected(index: int) -> void:
 	_plugin_set(&"mode", index)
 	if index == 1:
 		_plugin_set(&"show_height_overlay", true)
+	if index == 2:
+		_plugin_call(&"queue_viewport_redraw")
 
 func _on_height_overlay_toggled(on: bool) -> void:
 	_plugin_set(&"show_height_overlay", on)

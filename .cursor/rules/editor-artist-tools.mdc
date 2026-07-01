@@ -27,4 +27,5 @@ Si un módulo se usará **muchas veces** y requiere **fine-tuning manual** por u
 
 - [ ] ¿Reuso alto + fine-tuning? → planificar addon.
 - [ ] ¿API pública suficiente? → extender módulo antes del plugin.
+- [ ] ¿Arte en `assets/` sigue `world-assets-layout.mdc` (`.tres` + `art/` mismo nivel)?
 - [ ] Documentar formato de asset y registrar en §12 de `GAME_DESIGN.md`.

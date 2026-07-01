@@ -5,6 +5,9 @@ extends RefCounted
 const _CATALOG_PATH := "res://assets/world/field_catalog.tres"
 const _SPRITE_CATALOG_PATH := "res://assets/world/field_sprite_catalog.tres"
 const _TERRAIN_SET_PATH := "res://assets/world/terrains/field_terrain_set.tres"
+const _STRUCTURE_CATALOGS := {
+	&"dark_medieval_wood": "res://assets/world/structures/dark_medieval_wood/dark_medieval_wood_catalog.tres",
+}
 
 static func build_catalog() -> TileCatalog:
 	var catalog: TileCatalog = load(_CATALOG_PATH)
@@ -25,6 +28,17 @@ static func build_terrain_sets() -> Array:
 	if terrain_set == null:
 		return []
 	return [terrain_set]
+
+static func build_structure_catalog(kit_id: StringName) -> StructureCatalog:
+	var path: String = _STRUCTURE_CATALOGS.get(kit_id, "")
+	if path.is_empty():
+		push_error("field_biome: unknown structure kit %s" % kit_id)
+		return StructureCatalog.new()
+	var catalog: StructureCatalog = load(path)
+	if catalog == null:
+		push_error("field_biome: missing structure catalog at %s" % path)
+		return StructureCatalog.new()
+	return catalog
 
 static func build_modifiers() -> Array[TileModifierDef]:
 	return [_wet(), _snowy(), _burning()]

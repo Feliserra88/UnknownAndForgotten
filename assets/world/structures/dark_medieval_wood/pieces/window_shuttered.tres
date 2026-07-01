@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StructurePieceDef" format=3 uid="uid://cyk7nkvx3jtsm"]
+
+[ext_resource type="Texture2D" uid="uid://cf53r2hnbuweo" path="res://assets/world/structures/dark_medieval_wood/pieces/art/window_shuttered.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://ioq57wkawinu" path="res://modules/world/structure_piece_def.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = &"window_shuttered"
+kit_id = &"dark_medieval_wood"
+display_name_key = "structure.dark_medieval_wood.window_shuttered.name"
+piece_type = 3
+sprite_texture = ExtResource("1_tex")
+y_sort_origin = 2
+connect_hints = 10
