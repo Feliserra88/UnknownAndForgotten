@@ -1,13 +1,13 @@
-[gd_resource type="Resource" script_class="NpcSpriteAnimDef" format=3 uid="uid://sn8wo23wfdwa"]
+[gd_resource type="Resource" script_class="NpcSpriteAnimDef" format=3]
 
-[ext_resource type="Script" uid="uid://dfr63m67gml1h" path="res://modules/appearance/npc_sprite_anim_def.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://dhmdj6txtr5x4" path="res://assets/visuals/characters/human/male/HumanMaleIdle.png" id="2_idle"]
-[ext_resource type="Texture2D" uid="uid://blij0syl5xfsp" path="res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png" id="3_walk_r"]
-[ext_resource type="Texture2D" uid="uid://jjtcdmj2vnnb" path="res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png" id="4_walk_l"]
-[ext_resource type="Texture2D" uid="uid://d3n4etv81vk0r" path="res://assets/visuals/characters/human/male/HumanMaleWalkingSE.png" id="5_walk_se"]
-[ext_resource type="Texture2D" uid="uid://dgipap8i0jjti" path="res://assets/visuals/characters/human/male/HumanMaleWalkingNE.png" id="6_walk_ne"]
-[ext_resource type="Texture2D" uid="uid://3ytqw6l4xvyv" path="res://assets/visuals/characters/human/male/HumanMaleWalkingNW.png" id="7_walk_nw"]
-[ext_resource type="Texture2D" uid="uid://cevk06pc82hyh" path="res://assets/visuals/characters/human/male/HumanMaleWalkingSW.png" id="8_walk_sw"]
+[ext_resource type="Script" path="res://modules/appearance/npc_sprite_anim_def.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleIdle.png" id="2_idle"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png" id="3_walk_r"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png" id="4_walk_l"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingSE.png" id="5_walk_se"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingNE.png" id="6_walk_ne"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingNW.png" id="7_walk_nw"]
+[ext_resource type="Texture2D" path="res://assets/visuals/characters/human/male/HumanMaleWalkingSW.png" id="8_walk_sw"]
 
 [resource]
 script = ExtResource("1_script")

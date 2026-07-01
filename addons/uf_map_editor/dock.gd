@@ -2,10 +2,10 @@
 extends VBoxContainer
 ## Dock UI for the map editor. Calls plugin methods via callv (EditorPlugin has no custom API type).
 
-const _TILE_IDS: Array[StringName] = [&"grass", &"bare_dirt", &"dirt_path", &"pond_water", &"rock_wall", &"bush", &"open_door"]
 const _LAYER_NAMES := ["Ground", "Terrain", "Objects", "Structures"]
 
 var _plugin: EditorPlugin
+var _tile_ids: Array[StringName] = []
 var _width: SpinBox
 var _height: SpinBox
 var _seed: SpinBox
@@ -42,8 +42,10 @@ func _build() -> void:
 
 	_separator()
 	_title("Manual painting")
-	_tile = _options("Tile", _tile_labels())
+	_tile = _options("Tile", [])
 	_tile.item_selected.connect(_on_tile_selected)
+	refresh_tile_options()
+	_button("Refresh tile catalog / visuals", _on_refresh_tiles_pressed)
 	_layer = _options("Layer", _LAYER_NAMES)
 	_layer.item_selected.connect(_on_layer_selected)
 	_mode = _options("Mode", ["Paint tile", "Edit height (wheel / +/-)"])
@@ -102,7 +104,40 @@ func _on_save_map_pressed() -> void:
 	_plugin_call(&"save_map", [_map_name.text])
 
 func _on_tile_selected(index: int) -> void:
-	_plugin_set(&"selected_tile", _TILE_IDS[index])
+	if index < 0 or index >= _tile_ids.size():
+		return
+	_plugin_set(&"selected_tile", _tile_ids[index])
+
+func refresh_tile_options() -> void:
+	var catalog: TileCatalog = _plugin_call(&"get_field_catalog")
+	if catalog == null or _tile == null:
+		return
+	var selected: StringName = &"grass"
+	if _plugin != null:
+		selected = _plugin.get("selected_tile")
+	_tile_ids = catalog.ids()
+	_tile.clear()
+	var select_index := 0
+	for i in _tile_ids.size():
+		var id := _tile_ids[i]
+		var def := catalog.get_tile(id)
+		var label := String(id)
+		if def != null:
+			if not def.display_name_key.is_empty():
+				label = def.get_display_name()
+			if def.art_texture == null:
+				label += " (placeholder)"
+		_tile.add_item(label)
+		if id == selected:
+			select_index = i
+	if _tile_ids.is_empty():
+		return
+	_tile.select(select_index)
+	_on_tile_selected(select_index)
+
+func _on_refresh_tiles_pressed() -> void:
+	_plugin_call(&"refresh_field_tilesets")
+	refresh_tile_options()
 
 func _on_layer_selected(index: int) -> void:
 	_plugin_set(&"selected_layer", index)
@@ -136,12 +171,6 @@ func _on_load_preset() -> void:
 
 func _region() -> Rect2i:
 	return Rect2i(0, 0, int(_width.value), int(_height.value))
-
-func _tile_labels() -> Array:
-	var labels := []
-	for id in _TILE_IDS:
-		labels.append(String(id))
-	return labels
 
 func _title(text: String) -> void:
 	var label := Label.new()

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TileModifierDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_dlw8k"]
+
+[resource]
+script = ExtResource("1_dlw8k")
+id = &"scatter_pebble"
+display_name_key = "modifier.scatter_pebble.name"
+overlay_color = Color(0.62, 0.58, 0.52, 0.35)
+permanent = true

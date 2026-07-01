@@ -28,6 +28,12 @@ y_sort_enabled = true
 
 [node name="Modifiers" type="TileMapLayer" parent="Layers" unique_id=853999263]
 
+[node name="Props" type="Node2D" parent="Layers" unique_id=1203847291]
+y_sort_enabled = true
+
+[node name="Decor" type="Node2D" parent="Layers" unique_id=1984726103]
+y_sort_enabled = true
+
 [node name="Actors" type="Node2D" parent="Layers" unique_id=1982736451]
 y_sort_enabled = true
 

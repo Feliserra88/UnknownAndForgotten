@@ -11,4 +11,5 @@ display_name_key = "tile.rock_wall.name"
 tags = 132
 art_texture = ExtResource("1_tex")
 placeholder_color = Color(0.55, 0.55, 0.58, 1)
+y_sort_origin_offset = 28
 atlas_coords = Vector2i(4, 0)

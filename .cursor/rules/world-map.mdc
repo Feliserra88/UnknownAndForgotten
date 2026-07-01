@@ -18,6 +18,21 @@ Ver `docs/GAME_DESIGN.md` §3–4. Cada tile/celda contempla **x, y, z**; distin
 - Presentación: `map_to_local(Vector2i(x,y))` + offset por `z` (`y_sort_origin`, `height_step`).
 - NPCs/props: `grid_cell: Vector3i`; usar `grid_to_world()`.
 
+## Arte de mapa (capas y Wang)
+
+Ver `docs/GAME_DESIGN.md` §4.6.3–4.6.4 y `pixellab-art.mdc`.
+
+| Capa | Contenido |
+|------|-----------|
+| `ground` | Suelo plano seamless (`thin tile` PixelLab o script procedural) |
+| `terrain` | Caminos, agua Wang (`set_cells_terrain_connect`) o agua plana provisional |
+| `objects` | Props altos con `TileDef.y_sort_origin_offset` en el pie |
+| `modifiers` | Overlays (`scatter_modifiers`, `wet` en bordes de agua) |
+
+**Agua grande:** no usar tiles isométricos 3D; generar tileset Wang con PixelLab `create_topdown_tileset` y terrains de Godot.
+
+**Scatter:** decoración ligera → `BiomeDef.scatter_modifiers` + `world.add_modifier()`, no tiles de suelo.
+
 ## Prohibido
 
 - Asumir mapa plano (`z = 0`) sin documentarlo.

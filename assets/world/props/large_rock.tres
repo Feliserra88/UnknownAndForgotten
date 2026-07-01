@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MapPropDef" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/props/art/large_rock.png" id="1_tex"]
+[ext_resource type="Script" path="res://modules/world/map_prop_def.gd" id="2"]
+
+[resource]
+script = ExtResource("2")
+id = &"large_rock"
+display_name_key = "prop.large_rock.name"
+sprite_texture = ExtResource("1_tex")
+offset_spread = Vector2(10, 6)
+y_sort_origin = 6
+tags = 132
+blocks_cell = true

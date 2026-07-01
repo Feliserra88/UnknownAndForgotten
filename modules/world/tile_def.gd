@@ -19,6 +19,8 @@ extends Resource
 @export_group("Art")
 ## Optional isometric sprite. When set, used instead of the placeholder diamond in the TileSet atlas.
 @export var art_texture: Texture2D
+## Y-sort anchor offset for tall props on the `objects` layer (foot of sprite). 0 = cell default.
+@export var y_sort_origin_offset: int = 0
 
 @export_group("Placeholder visual")
 ## Flat colour used to build the placeholder diamond when [member art_texture] is unset.

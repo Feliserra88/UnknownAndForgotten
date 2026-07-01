@@ -6,6 +6,8 @@ extends Node2D
 ## @tool: scene root receives height_field / tile_catalog synced from the map editor session.
 
 const _LOG := "WLD"
+const _MapSprites := preload("res://modules/world/_private/map_sprite_layer.gd")
+const _WangPainter := preload("res://modules/world/_private/wang_terrain_painter.gd")
 ## Default path for editor-painted tile data (under gitignored `res://local/`).
 const EDITOR_SESSION_MAP_PATH := "res://local/world/maps/editor_session.tscn"
 
@@ -25,6 +27,8 @@ var terrain_layer: TileMapLayer
 var objects_layer: TileMapLayer
 var structures_layer: TileMapLayer
 var modifiers_layer: TileMapLayer
+var props_layer: Node2D
+var decor_layer: Node2D
 var layers: Node2D
 var actors: Node2D
 
@@ -39,6 +43,10 @@ var _modifier_source_id: int = -1
 var _modifier_coords: Dictionary = {}
 var _modifier_defs: Dictionary = {}
 var _modifiers: Dictionary = {}
+var _prop_defs: Dictionary = {}
+var _decor_defs: Dictionary = {}
+var _terrain_set_defs: Dictionary = {}
+var _blocked_prop_cells: Dictionary = {}
 
 ## Builds the placeholder tilesets from [param catalog] and [param modifiers], assigns them to
 ## every layer, and prepares the height field for [param region]. Must run before painting.
@@ -50,6 +58,8 @@ func configure(
 	region: Rect2i,
 	shared_tileset: TileSet = null,
 	shared_modifier_pack: Dictionary = {},
+	sprite_catalog: MapSpriteCatalog = null,
+	terrain_sets: Array = [],
 ) -> void:
 	if not _ensure_layers():
 		push_error("[%s] configure: map layers are not wired" % _LOG)
@@ -83,6 +93,20 @@ func configure(
 	_modifier_defs.clear()
 	for m in modifiers:
 		_modifier_defs[m.id] = m
+	_prop_defs.clear()
+	_decor_defs.clear()
+	_blocked_prop_cells.clear()
+	if sprite_catalog != null:
+		for p in sprite_catalog.props:
+			if p != null:
+				_prop_defs[p.id] = p
+		for d in sprite_catalog.decors:
+			if d != null:
+				_decor_defs[d.id] = d
+	_terrain_set_defs.clear()
+	for ts in terrain_sets:
+		if ts is TerrainSetDef:
+			_terrain_set_defs[ts.id] = ts
 	if modifiers_layer != null and is_instance_valid(modifiers_layer):
 		if modifiers_layer.tile_set != _modifier_tileset:
 			modifiers_layer.tile_set = _modifier_tileset
@@ -91,7 +115,10 @@ func configure(
 	height_field.height_step = height_step
 	height_field.resize(region)
 	_modifiers.clear()
-	Log.info(_LOG, "init", "configured region=%s tiles=%d" % [region, catalog.tiles.size()])
+	_clear_sprite_layers()
+	Log.info(_LOG, "init", "configured region=%s tiles=%d props=%d decors=%d terrains=%d" % [
+		region, catalog.tiles.size(), _prop_defs.size(), _decor_defs.size(), _terrain_set_defs.size(),
+	])
 
 ## Converts a logical cell (x, y, z) to the global position at the tile center (map_to_local).
 func grid_to_world(cell: Vector3i) -> Vector2:
@@ -173,6 +200,45 @@ func get_tile_def_at(cell: Vector2i) -> TileDef:
 			return def
 	return null
 
+## Returns the configured MapPropDef registered under [param id], or null.
+func get_prop_def(id: StringName) -> MapPropDef:
+	return _prop_defs.get(id, null)
+
+## Returns the configured MapDecorDef registered under [param id], or null.
+func get_decor_def(id: StringName) -> MapDecorDef:
+	return _decor_defs.get(id, null)
+
+## Returns the configured TerrainSetDef registered under [param id], or null.
+func get_terrain_set_def(id: StringName) -> TerrainSetDef:
+	return _terrain_set_defs.get(id, null)
+
+## Places a tall prop sprite at [param cell] with optional [param local_offset] (random if null).
+func add_prop(cell: Vector2i, prop: MapPropDef, rng: RandomNumberGenerator = null, local_offset: Variant = null) -> void:
+	if prop == null or not _ensure_layers():
+		return
+	var offset: Vector2 = local_offset if local_offset is Vector2 else _MapSprites.random_offset(
+		rng if rng != null else RandomNumberGenerator.new(), prop.offset_spread)
+	_MapSprites.spawn_prop(props_layer, ground_layer, cell, prop, offset)
+	if prop.blocks_cell:
+		_blocked_prop_cells[cell] = true
+
+## Places a decorative sprite at [param cell] with random offset/scale inside the tile.
+func add_decor(cell: Vector2i, decor: MapDecorDef, rng: RandomNumberGenerator) -> void:
+	if decor == null or rng == null or not _ensure_layers():
+		return
+	var offset := _MapSprites.random_offset(rng, decor.offset_spread)
+	var scale_factor := _MapSprites.random_scale(rng, decor.scale_range)
+	_MapSprites.spawn_decor(decor_layer, ground_layer, cell, decor, offset, scale_factor)
+
+## Paints [param cells] with Wang autotile [param terrain_name] from [param terrain_set].
+func paint_terrain(cells: Array, terrain_set: TerrainSetDef, terrain_name: StringName) -> bool:
+	_ensure_layers()
+	return _WangPainter.paint_cells(terrain_layer, cells, terrain_set, terrain_name)
+
+## Returns whether a prop marked [member MapPropDef.blocks_cell] occupies [param cell].
+func is_prop_blocked(cell: Vector2i) -> bool:
+	return _blocked_prop_cells.has(cell)
+
 ## Applies [param modifier] (a TileModifierDef) to [param cell] and shows its overlay.
 func add_modifier(cell: Vector2i, modifier: TileModifierDef) -> void:
 	if modifier == null or modifiers_layer == null or not is_instance_valid(modifiers_layer):
@@ -201,6 +267,8 @@ func can_move(from: Vector3i, dir: int) -> bool:
 	var to_cell := from_cell + Direction.to_vector(dir)
 	var to_def := get_tile_def_at(to_cell)
 	if to_def == null:
+		return false
+	if is_prop_blocked(to_cell):
 		return false
 	if not to_def.has_tag(TileTags.Tag.WALKABLE):
 		return false
@@ -249,6 +317,8 @@ func clear_all_cells() -> void:
 				layer.erase_cell(cell)
 		else:
 			layer.clear()
+	_clear_sprite_layers()
+	_blocked_prop_cells.clear()
 
 ## Resolves the layer node references from the scene; safe to call repeatedly.
 func ensure_layers() -> void:
@@ -265,6 +335,8 @@ func bind_edited_root(root: Node2D) -> void:
 	objects_layer = layers_node.get_node_or_null("Objects") as TileMapLayer
 	structures_layer = layers_node.get_node_or_null("Structures") as TileMapLayer
 	modifiers_layer = layers_node.get_node_or_null("Modifiers") as TileMapLayer
+	props_layer = layers_node.get_node_or_null("Props") as Node2D
+	decor_layer = layers_node.get_node_or_null("Decor") as Node2D
 	layers = layers_node as Node2D
 
 ## Forces TileMapLayer redraw after procedural or manual edits.
@@ -340,6 +412,7 @@ func load_baked_map(map_path: String) -> bool:
 		temp._modifier_tileset = temp.modifiers_layer.tile_set
 	apply_map_from(temp)
 	_ensure_editor_tile_catalog()
+	_refresh_editor_tilesets_from_catalog()
 	var height_path := _baked_height_path_for(map_path)
 	if ResourceLoader.exists(height_path):
 		height_field = (load(height_path) as MapHeightField).duplicate(true)
@@ -359,6 +432,14 @@ static func create_scratch() -> WorldModule:
 		var layer := TileMapLayer.new()
 		layer.name = layer_name
 		layers_node.add_child(layer)
+	var props_node := Node2D.new()
+	props_node.name = "Props"
+	props_node.y_sort_enabled = true
+	layers_node.add_child(props_node)
+	var decor_node := Node2D.new()
+	decor_node.name = "Decor"
+	decor_node.y_sort_enabled = true
+	layers_node.add_child(decor_node)
 	var actors_node := Node2D.new()
 	actors_node.name = "Actors"
 	actors_node.y_sort_enabled = true
@@ -374,6 +455,8 @@ func apply_map_from(source: WorldModule) -> void:
 	apply_map_layer_from(source, &"objects")
 	apply_map_layer_from(source, &"structures")
 	apply_map_layer_from(source, &"modifiers")
+	_copy_sprite_layer_from(source.props_layer, props_layer)
+	_copy_sprite_layer_from(source.decor_layer, decor_layer)
 
 ## Copies catalog, height field and modifier bookkeeping from [param source].
 func apply_map_metadata_from(source: WorldModule) -> void:
@@ -385,6 +468,10 @@ func apply_map_metadata_from(source: WorldModule) -> void:
 	_modifier_coords = source._modifier_coords.duplicate(true)
 	_modifier_defs = source._modifier_defs.duplicate(true)
 	_modifiers = source._modifiers.duplicate(true)
+	_prop_defs = source._prop_defs.duplicate(true)
+	_decor_defs = source._decor_defs.duplicate(true)
+	_terrain_set_defs = source._terrain_set_defs.duplicate(true)
+	_blocked_prop_cells = source._blocked_prop_cells.duplicate(true)
 	tile_catalog = source.tile_catalog
 	height_field = source.height_field.duplicate(true) if source.height_field != null else null
 
@@ -403,6 +490,19 @@ func apply_map_layer_from(source: WorldModule, layer_key: StringName) -> void:
 			_copy_layer_from(source.structures_layer, structures_layer, _tileset)
 		&"modifiers":
 			_copy_layer_from(source.modifiers_layer, modifiers_layer, _modifier_tileset)
+		&"props":
+			_copy_sprite_layer_from(source.props_layer, props_layer)
+		&"decor":
+			_copy_sprite_layer_from(source.decor_layer, decor_layer)
+
+func _copy_sprite_layer_from(src: Node2D, dst: Node2D) -> void:
+	if src == null or dst == null or not is_instance_valid(dst):
+		return
+	_MapSprites.clear_layer(dst)
+	for child in src.get_children():
+		if child is Sprite2D:
+			var copy := child.duplicate() as Sprite2D
+			dst.add_child(copy)
 
 func _copy_layer_from(src: TileMapLayer, dst: TileMapLayer, tileset: TileSet) -> void:
 	if src == null or dst == null or not is_instance_valid(dst):
@@ -431,8 +531,52 @@ func _ensure_editor_tile_catalog() -> void:
 	var world_gen := WorldGenModule.new()
 	tile_catalog = world_gen.build_field_catalog()
 	world_gen.free()
-	if _tileset != null:
-		PlaceholderTileSet.assign_tile_mapping(tile_catalog.tiles, _tileset)
+
+## Rebuilds TileSets from [param catalog] without clearing painted cells or the height field.
+func refresh_tilesets(
+	catalog: TileCatalog,
+	modifiers: Array,
+	shared_tileset: TileSet = null,
+	shared_modifier_pack: Dictionary = {},
+) -> void:
+	if not _ensure_layers() or catalog == null:
+		return
+	tile_catalog = catalog
+	var tile_size := Vector2i(Config.get_int("WORLD_TILE_WIDTH", 64), Config.get_int("WORLD_TILE_HEIGHT", 32))
+	if shared_tileset != null:
+		_tileset = shared_tileset
+		PlaceholderTileSet.assign_tile_mapping(catalog.tiles, _tileset)
+	else:
+		_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
+	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer]:
+		if layer != null and is_instance_valid(layer):
+			layer.tile_set = _tileset
+			layer.y_sort_enabled = true
+			if layer == ground_layer and layer.tile_set != null:
+				layer.y_sort_origin = -layer.tile_set.tile_size.y / 2
+	if shared_modifier_pack.has("tileset"):
+		_modifier_tileset = shared_modifier_pack["tileset"]
+		_modifier_source_id = shared_modifier_pack["source_id"]
+		_modifier_coords = shared_modifier_pack["coords"]
+	else:
+		var overlay := PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
+		_modifier_tileset = overlay["tileset"]
+		_modifier_source_id = overlay["source_id"]
+		_modifier_coords = overlay["coords"]
+	_modifier_defs.clear()
+	for m in modifiers:
+		_modifier_defs[m.id] = m
+	if modifiers_layer != null and is_instance_valid(modifiers_layer):
+		modifiers_layer.tile_set = _modifier_tileset
+		modifiers_layer.y_sort_enabled = true
+
+func _refresh_editor_tilesets_from_catalog() -> void:
+	if not Engine.is_editor_hint() or tile_catalog == null:
+		return
+	var world_gen := WorldGenModule.new()
+	var modifiers := world_gen.build_field_modifiers()
+	world_gen.free()
+	refresh_tilesets(tile_catalog, modifiers)
 
 func _ensure_layers() -> bool:
 	if ground_layer != null and is_instance_valid(ground_layer):
@@ -442,6 +586,8 @@ func _ensure_layers() -> bool:
 	objects_layer = null
 	structures_layer = null
 	modifiers_layer = null
+	props_layer = null
+	decor_layer = null
 	layers = null
 	actors = null
 	var layers_node := get_node_or_null("Layers")
@@ -452,6 +598,8 @@ func _ensure_layers() -> bool:
 	objects_layer = layers_node.get_node_or_null("Objects") as TileMapLayer
 	structures_layer = layers_node.get_node_or_null("Structures") as TileMapLayer
 	modifiers_layer = layers_node.get_node_or_null("Modifiers") as TileMapLayer
+	props_layer = layers_node.get_node_or_null("Props") as Node2D
+	decor_layer = layers_node.get_node_or_null("Decor") as Node2D
 	layers = layers_node as Node2D
 	actors = layers_node.get_node_or_null("Actors") as Node2D
 	if ground_layer != null and ground_layer.tile_set != null:
@@ -485,3 +633,7 @@ func _layer(layer: int) -> TileMapLayer:
 		Layer.OBJECTS: return objects_layer
 		Layer.STRUCTURES: return structures_layer
 		_: return ground_layer
+
+func _clear_sprite_layers() -> void:
+	_MapSprites.clear_layer(props_layer)
+	_MapSprites.clear_layer(decor_layer)

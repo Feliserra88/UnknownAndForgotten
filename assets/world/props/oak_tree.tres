@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MapPropDef" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/props/art/oak_tree.png" id="1_tex"]
+[ext_resource type="Script" path="res://modules/world/map_prop_def.gd" id="2"]
+
+[resource]
+script = ExtResource("2")
+id = &"oak_tree"
+display_name_key = "prop.oak_tree.name"
+sprite_texture = ExtResource("1_tex")
+offset_spread = Vector2(8, 5)
+y_sort_origin = 4
+tags = 194
+blocks_cell = true

@@ -12,9 +12,13 @@ static func generate(request: WorldGenRequest, world: WorldModule) -> Dictionary
 	rng.seed = request.gen_seed
 	_generate_height(biome, world, region)
 	_fill_ground(biome, world, region)
-	var water_cells := _place_water(biome, world, region, request, rng)
-	var path_cells := _place_paths(biome, world, region, request, rng)
+	var terrain_report := _place_terrain_features(biome, world, region, request, rng)
+	var water_cells: Array = terrain_report.get("water", [])
+	var path_cells: Array = terrain_report.get("paths", [])
+	_scatter_props(biome, world, region, rng, water_cells, path_cells)
+	_scatter_decor(biome, world, region, rng, water_cells, path_cells)
 	_scatter(biome, world, region, rng, water_cells, path_cells)
+	_scatter_modifiers(biome, world, region, rng, water_cells, path_cells)
 	_apply_modifiers(world, region, water_cells, rng)
 	var walkable := 0
 	if Engine.is_editor_hint():
@@ -23,8 +27,143 @@ static func generate(request: WorldGenRequest, world: WorldModule) -> Dictionary
 		_validate_water(world, biome, water_cells)
 		_validate_paths(world, biome, path_cells)
 		walkable = _count_walkable(world, region)
-		Log.info(_LOG, "gen", "seed=%d water=%d path=%d walkable=%d" % [request.gen_seed, water_cells.size(), path_cells.size(), walkable])
+	Log.info(_LOG, "gen", "seed=%d water=%d path=%d walkable=%d" % [request.gen_seed, water_cells.size(), path_cells.size(), walkable])
 	return {"water": water_cells, "paths": path_cells, "walkable": walkable}
+
+static func _place_terrain_features(
+	biome: BiomeDef,
+	world: WorldModule,
+	region: Rect2i,
+	request: WorldGenRequest,
+	rng: RandomNumberGenerator,
+) -> Dictionary:
+	var water_cells: Array[Vector2i] = []
+	var path_cells: Array[Vector2i] = []
+	if biome.terrain_regions.is_empty():
+		water_cells = _place_water(biome, world, region, request, rng)
+		path_cells = _place_paths(biome, world, region, request, rng)
+		return {"water": water_cells, "paths": path_cells}
+	for feature in biome.terrain_regions:
+		if feature == null:
+			continue
+		var terrain_set := world.get_terrain_set_def(feature.terrain_set_id)
+		var placed: Array[Vector2i] = []
+		match feature.placement_kind:
+			TerrainRegionDef.PlacementKind.PATH:
+				placed = _grow_path(region, feature.path_count, rng)
+			_:
+				placed = _grow_blob(region, feature, request, rng)
+		if terrain_set != null and terrain_set.tileset != null:
+			if not world.paint_terrain(placed, terrain_set, feature.terrain_name):
+				_paint_legacy_terrain(world, biome, feature, placed)
+		else:
+			_paint_legacy_terrain(world, biome, feature, placed)
+		if _is_water_feature(feature):
+			water_cells.append_array(placed)
+		if _is_path_feature(feature):
+			path_cells.append_array(placed)
+	return {"water": water_cells, "paths": path_cells}
+
+static func _is_water_feature(feature: TerrainRegionDef) -> bool:
+	return feature.id == &"water" or feature.terrain_name == &"water"
+
+static func _is_path_feature(feature: TerrainRegionDef) -> bool:
+	return feature.placement_kind == TerrainRegionDef.PlacementKind.PATH or feature.id == &"path"
+
+static func _grow_blob(
+	region: Rect2i,
+	feature: TerrainRegionDef,
+	request: WorldGenRequest,
+	rng: RandomNumberGenerator,
+) -> Array[Vector2i]:
+	var rule := feature.placement_rule
+	var min_size := rule.min_cluster_size if rule != null else 1
+	var max_size := rule.max_cluster_size if rule != null and rule.max_cluster_size > 0 else min_size + 8
+	var count := feature.body_count if feature.body_count > 0 else request.effective_water_body_count()
+	var placed: Array[Vector2i] = []
+	for i in count:
+		var target := rng.randi_range(maxi(min_size, 1), maxi(max_size, min_size + 1))
+		var body := _grow_round_blob(region, target, rng)
+		if body.size() < min_size:
+			continue
+		placed.append_array(body)
+	return placed
+
+static func _grow_path(region: Rect2i, path_count: int, rng: RandomNumberGenerator) -> Array[Vector2i]:
+	var placed: Array[Vector2i] = []
+	for i in maxi(path_count, 1):
+		var cy := rng.randi_range(region.position.y + 2, region.position.y + region.size.y - 3)
+		for x in region.size.x:
+			var cx := region.position.x + x
+			placed.append(Vector2i(cx, cy))
+			if rng.randf() < 0.2:
+				var ny := clampi(cy + (1 if rng.randf() < 0.5 else -1), region.position.y + 1, region.position.y + region.size.y - 2)
+				if ny != cy:
+					placed.append(Vector2i(cx, ny))
+					cy = ny
+	return placed
+
+static func _paint_legacy_terrain(
+	world: WorldModule,
+	biome: BiomeDef,
+	feature: TerrainRegionDef,
+	cells: Array[Vector2i],
+) -> void:
+	var tile_id: StringName = &""
+	if _is_water_feature(feature):
+		tile_id = biome.water_tile
+	elif _is_path_feature(feature):
+		tile_id = biome.path_tile
+	if tile_id.is_empty():
+		return
+	for c in cells:
+		world.set_tile(WorldModule.Layer.TERRAIN, c, tile_id)
+
+static func _scatter_props(
+	biome: BiomeDef,
+	world: WorldModule,
+	region: Rect2i,
+	rng: RandomNumberGenerator,
+	water_cells: Array,
+	path_cells: Array,
+) -> void:
+	if biome.scatter_props.is_empty():
+		return
+	var occupied := _occupied_cells(water_cells, path_cells)
+	for x in region.size.x:
+		for y in region.size.y:
+			var c := region.position + Vector2i(x, y)
+			if occupied.has(c) or world.is_prop_blocked(c):
+				continue
+			if rng.randf() >= biome.scatter_prop_chance:
+				continue
+			var id: StringName = biome.scatter_props[rng.randi_range(0, biome.scatter_props.size() - 1)]
+			var prop := world.get_prop_def(id)
+			if prop != null:
+				world.add_prop(c, prop, rng)
+
+static func _scatter_decor(
+	biome: BiomeDef,
+	world: WorldModule,
+	region: Rect2i,
+	rng: RandomNumberGenerator,
+	water_cells: Array,
+	path_cells: Array,
+) -> void:
+	if biome.scatter_decor.is_empty():
+		return
+	var occupied := _occupied_cells(water_cells, path_cells)
+	for x in region.size.x:
+		for y in region.size.y:
+			var c := region.position + Vector2i(x, y)
+			if occupied.has(c):
+				continue
+			if rng.randf() >= biome.scatter_decor_chance:
+				continue
+			var id: StringName = biome.scatter_decor[rng.randi_range(0, biome.scatter_decor.size() - 1)]
+			var decor := world.get_decor_def(id)
+			if decor != null:
+				world.add_decor(c, decor, rng)
 
 ## Editor-safe walkable count: reads only ground/terrain layers, no custom-data lookups.
 static func _count_walkable_fast(world: WorldModule, region: Rect2i) -> int:
@@ -70,7 +209,6 @@ static func _place_water(biome: BiomeDef, world: WorldModule, region: Rect2i, re
 			placed.append(c)
 	return placed
 
-## Grows a rounded, contiguous blob of about [param target] cells centred randomly in [param region].
 static func _grow_round_blob(region: Rect2i, target: int, rng: RandomNumberGenerator) -> Array:
 	var margin := 2
 	var cx := rng.randi_range(region.position.x + margin, region.position.x + region.size.x - 1 - margin)
@@ -101,7 +239,6 @@ static func _place_paths(biome: BiomeDef, world: WorldModule, region: Rect2i, re
 			if rng.randf() < 0.2:
 				var ny := clampi(cy + (1 if rng.randf() < 0.5 else -1), region.position.y + 1, region.position.y + region.size.y - 2)
 				if ny != cy:
-					# vertical connector at the same column keeps the line continuous
 					path.append(Vector2i(cx, ny))
 					cy = ny
 		for c in path:
@@ -112,11 +249,7 @@ static func _place_paths(biome: BiomeDef, world: WorldModule, region: Rect2i, re
 static func _scatter(biome: BiomeDef, world: WorldModule, region: Rect2i, rng: RandomNumberGenerator, water_cells: Array, path_cells: Array) -> void:
 	if biome.scatter_tiles.is_empty():
 		return
-	var occupied := {}
-	for c in water_cells:
-		occupied[c] = true
-	for c in path_cells:
-		occupied[c] = true
+	var occupied := _occupied_cells(water_cells, path_cells)
 	for x in region.size.x:
 		for y in region.size.y:
 			var c := region.position + Vector2i(x, y)
@@ -125,6 +258,30 @@ static func _scatter(biome: BiomeDef, world: WorldModule, region: Rect2i, rng: R
 			if rng.randf() < biome.scatter_chance:
 				var id: StringName = biome.scatter_tiles[rng.randi_range(0, biome.scatter_tiles.size() - 1)]
 				world.set_tile(WorldModule.Layer.OBJECTS, c, id)
+
+static func _scatter_modifiers(biome: BiomeDef, world: WorldModule, region: Rect2i, rng: RandomNumberGenerator, water_cells: Array, path_cells: Array) -> void:
+	if biome.scatter_modifiers.is_empty() or biome.scatter_modifier_chance <= 0.0:
+		return
+	var occupied := _occupied_cells(water_cells, path_cells)
+	for x in region.size.x:
+		for y in region.size.y:
+			var c := region.position + Vector2i(x, y)
+			if occupied.has(c):
+				continue
+			if rng.randf() >= biome.scatter_modifier_chance:
+				continue
+			var id: StringName = biome.scatter_modifiers[rng.randi_range(0, biome.scatter_modifiers.size() - 1)]
+			var def := world.get_modifier_def(id)
+			if def != null:
+				world.add_modifier(c, def)
+
+static func _occupied_cells(water_cells: Array, path_cells: Array) -> Dictionary:
+	var occupied := {}
+	for c in water_cells:
+		occupied[c] = true
+	for c in path_cells:
+		occupied[c] = true
+	return occupied
 
 static func _apply_modifiers(world: WorldModule, region: Rect2i, water_cells: Array, rng: RandomNumberGenerator) -> void:
 	var wet := world.get_modifier_def(&"wet")
@@ -142,7 +299,6 @@ static func _apply_modifiers(world: WorldModule, region: Rect2i, water_cells: Ar
 		var bc := region.position + Vector2i(rng.randi_range(1, region.size.x - 2), rng.randi_range(1, region.size.y - 2))
 		world.add_modifier(bc, burning)
 
-## Flood-fills water clusters and warns when any breaks its placement rule (size/roundness/isolation).
 static func _validate_water(world: WorldModule, biome: BiomeDef, water_cells: Array) -> void:
 	var tile := world.tile_catalog.get_tile(biome.water_tile)
 	if tile == null or tile.placement_rule == null or water_cells.is_empty():
@@ -164,7 +320,6 @@ static func _validate_water(world: WorldModule, biome: BiomeDef, water_cells: Ar
 		if rule.roundness_min > 0.0 and _roundness(cluster) < rule.roundness_min:
 			Log.warn(_LOG, "water cluster roundness below %.2f" % rule.roundness_min)
 
-## Warns about path cells that fail the minimum collinear-neighbour rule (dangling stubs).
 static func _validate_paths(world: WorldModule, biome: BiomeDef, path_cells: Array) -> void:
 	var tile := world.tile_catalog.get_tile(biome.path_tile)
 	if tile == null or tile.placement_rule == null or not tile.placement_rule.is_linear:
@@ -202,7 +357,6 @@ static func _flood(remaining: Dictionary, start: Vector2i) -> Array:
 				queue.append(n)
 	return cluster
 
-## Returns a 0..1 compactness estimate: cluster area over the area of its bounding circle.
 static func _roundness(cluster: Array) -> float:
 	if cluster.size() <= 1:
 		return 1.0

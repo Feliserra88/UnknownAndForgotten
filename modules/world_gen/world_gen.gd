@@ -19,6 +19,14 @@ func build_field_modifiers() -> Array[TileModifierDef]:
 func build_field_biome() -> BiomeDef:
 	return _Field.build_biome()
 
+## Loads procedural sprite catalog (props + decor).
+func build_field_sprite_catalog() -> MapSpriteCatalog:
+	return _Field.build_sprite_catalog()
+
+## Loads Wang terrain set definitions for the field biome.
+func build_field_terrain_sets() -> Array:
+	return _Field.build_terrain_sets()
+
 ## Builds a default generation request for the field biome over [param area] with [param gen_seed].
 func build_field_request(area: Rect2i, gen_seed: int) -> WorldGenRequest:
 	var request := WorldGenRequest.new()

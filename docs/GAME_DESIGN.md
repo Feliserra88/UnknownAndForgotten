@@ -285,6 +285,8 @@ El tile es un `Resource` reutilizable (`class_name TileDef`, `.tres` en `res://a
 | `side_rules` | `TileSideRules` | Reglas **por lado** (índice N/E/S/W): `passable[]`, `blocks_vision[]`, `provides_cover[]`. Ej.: puerta abierta transitable N/S pero no E/O; muro que tapa visión solo por un lado |
 | `placement_rule` | `TilePlacementRule` | Restricciones para generación procedural (§4.6.1) |
 | `allowed_modifiers` | `Array[TileModifierDef]` | Modificadores aplicables (§4.6.2) |
+| `art_texture` | `Texture2D` | Sprite isométrico opcional (suelo plano o prop) |
+| `y_sort_origin_offset` | `int` | Ancla Y-sort en el pie del sprite (`objects`) |
 | `placeholder_color` | `Color` | Diamante placeholder; sustituible por arte |
 | `source_id`, `atlas_coords` | int, `Vector2i` | Mapeo al `TileSet` (asignado al construir el atlas) |
 
@@ -310,11 +312,74 @@ Estados opcionales sobre un tile (`mojado`, `nevado`, `ardiendo`): **dato + over
 - Visual: `overlay_texture` (sprite PixelLab con alpha) o `overlay_color` (diamante tintado placeholder) en la capa `modifiers` (`TileMapLayer` propia). El suelo de la celda **no** se sustituye.
 - Aplicación runtime vía `world.add_modifier(cell, def)` / `clear_modifiers(cell)`; el dato y el overlay van juntos.
 
-**Terreno vs modificador:** agua de estanque / muro / arbusto = `TileDef` (celda completa). Charco, nieve o quemado = `TileModifierDef` (overlay sobre hierba u otro suelo).
+**Terreno vs modificador:** agua de estanque / muro / arbusto = `TileDef` (celda completa). Charco, nieve, quemado o guijarros dispersos = `TileModifierDef` (overlay sobre hierba u otro suelo).
 
-Assets: tiles en `res://assets/world/tiles/art/` + `*.tres`; modificadores en `res://assets/world/modifiers/` + `modifiers/art/`; catálogo `field_catalog.tres`; bioma `biomes/field.tres`.
+#### 4.6.3 Capas de arte (qué va en cada `TileMapLayer`)
 
-**Arte PixelLab (campo *field*):** seed de estilo **`42001`**, outline **`lineless`**, prompts con *seamless tileable*. Regla Cursor `pixellab-art.mdc`; MCP https://api.pixellab.ai/mcp/docs .
+| Capa | Contenido permitido | Prohibido |
+|------|---------------------|-----------|
+| `ground` | Suelo base **plano y seamless** (hierba, tierra) — solo la cara superior del diamante isométrico | Objetos centrados, bloques 3D con paredes laterales, decoración que rompe el tileado |
+| `terrain` | Features de terreno pintadas celda a celda (agua plana provisional, caminos) o **Wang autotile** (§4.6.4) | Muros altos, arbustos |
+| `objects` | Props **altos** con `y_sort_origin_offset` en el pie (muros, arbustos, puertas) | Suelo repetible, overlays de estado |
+| `Props` (`Node2D`) | Sprites libres altos (árboles, rocas) con offset aleatorio y `y_sort` | Tiles de suelo |
+| `Decor` (`Node2D`) | Sprites decorativos sin gameplay (guijarros, flores) con offset/escala aleatorios | Modificadores con efecto |
+| `modifiers` | Overlays de gameplay (`wet` en bordes de agua, `burning`) | Sustituir el tile de suelo |
+
+**Generación (`world_gen`):**
+
+- `BiomeDef.scatter_props` → capa `Props` (`world.add_prop()`).
+- `BiomeDef.scatter_decor` → capa `Decor` (`world.add_decor()` con offset aleatorio).
+- `BiomeDef.scatter_tiles` → capa `objects` (legacy: tiles con tags de gameplay).
+- `BiomeDef.terrain_regions` → Wang en `terrain` (`world.paint_terrain()`).
+- Bordes de agua → modificador `wet` (gameplay + overlay opcional).
+
+Arte archivado / descartado (bloques 3D, props mal tileables) → `res://local/art/` (gitignored); el usuario puede extraer sprites sueltos.
+
+#### 4.6.4 Wang autotile (cuerpos de agua y transiciones)
+
+**Wang tiling** (también *corner autotiling*): cada variante de tile depende de qué vecinos (N/E/S/W o esquinas) comparten el mismo terreno. Godot lo modela con **Terrain sets** en el `TileSet`: peering bits + `set_cells_terrain_connect()`.
+
+**Cuándo usarlo en U&F:**
+
+| Caso | Herramienta arte | Runtime Godot |
+|------|------------------|---------------|
+| Suelo uniforme (hierba, tierra) | PixelLab `create_isometric_tile` — cara plana `thin tile` | `set_cell()` en `ground` |
+| Charcos, nieve, guijarros | `create_map_object` o tinte placeholder | `modifiers` + `add_modifier()` |
+| Props altos (árbol, roca) | `create_map_object` (`low top-down`, lineless) | `Props` + `MapPropDef` |
+| Decor sin efecto (flor, guijarro) | `create_map_object` pequeño | `Decor` + `MapDecorDef` |
+| **Agua, caminos, suelos interiores, cuevas** | PixelLab **`create_topdown_tileset`** encadenado | `terrain` + `TerrainRegionDef` + `paint_terrain()` |
+| **Paredes / bordes de estructura** | Wang `grass→stone_floor`, `stone_floor→wall` | Mismo pipeline; varias regiones en `BiomeDef` |
+
+**Por qué no bloques isométricos para agua:** un tile tipo *block* con paredes laterales deja costuras visibles al repetir celdas; el agua debe ser superficie plana con transiciones Wang hacia hierba/tierra.
+
+**Flujo recomendado (PixelLab → Godot):**
+
+1. Generar tile base seamless (`grass.png`, seed `42001`, `lineless`).
+2. `create_topdown_tileset` con `transition_description` (p. ej. *shallow pond water meeting grass*) y `lower_base_tile_id` apuntando al set de hierba.
+3. Descargar `metadata` + `image` → `tools/pixellab_wang_converter.gd` → `assets/world/terrains/field_combined.tres`.
+4. Asignar en `TerrainSetDef` (`field_terrain_set.tres`) y mapear `terrain_ids` (`grass`, `water`, `dirt_path`, `stone_floor`, `cave_floor`, `wall`).
+5. `BiomeDef.terrain_regions` declara cada feature (`water`, `path`, futuras `cave`, `house_interior`) con `TerrainRegionDef`.
+6. Generador: blobs o paths → `world.paint_terrain()`; si falta tileset Wang, fallback a `set_tile()` legacy.
+
+**Casos extendidos (misma API):** estanques (`water`), caminos (`dirt_path`), plataformas de piedra (`stone_floor`), suelos de cueva (`cave_floor`), perímetros de muro (`wall` como terreno alto o capa `objects`).
+
+#### 4.6.5 Sprites de mapa (`MapPropDef`, `MapDecorDef`)
+
+| Recurso | Capa | Offset | Gameplay |
+|---------|------|--------|----------|
+| `MapPropDef` | `Props` | `offset_spread` aleatorio | Opcional: `tags`, `blocks_cell` |
+| `MapDecorDef` | `Decor` | `offset_spread` + `scale_range` | Ninguno (solo visual) |
+
+Catálogo: `field_sprite_catalog.tres`. API: `world.add_prop()`, `world.add_decor()`.
+
+#### 4.6.6 Regiones Wang (`TerrainSetDef`, `TerrainRegionDef`)
+
+- `TerrainSetDef`: `tileset` + `terrain_ids` (nombre lógico → índice Godot).
+- `TerrainRegionDef`: `terrain_set_id`, `terrain_name`, `placement_kind` (`BLOB` | `PATH`), `placement_rule`, contadores.
+
+Assets: tiles en `res://assets/world/tiles/art/`; props `props/art/`; decors `decors/art/`; Wang `terrains/wang/`; catálogo `field_catalog.tres`; sprites `field_sprite_catalog.tres`; terreno `terrains/field_terrain_set.tres`.
+
+**Arte PixelLab (campo *field*):** seed de estilo **`42001`**, outline **`lineless`**, prompts con *seamless tileable*. Reglas Cursor `pixellab-art.mdc`, `world-map.mdc` §arte; MCP https://api.pixellab.ai/mcp/docs .
 
 ---
 

@@ -31,7 +31,20 @@ extends Resource
 ## Number of paths to trace across the area.
 @export var path_count: int = 1
 
+@export_group("Terrain (Wang)")
+## Wang-painted terrain features (water, paths, cave floors, interior floors).
+@export var terrain_regions: Array[TerrainRegionDef] = []
+
 @export_group("Scatter")
-## Tile ids scattered sparsely (e.g. bushes, rocks) with their spawn chance 0..1.
+## Tall props as free sprites (trees, large rocks) on the `Props` layer.
+@export var scatter_props: Array[StringName] = []
+@export_range(0.0, 1.0, 0.01) var scatter_prop_chance: float = 0.025
+## Small decorative sprites (pebbles, flowers) on the `Decor` layer.
+@export var scatter_decor: Array[StringName] = []
+@export_range(0.0, 1.0, 0.01) var scatter_decor_chance: float = 0.07
+## Tile ids scattered on the `objects` layer (legacy tall tiles with gameplay tags).
 @export var scatter_tiles: Array[StringName] = []
+## Gameplay modifier ids scattered on cells (rare; most decor uses [member scatter_decor]).
+@export var scatter_modifiers: Array[StringName] = []
 @export_range(0.0, 1.0, 0.01) var scatter_chance: float = 0.05
+@export_range(0.0, 1.0, 0.01) var scatter_modifier_chance: float = 0.0

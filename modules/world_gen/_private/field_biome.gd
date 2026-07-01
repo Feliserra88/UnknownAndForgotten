@@ -3,8 +3,9 @@ extends RefCounted
 ## Internal to world_gen; exposed through the WorldGenModule facade.
 
 const _CATALOG_PATH := "res://assets/world/field_catalog.tres"
+const _SPRITE_CATALOG_PATH := "res://assets/world/field_sprite_catalog.tres"
+const _TERRAIN_SET_PATH := "res://assets/world/terrains/field_terrain_set.tres"
 
-## Loads the field tile catalog from assets (grass, path, water, wall, bush, door, …).
 static func build_catalog() -> TileCatalog:
 	var catalog: TileCatalog = load(_CATALOG_PATH)
 	if catalog == null:
@@ -12,11 +13,22 @@ static func build_catalog() -> TileCatalog:
 		return TileCatalog.new()
 	return catalog
 
-## Builds the modifier definitions available in the field biome.
+static func build_sprite_catalog() -> MapSpriteCatalog:
+	var catalog: MapSpriteCatalog = load(_SPRITE_CATALOG_PATH)
+	if catalog == null:
+		push_error("field_biome: missing sprite catalog at %s" % _SPRITE_CATALOG_PATH)
+		return MapSpriteCatalog.new()
+	return catalog
+
+static func build_terrain_sets() -> Array:
+	var terrain_set: TerrainSetDef = load(_TERRAIN_SET_PATH)
+	if terrain_set == null:
+		return []
+	return [terrain_set]
+
 static func build_modifiers() -> Array[TileModifierDef]:
 	return [_wet(), _snowy(), _burning()]
 
-## Builds the field biome definition wiring tile ids and feature parameters.
 static func build_biome() -> BiomeDef:
 	var b := BiomeDef.new()
 	b.id = &"field"
@@ -30,9 +42,44 @@ static func build_biome() -> BiomeDef:
 	b.water_noise_frequency = 0.12
 	b.path_tile = &"dirt_path"
 	b.path_count = 1
-	b.scatter_tiles = [&"bush", &"rock_wall"]
-	b.scatter_chance = 0.04
+	b.terrain_regions = [_water_region(), _path_region()]
+	b.scatter_props = [&"oak_tree", &"large_rock", &"field_bush"]
+	b.scatter_prop_chance = 0.028
+	b.scatter_decor = [&"scatter_pebble", &"wildflower", &"grass_tuft"]
+	b.scatter_decor_chance = 0.075
+	b.scatter_tiles = [&"rock_wall"]
+	b.scatter_chance = 0.015
+	b.scatter_modifiers = []
+	b.scatter_modifier_chance = 0.0
 	return b
+
+static func _water_region() -> TerrainRegionDef:
+	var r := TerrainRegionDef.new()
+	r.id = &"water"
+	r.terrain_set_id = &"field"
+	r.terrain_name = &"water"
+	r.placement_kind = TerrainRegionDef.PlacementKind.BLOB
+	r.body_count = 2
+	var rule := TilePlacementRule.new()
+	rule.forbid_isolated = true
+	rule.min_cluster_size = 6
+	rule.max_cluster_size = 24
+	rule.roundness_min = 0.55
+	r.placement_rule = rule
+	return r
+
+static func _path_region() -> TerrainRegionDef:
+	var r := TerrainRegionDef.new()
+	r.id = &"path"
+	r.terrain_set_id = &"field"
+	r.terrain_name = &"dirt_path"
+	r.placement_kind = TerrainRegionDef.PlacementKind.PATH
+	r.path_count = 1
+	var rule := TilePlacementRule.new()
+	rule.is_linear = true
+	rule.min_collinear_neighbors = 2
+	r.placement_rule = rule
+	return r
 
 static func _wet() -> TileModifierDef:
 	var m := TileModifierDef.new()

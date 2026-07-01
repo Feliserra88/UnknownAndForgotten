@@ -11,3 +11,4 @@ display_name_key = "tile.bush.name"
 tags = 194
 art_texture = ExtResource("1_tex")
 placeholder_color = Color(0.24, 0.45, 0.25, 1)
+y_sort_origin_offset = 20

@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="TileModifierDef" format=3 uid="uid://be13hg8g8qyoq"]
+[gd_resource type="Resource" script_class="TileModifierDef" format=3]
 
-[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_cidwt"]
+[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="1_cidwt"]
 
 [resource]
 script = ExtResource("1_cidwt")

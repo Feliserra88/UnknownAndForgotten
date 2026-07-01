@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MapSpriteCatalog" format=3]
+
+[ext_resource type="Script" path="res://modules/world/map_sprite_catalog.gd" id="1_cat"]
+[ext_resource type="Resource" path="res://assets/world/props/oak_tree.tres" id="2_tree"]
+[ext_resource type="Resource" path="res://assets/world/props/large_rock.tres" id="3_rock"]
+[ext_resource type="Resource" path="res://assets/world/props/field_bush.tres" id="4_bush"]
+[ext_resource type="Resource" path="res://assets/world/decors/scatter_pebble.tres" id="5_peb"]
+[ext_resource type="Resource" path="res://assets/world/decors/wildflower.tres" id="6_flower"]
+[ext_resource type="Resource" path="res://assets/world/decors/grass_tuft.tres" id="7_tuft"]
+
+[resource]
+script = ExtResource("1_cat")
+props = Array[ExtResource("2_tree")]([ExtResource("2_tree"), ExtResource("3_rock"), ExtResource("4_bush")])
+decors = Array[ExtResource("5_peb")]([ExtResource("5_peb"), ExtResource("6_flower"), ExtResource("7_tuft")])

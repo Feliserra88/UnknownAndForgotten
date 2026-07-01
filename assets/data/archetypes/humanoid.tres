@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="NpcArchetype" format=3 uid="uid://cj4v8gmnkrbnh"]
+[gd_resource type="Resource" script_class="NpcArchetype" format=3]
 
-[ext_resource type="Script" uid="uid://buy15ctorbxdb" path="res://modules/attributes/attribute_set.gd" id="1_cbgoy"]
-[ext_resource type="Script" uid="uid://dvk6pu1dm80f1" path="res://modules/attributes/vitals_template.gd" id="2_vhb6r"]
-[ext_resource type="Script" uid="uid://053ccfxqmvem" path="res://modules/appearance/body_part_map.gd" id="3_j2qy4"]
-[ext_resource type="Resource" uid="uid://dq7b55pjra7gw" path="res://assets/data/archetypes/npc_root.tres" id="4_g7866"]
-[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="5_378d2"]
-[ext_resource type="PackedScene" uid="uid://kft5dvql2a5y" path="res://scenes/npc/npc_base.tscn" id="6_6p0cl"]
-[ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="7_ap67b"]
+[ext_resource type="Script" path="res://modules/attributes/attribute_set.gd" id="1_cbgoy"]
+[ext_resource type="Script" path="res://modules/attributes/vitals_template.gd" id="2_vhb6r"]
+[ext_resource type="Script" path="res://modules/appearance/body_part_map.gd" id="3_j2qy4"]
+[ext_resource type="Resource" path="res://assets/data/archetypes/npc_root.tres" id="4_g7866"]
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="5_378d2"]
+[ext_resource type="PackedScene" path="res://scenes/npc/npc_base.tscn" id="6_6p0cl"]
+[ext_resource type="Script" path="res://modules/npc/npc_archetype.gd" id="7_ap67b"]
 
 [sub_resource type="Resource" id="Resource_lbqoq"]
 script = ExtResource("1_cbgoy")

@@ -17,8 +17,11 @@ var _map_session: WorldModule
 var _scratch_world: WorldModule
 var _field_catalog: TileCatalog
 var _field_modifiers: Array
+var _field_sprite_catalog: MapSpriteCatalog
+var _field_terrain_sets: Array
 var _field_tileset: TileSet
 var _field_modifier_pack: Dictionary
+var _session_tilesets_refreshed: bool = false
 
 var paint_enabled: bool = false
 var mode: int = Mode.PAINT_TILE
@@ -55,6 +58,8 @@ func _exit_tree() -> void:
 func _cache_field_tilesets() -> void:
 	_field_catalog = _world_gen.build_field_catalog()
 	_field_modifiers = _world_gen.build_field_modifiers()
+	_field_sprite_catalog = _world_gen.build_field_sprite_catalog()
+	_field_terrain_sets = _world_gen.build_field_terrain_sets()
 	var tile_size := Vector2i(
 		Config.get_int("WORLD_TILE_WIDTH", 64),
 		Config.get_int("WORLD_TILE_HEIGHT", 32),
@@ -66,7 +71,7 @@ func _handles(object: Object) -> bool:
 	return object is Node and _is_world_node(object as Node)
 
 func _edit(_object: Object) -> void:
-	pass
+	_session_tilesets_refreshed = false
 
 func _forward_canvas_gui_input(event: InputEvent) -> bool:
 	var world := _active_world()
@@ -135,6 +140,24 @@ func _input(event: InputEvent) -> void:
 	_apply_height_delta(world, cell, delta)
 	get_viewport().set_input_as_handled()
 
+func get_field_catalog() -> TileCatalog:
+	_cache_field_tilesets()
+	return _field_catalog
+
+func refresh_field_tilesets() -> void:
+	var world := _bound_world_silent()
+	if world == null:
+		set_dock_status("Open world_root.tscn before refreshing tiles.")
+		return
+	_cache_field_tilesets()
+	world.refresh_tilesets(_field_catalog, _field_modifiers, _field_tileset, _field_modifier_pack)
+	_sync_session_to_scene_root(world)
+	get_editor_interface().mark_scene_as_unsaved()
+	set_dock_status("TileSet refreshed from catalog (%d tiles)." % _field_catalog.tiles.size())
+	if _dock != null and _dock.has_method("refresh_tile_options"):
+		_dock.refresh_tile_options()
+	_queue_viewport_redraw()
+
 func prepare_field_map(region: Rect2i) -> void:
 	_run_on_scratch(region, func(scratch: WorldModule) -> String:
 		var biome: BiomeDef = _world_gen.build_field_biome()
@@ -156,14 +179,22 @@ func generate_field_map(region: Rect2i, gen_seed: int, water_count: int, path_co
 var _pending_status: String = ""
 var _copy_target: WorldModule
 var _copy_step: int = -1
-const _COPY_LAYER_KEYS: Array[StringName] = [&"ground", &"terrain", &"objects", &"structures", &"modifiers"]
+const _COPY_LAYER_KEYS: Array[StringName] = [&"ground", &"terrain", &"objects", &"structures", &"modifiers", &"props", &"decor"]
 
 func _run_on_scratch(region: Rect2i, build_fn: Callable) -> void:
 	var world := _active_world()
 	if world == null or _scratch_world == null:
 		return
 	_cache_field_tilesets()
-	_scratch_world.configure(_field_catalog, _field_modifiers, region, _field_tileset, _field_modifier_pack)
+	_scratch_world.configure(
+		_field_catalog,
+		_field_modifiers,
+		region,
+		_field_tileset,
+		_field_modifier_pack,
+		_field_sprite_catalog,
+		_field_terrain_sets,
+	)
 	_pending_status = build_fn.call(_scratch_world)
 	_copy_target = world
 	_copy_step = -1
@@ -241,6 +272,11 @@ func _active_world() -> WorldModule:
 		set_dock_status("Scene root is missing Layers/Ground (open world_root.tscn).")
 		return null
 	_sync_scene_root_to_session(_map_session)
+	if not _session_tilesets_refreshed and _map_session.tile_catalog != null:
+		_cache_field_tilesets()
+		_map_session.refresh_tilesets(_field_catalog, _field_modifiers, _field_tileset, _field_modifier_pack)
+		_sync_session_to_scene_root(_map_session)
+		_session_tilesets_refreshed = true
 	if _map_session.tile_catalog != null and _field_tileset != null:
 		PlaceholderTileSet.assign_tile_mapping(_map_session.tile_catalog.tiles, _field_tileset)
 	return _map_session

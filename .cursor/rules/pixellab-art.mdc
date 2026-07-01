@@ -7,70 +7,93 @@ alwaysApply: false
 # PixelLab — arte de mapa (U&F)
 
 Documentación MCP: https://api.pixellab.ai/mcp/docs  
-Recurso Godot isométrico: `pixellab://docs/godot/isometric-tiles`
+Recurso Godot isométrico: `pixellab://docs/godot/isometric-tiles`  
+Diseño de capas y Wang: `docs/GAME_DESIGN.md` §4.6.3–4.6.4, regla `world-map.mdc`.
 
 ## Constantes del proyecto
 
 | Clave | Valor | Uso |
 |-------|-------|-----|
-| **Style seed** | `42001` | Mismo `seed` en todas las llamadas del bioma *field* para paleta y sombreado coherentes |
+| **Style seed** | `42001` | Mismo `seed` en todas las llamadas del bioma *field* |
 | **Tile canvas** | `64` | `create_isometric_tile(size=64)` — alineado con `WORLD_TILE_WIDTH` |
 | **Grid cell** | `64×32` | `TileSet.tile_size` en runtime (`venv.ini`) |
-| **Outline** | `lineless` | **Nunca** `single color outline` en terreno ni overlays (rompe el tileado) |
+| **Outline** | `lineless` | **Nunca** `single color outline` en terreno ni overlays |
 
-## Terreno (`TileDef.art_texture`)
+## Qué herramienta usar (resumen)
 
-**Herramienta:** `create_isometric_tile` (MCP `user-pixellab`).
+| Necesidad | PixelLab | Capa Godot | API |
+|-----------|----------|------------|-----|
+| Hierba, tierra, camino | `create_isometric_tile` (`thin tile`) | `ground` | `set_tile(GROUND)` |
+| Charcos gameplay (wet) | tinte / overlay | `modifiers` | `add_modifier()` |
+| **Decor sin efecto** (flor, guijarro) | **`create_map_object`** pequeño, `low top-down` | **`Decor`** | **`add_decor()`** + offset aleatorio |
+| **Props altos** (árbol, roca) | **`create_map_object`** 48–96px, `low top-down` | **`Props`** | **`add_prop()`** + offset aleatorio |
+| Muro con gameplay (legacy) | placeholder / tile | `objects` | `set_tile(OBJECTS)` |
+| **Agua, caminos, interiores, cuevas** | **`create_topdown_tileset`** encadenado | `terrain` | **`paint_terrain()`** + `TerrainRegionDef` |
+| Paredes / bordes estructura | Wang `stone_floor→wall` (encadenar sets) | `terrain` u `objects` | `TerrainRegionDef` |
+
+## Suelo plano (`TileDef.art_texture`)
+
+**Herramienta:** `create_isometric_tile`.
 
 **Prompt — incluir siempre:**
+- `uniform flat top face only`, `no block sides`, `no centered objects`
 - `seamless tileable` / `edges blend when repeated`
-- `lineless`, `no black outline borders`
-- `fantasy RPG isometric`
-- `seed: 42001`
+- `lineless`, `fantasy RPG isometric`, `seed: 42001`
 
-**Forma (`tile_shape`):**
-- `thin tile` — suelos: hierba, tierra, camino, agua plana
-- `thick tile` — decoración baja (arbusto)
-- `block` — muros, rocas altas
+**Forma (`tile_shape`):** solo `thin tile` para suelos.
 
-**Parámetros recomendados:**
-```
-outline: lineless
-shading: basic shading
-detail: medium detail
-size: 64
-seed: 42001
-```
+**Parámetros:** `outline: lineless`, `shading: basic shading`, `detail: medium detail`, `size: 64`, `seed: 42001`.
 
-**Destino:** `res://assets/world/tiles/art/<id>.png` → asignar en `assets/world/tiles/<id>.tres` → `art_texture`.
+**Destino:** `res://assets/world/tiles/art/<id>.png` → `art_texture` en `assets/world/tiles/<id>.tres`.
 
-**Lote con referencia de estilo** (cuando haya créditos): `create_tiles_pro` con `style_images` desde `grass.png`, `outline_mode: segmentation`.
+**Fallback sin créditos:** `scripts/dev/generate_flat_ground_tiles.py` (diamante plano procedural).
+
+## Wang autotile — agua y transiciones
+
+**Qué es:** conjunto de ~16 variantes donde cada tile depende de los vecinos del mismo terreno (esquinas/lados). Godot resuelve el peering con **Terrains** y `set_cells_terrain_connect()`.
+
+**Herramienta:** `create_topdown_tileset` (no `create_isometric_tile` para agua).
+
+**Flujo:**
+1. Base seamless: `grass.png` (u otro suelo) con `create_isometric_tile`.
+2. `create_topdown_tileset` con `transition_description` (*shallow water meeting grass shores*) y `lower_base_tile_id` encadenado al set base.
+3. Importar atlas → configurar terrain set en TileSet.
+4. Generador: acumular celdas de agua → `terrain_layer.set_cells_terrain_connect(cells, set_id, terrain_id)`.
+
+**Prohibido para agua:** tiles isométricos tipo bloque con paredes — al repetir celdas se ven costuras.
 
 ## Modificadores (`TileModifierDef.overlay_texture`)
 
-Estado sobre un tile existente (charco, nieve, quemado) → **capa `modifiers`**, no sustituir el suelo.
+Estado o decoración dispersa sobre un tile existente → capa `modifiers`, **no** sustituir suelo.
 
-**Herramienta:** `create_map_object` (fondo transparente).
+**Herramienta:** `create_map_object` (fondo transparente, sprite pequeño).
 
-**Prompt — incluir:**
-- `overlay sprite`, `transparent background outside`
-- `isometric`, `low top-down`
-- `lineless`
-- Para charcos sobre hierba: preferir `background_image` = `grass.png` + `inpainting` oval ~0.35 (solo pinta el charco)
+**Prompt:** `overlay sprite`, `transparent background`, `scattered pebbles` / `small puddle`, `lineless`, `isometric`.
 
-**Destino:** `res://assets/world/modifiers/art/<id>.png` → `overlay_texture` en `assets/world/modifiers/<id>.tres`.
+**Destino:** `res://assets/world/modifiers/art/<id>.png` → `overlay_texture` en `*.tres`.
+
+**Scatter en generación:** `BiomeDef.scatter_decor` / `scatter_props` — no pintar decoración en `ground` ni `modifiers`.
+
+**Wang encadenado:** tras `get_topdown_tileset`, usar `base_tile_ids.lower` como `lower_base_tile_id` del siguiente set (caminos, piedra, muros).
+
+**Conversor Godot:** `tools/pixellab_wang_converter.gd` → `assets/world/terrains/field_combined.tres` (ver `assets/world/terrains/README.md`).
+
+## Arte descartado
+
+PNG que no cumplen (bloques 3D, props en suelo, overlays mal tileados) → **`res://local/art/`** (gitignored). Quitar `art_texture` / `overlay_texture` del `.tres` correspondiente.
 
 ## Integración en código
 
-- `PlaceholderTileSet.build_tiles()` — atlas 64×64, `texture_origin (0, -16)` si hay arte
-- `PlaceholderTileSet.build_modifier_overlays()` — igual si hay `overlay_texture`
-- Catálogo: `assets/world/field_catalog.tres` (no duplicar con `duplicate()` en editor `@tool`)
-- Tras añadir PNG: abrir Godot o `--import` para `.import`
+- `PlaceholderTileSet.build_tiles()` — atlas 64×64, `texture_origin (0, -16)`, `y_sort_origin_offset` en props
+- `PlaceholderTileSet.build_modifier_overlays()` — overlays en `modifiers`
+- `BiomeDef.scatter_tiles` → `objects`; `scatter_modifiers` → `modifiers`
+- Catálogo: `assets/world/field_catalog.tres` (no `duplicate()` en editor `@tool`)
 
 ## Errores conocidos
 
 | Error | Causa | Solución |
 |-------|-------|----------|
-| Rejilla visible al repetir tiles | `single color outline` | Regenerar con `lineless` |
-| `get_tile` placeholder en editor | `TileCatalog.duplicate()` sin `@tool` | Cargar `.tres` directo; `TileCatalog`/`TileDef` llevan `@tool` |
-| Overlay parece tile completo | `create_map_object` sin transparencia | Modo inpainting sobre `grass.png` o sprite solo del efecto |
+| Rejilla visible al repetir | `single color outline` o objeto centrado | Regenerar `lineless`, solo cara superior |
+| Paredes de agua entre celdas | tile `block` isométrico | Wang `create_topdown_tileset` + terrains |
+| NPC detrás del arbusto mal | prop en `ground` sin Y-sort | `objects` + `y_sort_origin_offset` |
+| `get_tile` placeholder en editor | `TileCatalog.duplicate()` sin `@tool` | Cargar `.tres` directo |

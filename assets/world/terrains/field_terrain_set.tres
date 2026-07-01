@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TerrainSetDef" format=3]
+
+[ext_resource type="Script" path="res://modules/world/terrain_set_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"field"
+display_name_key = "terrain_set.field.name"
+terrain_set_index = 0
+terrain_ids = {
+&"grass": 0,
+&"water": 1,
+&"dirt_path": 2,
+&"stone_floor": 3,
+&"cave_floor": 4,
+&"wall": 5
+}

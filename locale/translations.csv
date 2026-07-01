@@ -9,6 +9,14 @@ tile.open_door.name,Open Door,Puerta abierta
 modifier.wet.name,Wet,Mojado
 modifier.snowy.name,Snowy,Nevado
 modifier.burning.name,Burning,Ardiendo
+modifier.scatter_pebble.name,Pebble,Piedra
+prop.oak_tree.name,Oak tree,Roble
+prop.large_rock.name,Large rock,Roca grande
+prop.field_bush.name,Bush,Arbusto
+decor.scatter_pebble.name,Pebble,Piedra
+decor.wildflower.name,Wildflower,Flor silvestre
+decor.grass_tuft.name,Grass tuft,Hierba
+terrain_set.field.name,Field terrain,Terreno del campo
 biome.field.name,Field,Campo
 archetype.npc.name,Creature,Criatura
 archetype.humanoid.name,Humanoid,Humanoide

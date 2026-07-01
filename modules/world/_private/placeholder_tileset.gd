@@ -24,6 +24,8 @@ static func build_tiles(tile_defs: Array, tile_size: Vector2i) -> TileSet:
 		data.set_custom_data("tile_def_id", def.id)
 		if region_size != tile_size:
 			data.texture_origin = texture_origin
+		if def.y_sort_origin_offset != 0:
+			data.y_sort_origin = def.y_sort_origin_offset
 		def.source_id = source_id
 		def.atlas_coords = coords
 	return ts
