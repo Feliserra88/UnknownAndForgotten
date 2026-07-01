@@ -186,6 +186,7 @@ No usar singletons globales ad hoc fuera de `autoload/` aprobados.
 | `Config` | Lee y expone `venv.ini`; recarga en caliente si se define soporte. |
 | `Log` | Única salida de trazas; respeta gates por módulo. |
 | `Version` | Lee `VERSION` (major/minor/bump) y expone `get_string()` como `X.Y.B`. |
+| `WindowPlacement` | Coloca/redimensiona la ventana del juego al arrancar según `GAME_WINDOW_*` en `venv.ini` (solo runtime). |
 | `EventBus` | Bus de eventos de dominio (opcional al inicio; reservar nombre). |
 
 Registrar en `project.godot` bajo `[autoload]`. Ningún otro autoload sin actualizar este documento.
