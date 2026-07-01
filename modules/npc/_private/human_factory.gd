@@ -3,10 +3,7 @@ extends RefCounted
 ## main-character archetype. Internal to the npc module; exposed via the NpcModule facade.
 
 const _NPC_SCENE := preload("res://scenes/npc/npc_base.tscn")
-const _SpriteAnimDef := preload("res://modules/appearance/npc_sprite_anim_def.gd")
-const _IDLE_SHEET := preload("res://assets/visuals/characters/human/male/HumanMaleIdle.png")
-const _WALK_RIGHT := preload("res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png")
-const _WALK_LEFT := preload("res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png")
+const _MALE_SPRITE_ANIM := preload("res://assets/visuals/characters/human/male/human_male_sprite_anim.tres")
 
 ## Builds the archetype chain and returns the leaf "human" archetype (parents wired in).
 static func build_chain() -> NpcArchetype:
@@ -42,19 +39,13 @@ static func build_random_main_character(gen_seed: int) -> NpcArchetype:
 	main.sprite_anim = build_male_sprite_anim()
 	return main
 
-## Builds the male human sprite set (idle 8-way + walk left/right at 64×64).
+## Builds the male human sprite set (idle 8-way + walk sheets at 64×64).
 static func build_male_sprite_anim() -> Resource:
-	var frame := Config.get_int("NPC_SPRITE_FRAME_SIZE", 64)
-	var def := _SpriteAnimDef.new()
-	def.frame_size = Vector2i(frame, frame)
-	def.idle_texture = _IDLE_SHEET
-	def.idle_hframes = 8
-	def.walk_right_texture = _WALK_RIGHT
-	def.walk_right_hframes = 5
-	def.walk_left_texture = _WALK_LEFT
-	def.walk_left_hframes = 5
+	var def: Resource = _MALE_SPRITE_ANIM.duplicate(true)
 	def.walk_fps = float(Config.get_int("NPC_WALK_FPS", 8))
 	def.feet_anchor = Vector2(0.5, Config.get_float("NPC_FEET_ANCHOR_Y", 0.8))
+	var frame := Config.get_int("NPC_SPRITE_FRAME_SIZE", 64)
+	def.frame_size = Vector2i(frame, frame)
 	return def
 
 static func _default_visuals() -> Array[PartVisualDef]:

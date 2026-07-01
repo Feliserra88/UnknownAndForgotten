@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/widgets/icons/list.svg")
 class_name UfList
 extends ScrollContainer
 ## Vertical list of localized entries inside a scroll area (see GAME_DESIGN section 10.6).

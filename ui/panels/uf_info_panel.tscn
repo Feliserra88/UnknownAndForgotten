@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://3jjcdb3cjsje"]
+
+[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://ox2gg36aq3w4" path="res://modules/gui/uf_info_panel.gd" id="2_info"]
+
+[node name="UfInfoPanel" type="PanelContainer" unique_id=1638953657]
+custom_minimum_size = Vector2(280, 200)
+theme = ExtResource("1_theme")
+script = ExtResource("2_info")

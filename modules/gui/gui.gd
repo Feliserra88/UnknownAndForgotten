@@ -16,6 +16,22 @@ const _PANEL_SCRIPTS := {
 	&"tabbed": "res://modules/gui/uf_tabbed_panel.gd",
 }
 
+## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
+const PANEL_SCENES := {
+	&"panel": "res://ui/panels/uf_panel.tscn",
+	&"info": "res://ui/panels/uf_info_panel.tscn",
+	&"dialog": "res://ui/panels/uf_dialog_panel.tscn",
+	&"tabbed": "res://ui/panels/uf_tabbed_panel.tscn",
+}
+
+const WIDGET_SCENES := {
+	"label": "res://ui/widgets/uf_label.tscn",
+	"button": "res://ui/widgets/uf_button.tscn",
+	"list": "res://ui/widgets/uf_list.tscn",
+	"grid": "res://ui/widgets/uf_grid_container.tscn",
+	"layout_region": "res://ui/widgets/uf_layout_region.tscn",
+}
+
 ## Returns the panel kinds accepted by [method create_panel].
 func panel_kinds() -> Array:
 	return _PANEL_SCRIPTS.keys()
@@ -23,16 +39,65 @@ func panel_kinds() -> Array:
 ## Creates a panel of [param kind] ("panel"/"info"/"dialog"/"tabbed") with [param title_key] set,
 ## the shared theme applied and its structure built. Returns null for an unknown kind.
 func create_panel(kind: StringName = &"panel", title_key: String = "") -> UfPanel:
-	var path: String = _PANEL_SCRIPTS.get(kind, "")
-	if path.is_empty():
-		Log.warn(_LOG, "create_panel: unknown kind=%s" % kind)
+	var panel := _instantiate_panel_scene(kind)
+	if panel == null:
+		panel = _create_panel_from_script(kind)
+	if panel == null:
 		return null
-	var script := load(path) as GDScript
-	var panel := script.new() as UfPanel
-	panel.set_title_key(title_key)
+	if not title_key.is_empty():
+		panel.set_title_key(title_key)
 	apply_theme(panel)
 	Log.detail(_LOG, "create", "panel kind=%s" % kind)
 	return panel
+
+## Returns the PackedScene path for a widget id used by uf_gui_tools ("label", "button", …).
+func widget_scene_path(widget_id: String) -> String:
+	return WIDGET_SCENES.get(widget_id, "")
+
+## Returns palette entries for uf_gui_tools: each item has label, path and optional icon.
+func widget_palette_entries() -> Array:
+	return _palette_entries(WIDGET_SCENES)
+
+## Returns palette entries for base panel scenes keyed by panel kind.
+func panel_palette_entries() -> Array:
+	return _palette_entries(PANEL_SCENES)
+
+## Instantiates a widget scene by id, or null when the id or asset is missing.
+func instantiate_widget(widget_id: String) -> Control:
+	var path := widget_scene_path(widget_id)
+	if path.is_empty() or not ResourceLoader.exists(path):
+		Log.warn(_LOG, "instantiate_widget: missing id=%s" % widget_id)
+		return null
+	var scene := load(path) as PackedScene
+	return scene.instantiate() as Control
+
+func _instantiate_panel_scene(kind: StringName) -> UfPanel:
+	var path: String = PANEL_SCENES.get(kind, "")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	var scene := load(path) as PackedScene
+	return scene.instantiate() as UfPanel
+
+func _create_panel_from_script(kind: StringName) -> UfPanel:
+	var script_path: String = _PANEL_SCRIPTS.get(kind, "")
+	if script_path.is_empty():
+		Log.warn(_LOG, "create_panel: unknown kind=%s" % kind)
+		return null
+	var script := load(script_path) as GDScript
+	return script.new() as UfPanel
+
+func _palette_entries(scene_map: Dictionary) -> Array:
+	var entries: Array = []
+	for key in scene_map.keys():
+		var path: String = scene_map[key]
+		if not ResourceLoader.exists(path):
+			continue
+		entries.append({
+			"id": String(key),
+			"label": String(key),
+			"path": path,
+		})
+	return entries
 
 ## Loads a saved domain panel PackedScene from [param path] and returns a fresh instance, or null.
 func load_panel(path: String) -> UfPanel:

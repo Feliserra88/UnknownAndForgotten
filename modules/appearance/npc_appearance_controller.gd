@@ -1,7 +1,7 @@
 class_name NpcAppearanceController
 extends Node2D
 ## Builds and updates the NPC visual rig: cutout slots or a full-body AnimatedSprite2D
-## driven by an NpcSpriteAnimDef (idle 8-way sheet + walk left/right sheets).
+## driven by an NpcSpriteAnimDef (idle 8-way sheet + walk sheets per facing).
 
 const _LOG := "APP"
 
@@ -45,7 +45,7 @@ func set_orientation(orientation: StringName) -> void:
 	_animated_sprite.flip_h = false
 	_refresh_animation()
 
-## Switches between walk loops (E/W) and idle poses (all directions).
+## Switches between walk loops and idle poses for the active orientation.
 func set_moving(moving: bool) -> void:
 	_is_moving = moving
 	if _animated_sprite == null:
@@ -66,7 +66,15 @@ func _refresh_animation() -> void:
 		_animated_sprite.play(anim)
 
 func _has_any_texture(def: Resource) -> bool:
-	return def.get("idle_texture") != null or def.get("walk_right_texture") != null or def.get("walk_left_texture") != null
+	return (
+		def.get("idle_texture") != null
+		or def.get("walk_right_texture") != null
+		or def.get("walk_left_texture") != null
+		or def.get("walk_front_right_texture") != null
+		or def.get("walk_back_right_texture") != null
+		or def.get("walk_back_left_texture") != null
+		or def.get("walk_front_left_texture") != null
+	)
 
 func _build_sprite_rig(def: Resource) -> void:
 	_animated_sprite = AnimatedSprite2D.new()

@@ -26,10 +26,22 @@ Godot trata el isométrico como **tilemap 2D con forma diamante**, no como cáma
 | `TileMapLayer` | Capas de mapa (suelo, decoración, colisiones). **No** usar el nodo `TileMap` legacy. |
 | `TileSet` con `tile_shape = TILE_SHAPE_ISOMETRIC` | Proyección isométrica y tamaño de celda (`tile_size`). |
 | `y_sort_enabled = true` | Orden de dibujado por profundidad en capas y padres `Node2D` (requerido en isométrico). |
-| `Camera2D` | Pan, rotación y zoom fijos sobre el plano 2D. |
+| `Camera2D` | Pan sobre el plano 2D; **vista fija** (sin rotación libre; alineada al editor y `DIAMOND_DOWN`). |
 | `map_to_local()` / `local_to_map()` | Conversión celda ↔ posición en mundo (`TileMapLayer`). |
 
 La **inclinación isométrica** queda definida por el `TileSet` y el arte de tiles, no por inclinar una cámara 3D.
+
+**Layout de celda (`tile_layout`):** el proyecto usa **`TILE_LAYOUT_DIAMOND_DOWN`** (vértice del rombo arriba/abajo). Cambiar a **`DIAMOND_RIGHT`** es posible en Godot pero **arriesgado** en U&F sin un sprint dedicado:
+
+| Área afectada | Riesgo |
+|---------------|--------|
+| Placeholder y arte Pixelorama | Redibujar o reexportar todos los atlas isométricos |
+| `map_to_local` / `local_to_map` / `AStarGrid2D.cell_shape` | Convenciones de eje x/y cambian de orientación |
+| `uf_map_editor` overlay de altura | Geometría del rombo en `height_overlay.gd` asume `DIAMOND_DOWN` |
+| Mapas guardados en escenas | Requiere re-pintar o migrar si el layout no coincide |
+| NPC orientación 8 vías | Convención N/S/E/O respecto a la rejilla puede desalinearse |
+
+**Recomendación:** mantener `DIAMOND_DOWN` hasta que haya motivo artístico fuerte; si se cambia, hacerlo como **migración de proyecto** (TileSet + arte + docs + editor + pruebas de movimiento), no como toggle aislado.
 
 ### 2.2 Cámara: pan y rotación (inclinación/zoom fijos)
 
@@ -37,11 +49,11 @@ Implementar un **rig de cámara** (`Node2D` padre + `Camera2D` hijo):
 
 | Requisito de diseño | API / propiedad Godot |
 |---------------------|------------------------|
-| Traslación (pan) | Mover el rig (`Node2D.position`) o `Camera2D.offset` |
-| Rotación de vista | `rotation` del rig `CameraRig` con `Camera2D.ignore_rotation = false`. Actores en `Layers/Actors` con contrarrotación (`WorldModule.sync_actor_display_rotations()`). El nodo `Layers` no se traslada ni rota. |
+| Traslación (pan) | Mover el rig (`Node2D.position`) o `Camera2D.offset` (botón central del ratón) |
+| Rotación de vista | **Fija a 0°** — misma orientación que el viewport del editor y el pintado en `TileMapLayer`. Sin Q/E en runtime. |
 | Inclinación fija | No variable: proyección fijada por `TileSet` isométrico |
 | Zoom fijo | `Camera2D.zoom` constante (p. ej. `Vector2(1, 1)`); sin zoom libre salvo cambio documentado |
-| Suavizado opcional | `position_smoothing_enabled`, `rotation_smoothing_enabled` |
+| Suavizado opcional | `position_smoothing_enabled` (rotación desactivada) |
 | Límites de mapa | `Camera2D.limit_*` acordes al `region` del mapa generado |
 
 **Prohibido** reinventar proyección isométrica manual si el `TileSet` ya la proporciona. Para lógica de juego usar coordenadas **`Vector3i(x, y, z)`** (§3.1); la presentación proyecta `(x, y)` con `map_to_local()` y aplica offset visual por `z`.
@@ -89,6 +101,8 @@ Sincronizar altura visual con Godot:
 - **`y_sort_enabled`** + `y_sort_origin` del tile / capa ([TileMapLayer.y_sort_origin](https://docs.godotengine.org/en/stable/classes/class_tilemaplayer.html)) para separar niveles en profundidad.
 - Opcional: `TileMapLayer._tile_data_runtime_update()` para ajustar `TileData` por celda al pintar.
 
+**Editor (`uf_map_editor`):** en modo *Edit height*, overlay sobre el viewport 2D: tinte por celda (azul = `z>0`, rojo = `z<0`, etiqueta con el valor `z`, borde amarillo en la celda bajo el cursor). Implementación en `addons/uf_map_editor/height_overlay.gd`; datos siguen en `MapHeightField`.
+
 ### 3.2 Estructura del mapa (`TileMapLayer`)
 
 - Plano **x/y**: rejilla `Vector2i` gestionada por una o más `TileMapLayer`.
@@ -133,13 +147,19 @@ Los personajes tienen **orientación** independiente de la posición en celda:
 
 | Orientación | Descripción |
 |-------------|-------------|
-| `front` | Hacia la cámara / sur lógico de la rejilla (convención a fijar al implementar sprites) |
-| `back` | Espalda al observador |
-| `side_left` | Perfil izquierdo |
-| `side_right` | Perfil derecho |
+| `front` | Hacia la cámara / sur lógico de la rejilla |
+| `front_right` | Diagonal SE (sur + este) |
+| `side_right` | Perfil derecho (este) |
+| `back_right` | Diagonal NE (norte + este) |
+| `back` | Espalda al observador (norte) |
+| `back_left` | Diagonal NW (norte + oeste) |
+| `side_left` | Perfil izquierdo (oeste) |
+| `front_left` | Diagonal SW (sur + oeste) |
 
-- Animaciones, interacciones y combate cuerpo a cuerpo deben respetar la orientación activa.
-- Al cambiar de celda, la orientación puede mantenerse o actualizarse según reglas de movimiento (módulo `movement`).
+Hoja idle 8 vías (export Pixelorama): columnas 0–7 = S, SE, E, NE, N, NW, W, SW.
+
+- Animaciones walk por orientación cuando exista hoja dedicada; si no, idle de esa orientación.
+- Al cambiar de celda, la orientación sigue la dirección del paso (8 vías en demo del personaje principal).
 - Posicionar con `grid_to_world(grid_cell)` (§3.4), no solo `map_to_local(Vector2i)`.
 
 ---
@@ -484,7 +504,7 @@ Identificadores y estado **runtime** (no `.tres` compartido):
 - `archetype_id: StringName`
 - `display_name_key: String` — puede override del arquetipo
 - `grid_cell: Vector3i` — posición **x, y, z** en el mapa
-- `orientation` — `front` | `back` | `side_left` | `side_right`
+- `orientation` — `front` | `front_right` | `side_right` | `back_right` | `back` | `back_left` | `side_left` | `front_left`
 - `vitals: NpcVitals` — copia mutable (`duplicate`)
 - `attributes: AttributeSet` — base + modificadores runtime
 - `equipment: EquipmentState`
@@ -856,8 +876,25 @@ Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 | `UfList` | `ItemList` o `VBoxContainer` en `ScrollContainer` | Listas de items, hechizos, log |
 | `UfLabel` | `Label` | Texto localizado |
 | `UfSeparator` | `HSeparator` / `VSeparator` | Divisores |
+| `UfLayoutRegion` | `Control` | Zona de layout libre (anclas) dentro de un `ContentSlot` en flujo |
 
 Cada widget: escena `.tscn` + script mínimo; expone API pequeña (`set_items()`, `set_label_key()`, etc.).
+
+#### `UfLayoutRegion` — flujo + posición libre
+
+`ContentSlot` sigue siendo `VBoxContainer`: los hijos directos se apilan en vertical. Cuando hace falta colocar widgets con el ratón (anclas, tamaño en viewport 2D), se inserta un **`UfLayoutRegion`** como hijo del slot:
+
+```
+ContentSlot (VBoxContainer)
+├── UfLayoutRegion          # altura mínima region_min_size; ancho = ancho del panel
+│   ├── UfButton            # anchors / offsets relativos a la región
+│   └── UfGridContainer
+└── UfList                  # resto del panel en flujo vertical
+```
+
+- Los hijos **dentro** de la región usan `layout_mode` por anclas; el editor 2D permite moverlos y redimensionarlos.
+- Al mover la región en el árbol o arrastrar el **panel** entero, los hijos conservan su posición **relativa** a la región (transform del padre).
+- La región no sustituye contenedores de dominio (`UfGridContainer`, `UfList`); convive con ellos en el mismo `ContentSlot`.
 
 ### 10.7 Composición de paneles de dominio
 
@@ -984,7 +1021,7 @@ Si se cumplen **reuso + fine-tuning**, la herramienta pasa de “deseable” a *
 
 | Herramienta | Addon | Módulos | Qué hace el artista |
 |-------------|-------|---------|---------------------|
-| **Editor de mapas** | `uf_map_editor` | `world`, `world_gen`, `grid` | Pintar rejilla **x/y/z**, biomas, zonas manuales, colocar estructuras prefab (`TileMapPattern`, scene tiles), máscaras de bioma; exportar escenas/recursos en `assets/world/` |
+| **Editor de mapas** | `uf_map_editor` | `world`, `world_gen`, `grid` | Pintar rejilla **x/y/z**, overlay de altura en viewport, biomas, zonas manuales, colocar estructuras prefab (`TileMapPattern`, scene tiles), máscaras de bioma; exportar escenas/recursos en `assets/world/` |
 | **Editor de NPCs** | `uf_npc_editor` | `npc`, `appearance`, `attributes`, `equipment` | Crear/editar `NpcArchetype`, `BodyPartMap`, preview del rig modular (equipo, lesiones, orientaciones), guardar `.tres` en `assets/data/archetypes/` y visuals en `assets/visuals/` |
 | **Herramientas GUI** | `uf_gui_tools` | `gui` | Componer paneles de dominio (inventario, hechizos, estado…) desde `UfPanel` y widgets (§10.9) |
 

@@ -4,6 +4,7 @@ extends EditorPlugin
 ## maps. Procedural work runs on an off-tree scratch WorldModule; results are copied to the scene.
 
 const _DockScript := preload("res://addons/uf_map_editor/dock.gd")
+const _HeightOverlay := preload("res://addons/uf_map_editor/height_overlay.gd")
 const _WORLD_SCRIPT_PATH := "res://modules/world/world.gd"
 
 enum Mode { PAINT_TILE, EDIT_HEIGHT }
@@ -21,8 +22,10 @@ var _field_modifier_pack: Dictionary
 
 var paint_enabled: bool = false
 var mode: int = Mode.PAINT_TILE
+var show_height_overlay: bool = true
 var selected_tile: StringName = &"grass"
 var selected_layer: int = 0
+var _hover_cell: Vector2i = Vector2i(-999999, -999999)
 
 func _enter_tree() -> void:
 	_world_gen = WorldGenModule.new()
@@ -69,6 +72,21 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 	var world := _active_world()
 	if world == null or not paint_enabled:
 		return false
+	if mode == Mode.EDIT_HEIGHT:
+		if event is InputEventMouseMotion:
+			var cell := _canvas_mouse_to_cell(world, event)
+			if cell != _hover_cell:
+				_hover_cell = cell
+				_queue_viewport_redraw()
+		elif event is InputEventMouseButton and event.pressed:
+			var delta := 0
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				delta = 1
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				delta = -1
+			if delta != 0:
+				_edit_height_at_canvas(event, world, delta)
+				return true
 	if mode == Mode.PAINT_TILE:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			_paint_at_canvas(event, world)
@@ -76,16 +94,26 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 		if event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
 			_paint_at_canvas(event, world)
 			return true
-	elif mode == Mode.EDIT_HEIGHT and event is InputEventMouseButton and event.pressed:
-		var delta := 0
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			delta = 1
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			delta = -1
-		if delta != 0:
-			_edit_height_at_canvas(event, world, delta)
-			return true
 	return false
+
+func _forward_canvas_draw_over_viewport(overlay: Control) -> void:
+	if not _should_draw_height_overlay():
+		return
+	var world := _bound_world_silent()
+	if world == null or world.height_field == null or world.ground_layer == null:
+		return
+	var vp := get_editor_interface().get_editor_viewport_2d()
+	if vp == null:
+		return
+	var canvas_xform := vp.global_canvas_transform
+	_HeightOverlay.draw_field(
+		overlay,
+		world.ground_layer,
+		world.height_field,
+		canvas_xform,
+		_hover_cell,
+		mode == Mode.EDIT_HEIGHT,
+	)
 
 func _input(event: InputEvent) -> void:
 	if not paint_enabled or mode != Mode.EDIT_HEIGHT:
@@ -159,6 +187,7 @@ func _copy_next_layer() -> void:
 func _finish_map_edit(world: WorldModule) -> void:
 	_sync_session_to_scene_root(world)
 	get_editor_interface().mark_scene_as_unsaved()
+	_queue_viewport_redraw()
 	if not _pending_status.is_empty():
 		set_dock_status(_pending_status)
 
@@ -281,4 +310,31 @@ func _apply_height_delta(world: WorldModule, cell: Vector2i, delta: int) -> void
 	world.height_field.add_height(cell, delta)
 	_sync_session_to_scene_root(world)
 	get_editor_interface().mark_scene_as_unsaved()
+	_queue_viewport_redraw()
 	set_dock_status("Height at %s = %d (z). Use +/- keys if wheel zoom steals input." % [cell, world.height_field.get_height(cell)])
+
+func _should_draw_height_overlay() -> bool:
+	if not show_height_overlay:
+		return false
+	var world := _bound_world_silent()
+	return world != null and world.height_field != null
+
+func _bound_world_silent() -> WorldModule:
+	if _map_session == null:
+		return null
+	var root := get_editor_interface().get_edited_scene_root()
+	if root == null or not _is_world_node(root):
+		return null
+	_map_session.bind_edited_root(root as Node2D)
+	if _map_session.ground_layer == null or not is_instance_valid(_map_session.ground_layer):
+		return null
+	_sync_scene_root_to_session(_map_session)
+	return _map_session
+
+func _queue_viewport_redraw() -> void:
+	var vp := get_editor_interface().get_editor_viewport_2d()
+	if vp != null:
+		vp.queue_redraw()
+
+func queue_viewport_redraw() -> void:
+	_queue_viewport_redraw()

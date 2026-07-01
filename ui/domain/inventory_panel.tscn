@@ -6,6 +6,9 @@
 [ext_resource type="Script" uid="uid://bgng5biwqiodr" path="res://modules/gui/widgets/uf_button.gd" id="4_itmx0"]
 [ext_resource type="Script" uid="uid://cll0gvenwo4n1" path="res://modules/gui/widgets/uf_list.gd" id="5_w8sj0"]
 [ext_resource type="Script" uid="uid://cag17wlbldrrm" path="res://modules/gui/widgets/uf_grid_container.gd" id="6_itmx0"]
+[ext_resource type="PackedScene" uid="uid://dd1t0mh3qlb3y" path="res://ui/widgets/uf_label.tscn" id="7_8pot2"]
+[ext_resource type="PackedScene" uid="uid://dbcykjt237grq" path="res://ui/widgets/uf_list.tscn" id="8_xg0qf"]
+[ext_resource type="PackedScene" uid="uid://cq6x5t7kwoxn1" path="res://ui/widgets/uf_button.tscn" id="9_162k1"]
 
 [node name="PanelContainer" type="PanelContainer" unique_id=1190874086]
 custom_minimum_size = Vector2(280, 200)
@@ -55,3 +58,12 @@ script = ExtResource("5_w8sj0")
 layout_mode = 2
 columns = 4
 script = ExtResource("6_itmx0")
+
+[node name="UfLabel" parent="." unique_id=583800110 instance=ExtResource("7_8pot2")]
+layout_mode = 2
+
+[node name="UfList" parent="." unique_id=880794120 instance=ExtResource("8_xg0qf")]
+layout_mode = 2
+
+[node name="UfButton" parent="." unique_id=306293943 instance=ExtResource("9_162k1")]
+layout_mode = 2

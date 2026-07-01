@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/widgets/icons/label.svg")
 class_name UfLabel
 extends Label
 ## Localized label widget; set [member label_key] instead of raw text (see GAME_DESIGN section 10.6).

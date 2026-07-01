@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/widgets/icons/grid.svg")
 class_name UfGridContainer
 extends GridContainer
 ## Grid widget for inventory / skill slots (see GAME_DESIGN section 10.6). Holds only layout;

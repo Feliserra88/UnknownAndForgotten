@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/panels/icons/info.svg")
 class_name UfInfoPanel
 extends UfPanel
 ## Informational panel: adds a close button to the header and emits [signal panel_closed] when

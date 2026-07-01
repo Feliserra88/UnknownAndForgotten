@@ -4,9 +4,17 @@
 [ext_resource type="Texture2D" uid="uid://dhmdj6txtr5x4" path="res://assets/visuals/characters/human/male/HumanMaleIdle.png" id="2_idle"]
 [ext_resource type="Texture2D" uid="uid://blij0syl5xfsp" path="res://assets/visuals/characters/human/male/HumanMaleWalkingRight.png" id="3_walk_r"]
 [ext_resource type="Texture2D" uid="uid://jjtcdmj2vnnb" path="res://assets/visuals/characters/human/male/HumanMaleWalkingLeft.png" id="4_walk_l"]
+[ext_resource type="Texture2D" uid="uid://d3n4etv81vk0r" path="res://assets/visuals/characters/human/male/HumanMaleWalkingSE.png" id="5_walk_se"]
+[ext_resource type="Texture2D" uid="uid://dgipap8i0jjti" path="res://assets/visuals/characters/human/male/HumanMaleWalkingNE.png" id="6_walk_ne"]
+[ext_resource type="Texture2D" uid="uid://3ytqw6l4xvyv" path="res://assets/visuals/characters/human/male/HumanMaleWalkingNW.png" id="7_walk_nw"]
+[ext_resource type="Texture2D" uid="uid://cevk06pc82hyh" path="res://assets/visuals/characters/human/male/HumanMaleWalkingSW.png" id="8_walk_sw"]
 
 [resource]
 script = ExtResource("1_script")
 idle_texture = ExtResource("2_idle")
 walk_right_texture = ExtResource("3_walk_r")
 walk_left_texture = ExtResource("4_walk_l")
+walk_front_right_texture = ExtResource("5_walk_se")
+walk_back_right_texture = ExtResource("6_walk_ne")
+walk_back_left_texture = ExtResource("7_walk_nw")
+walk_front_left_texture = ExtResource("8_walk_sw")

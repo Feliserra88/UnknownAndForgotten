@@ -15,8 +15,11 @@ const _PATHS := [
 	"res://modules/gui/widgets/uf_button.gd",
 	"res://modules/gui/widgets/uf_list.gd",
 	"res://modules/gui/widgets/uf_grid_container.gd",
+	"res://modules/gui/widgets/uf_layout_region.gd",
 	"res://addons/uf_gui_tools/plugin.gd",
 	"res://addons/uf_gui_tools/dock.gd",
+	"res://addons/uf_gui_tools/palette_item.gd",
+	"res://addons/uf_gui_tools/widget_palette.gd",
 	"res://scenes/ui/world_hud.gd",
 ]
 

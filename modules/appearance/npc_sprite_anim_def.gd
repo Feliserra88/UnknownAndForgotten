@@ -1,6 +1,6 @@
 class_name NpcSpriteAnimDef
 extends Resource
-## Full-body sprite set for an NPC: idle orientations plus walk left/right sheets.
+## Full-body sprite set for an NPC: idle 8-way sheet plus walk sheets per facing.
 ## All frames share [member frame_size] (reference 64×64). Saveable as a .tres asset.
 
 ## Reference frame size in pixels (width × height). Every sheet in this set uses the same cell size.
@@ -11,11 +11,21 @@ extends Resource
 @export var idle_texture: Texture2D
 @export var idle_hframes: int = 8
 
-@export_group("Walk")
+@export_group("Walk — cardinals")
 @export var walk_right_texture: Texture2D
 @export var walk_right_hframes: int = 5
 @export var walk_left_texture: Texture2D
 @export var walk_left_hframes: int = 5
+
+@export_group("Walk — diagonals")
+@export var walk_front_right_texture: Texture2D
+@export var walk_front_right_hframes: int = 5
+@export var walk_back_right_texture: Texture2D
+@export var walk_back_right_hframes: int = 5
+@export var walk_back_left_texture: Texture2D
+@export var walk_back_left_hframes: int = 5
+@export var walk_front_left_texture: Texture2D
+@export var walk_front_left_hframes: int = 5
 @export var walk_fps: float = 8.0
 
 @export_group("Placement")
@@ -33,15 +43,19 @@ func compute_placement_offset() -> Vector2:
 	return center_px - anchor_px + sprite_offset
 
 ## Maps game orientation id → idle sheet column (0–7). Default matches Pixelorama 8-way export:
-## 0=front(S), 2=side_right(E), 4=back(N), 6=side_left(W).
+## S, SE, E, NE, N, NW, W, SW.
 @export var idle_frame_by_orientation: Dictionary = {
 	&"front": 0,
+	&"front_right": 1,
 	&"side_right": 2,
+	&"back_right": 3,
 	&"back": 4,
+	&"back_left": 5,
 	&"side_left": 6,
+	&"front_left": 7,
 }
 
-## Builds SpriteFrames: idle_<orientation> (1 frame) + walk_right / walk_left (loops).
+## Builds SpriteFrames: idle_<orientation> (1 frame) + walk loops per facing.
 func build_sprite_frames() -> SpriteFrames:
 	var sf := SpriteFrames.new()
 	var fw := frame_size.x
@@ -56,6 +70,10 @@ func build_sprite_frames() -> SpriteFrames:
 			sf.add_frame(anim, _atlas(idle_texture, col, fw, fh), 1.0)
 	_add_walk_loop(sf, &"walk_right", walk_right_texture, walk_right_hframes, fw, fh)
 	_add_walk_loop(sf, &"walk_left", walk_left_texture, walk_left_hframes, fw, fh)
+	_add_walk_loop(sf, &"walk_front_right", walk_front_right_texture, walk_front_right_hframes, fw, fh)
+	_add_walk_loop(sf, &"walk_back_right", walk_back_right_texture, walk_back_right_hframes, fw, fh)
+	_add_walk_loop(sf, &"walk_back_left", walk_back_left_texture, walk_back_left_hframes, fw, fh)
+	_add_walk_loop(sf, &"walk_front_left", walk_front_left_texture, walk_front_left_hframes, fw, fh)
 	return sf
 
 func _add_walk_loop(sf: SpriteFrames, anim: StringName, texture: Texture2D, cols: int, fw: int, fh: int) -> void:
@@ -84,5 +102,13 @@ func walk_animation(orientation: StringName) -> StringName:
 			return &"walk_right" if walk_right_texture != null else &""
 		&"side_left":
 			return &"walk_left" if walk_left_texture != null else &""
+		&"front_right":
+			return &"walk_front_right" if walk_front_right_texture != null else &""
+		&"back_right":
+			return &"walk_back_right" if walk_back_right_texture != null else &""
+		&"back_left":
+			return &"walk_back_left" if walk_back_left_texture != null else &""
+		&"front_left":
+			return &"walk_front_left" if walk_front_left_texture != null else &""
 		_:
 			return &""

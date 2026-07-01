@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/panels/icons/panel.svg")
 class_name UfPanel
 extends PanelContainer
 ## Movable base panel for game UI (see docs/GAME_DESIGN.md section 10.4). Builds a Header

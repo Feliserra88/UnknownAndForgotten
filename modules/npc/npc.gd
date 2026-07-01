@@ -32,6 +32,10 @@ static func _sprite_has_textures(def: Resource) -> bool:
 		def.get("idle_texture") != null
 		or def.get("walk_right_texture") != null
 		or def.get("walk_left_texture") != null
+		or def.get("walk_front_right_texture") != null
+		or def.get("walk_back_right_texture") != null
+		or def.get("walk_back_left_texture") != null
+		or def.get("walk_front_left_texture") != null
 	)
 
 ## Spawns an NPC from [param archetype] at logical [param cell]. Returns the body node (not yet

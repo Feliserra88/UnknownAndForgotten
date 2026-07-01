@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://mkig2h803pge"]
+
+[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://g3fmg7qjqagv" path="res://modules/gui/uf_tabbed_panel.gd" id="2_tabbed"]
+
+[node name="UfTabbedPanel" type="PanelContainer" unique_id=904791934]
+custom_minimum_size = Vector2(280, 200)
+theme = ExtResource("1_theme")
+script = ExtResource("2_tabbed")

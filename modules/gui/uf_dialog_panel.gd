@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/panels/icons/dialog.svg")
 class_name UfDialogPanel
 extends UfPanel
 ## Panel with accept/cancel actions in a footer. Emits [signal confirmed] / [signal cancelled]

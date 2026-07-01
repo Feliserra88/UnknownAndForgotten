@@ -1,12 +1,14 @@
 @tool
 extends VBoxContainer
-## Dock UI for the GUI tools plugin. Collects panel kind, id, title key and widgets, then calls the
-## plugin via callv (EditorPlugin exposes no custom API type).
+## Dock UI for the GUI tools plugin. Palette drag-and-drop plus batch panel asset creation.
+
+const _PaletteScript := preload("res://addons/uf_gui_tools/widget_palette.gd")
 
 const _KINDS: Array[StringName] = [&"panel", &"info", &"dialog", &"tabbed"]
-const _WIDGET_IDS: Array[String] = ["label", "button", "list", "grid"]
+const _WIDGET_IDS: Array[String] = ["label", "button", "list", "grid", "layout_region"]
 
 var _plugin: EditorPlugin
+var _gui: GuiModule
 var _id: LineEdit
 var _title: LineEdit
 var _kind: OptionButton
@@ -15,15 +17,33 @@ var _status: Label
 
 func setup(plugin: EditorPlugin) -> void:
 	_plugin = plugin
+	_gui = GuiModule.new()
 	_build()
 
 func _build() -> void:
 	add_theme_constant_override("separation", 4)
 	_title_label("UF GUI Tools")
 	var hint := Label.new()
-	hint.text = "Compose a domain panel and save it under res://ui/domain/."
+	hint.text = "Drag panels or widgets into an open UI scene (hold Ctrl to parent under selection)."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(hint)
+
+	_title_label("Panels")
+	var panel_palette := _PaletteScript.new()
+	panel_palette.set_entries(_gui.panel_palette_entries())
+	add_child(panel_palette)
+
+	_title_label("Widgets")
+	var widget_palette := _PaletteScript.new()
+	widget_palette.set_entries(_gui.widget_palette_entries())
+	add_child(widget_palette)
+
+	add_child(HSeparator.new())
+	_title_label("Batch create asset")
+	var batch_hint := Label.new()
+	batch_hint.text = "Or compose via checkboxes and save a domain panel under res://ui/domain/."
+	batch_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(batch_hint)
 
 	_id = _line("Panel id (file name)", "inventory_panel")
 	_title = _line("Title key", "gui.inventory.title")

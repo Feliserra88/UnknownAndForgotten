@@ -1,4 +1,5 @@
 @tool
+@icon("res://ui/widgets/icons/button.svg")
 class_name UfButton
 extends Button
 ## Localized button widget; set [member label_key] instead of raw text (see GAME_DESIGN section 10.6).

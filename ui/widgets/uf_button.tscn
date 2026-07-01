@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cq6x5t7kwoxn1"]
+
+[ext_resource type="Script" uid="uid://bgng5biwqiodr" path="res://modules/gui/widgets/uf_button.gd" id="1_button"]
+
+[node name="UfButton" type="Button" unique_id=306293943]
+text = "gui.sample.button"
+script = ExtResource("1_button")
+label_key = "gui.sample.button"

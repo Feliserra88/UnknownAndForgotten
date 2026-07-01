@@ -52,8 +52,13 @@ func _build() -> void:
 	paint.text = "Paint enabled (select WorldRoot in scene tree)"
 	paint.toggled.connect(_on_paint_toggled)
 	add_child(paint)
+	var height_overlay := CheckButton.new()
+	height_overlay.text = "Show height overlay (blue=up, red=down, z label)"
+	height_overlay.button_pressed = true
+	height_overlay.toggled.connect(_on_height_overlay_toggled)
+	add_child(height_overlay)
 	var height_hint := Label.new()
-	height_hint.text = "Height: Generate map first, enable Paint, Mode = Edit height, hover a tile and use mouse wheel or +/- keys."
+	height_hint.text = "Edit height: enable Paint, pick Edit height mode, hover a tile, wheel or +/- keys. Overlay tints each cell and shows z."
 	height_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(height_hint)
 
@@ -104,6 +109,12 @@ func _on_layer_selected(index: int) -> void:
 
 func _on_mode_selected(index: int) -> void:
 	_plugin_set(&"mode", index)
+	if index == 1:
+		_plugin_set(&"show_height_overlay", true)
+
+func _on_height_overlay_toggled(on: bool) -> void:
+	_plugin_set(&"show_height_overlay", on)
+	_plugin_call(&"queue_viewport_redraw")
 
 func _on_paint_toggled(on: bool) -> void:
 	_plugin_set(&"paint_enabled", on)

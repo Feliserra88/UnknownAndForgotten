@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dd1t0mh3qlb3y"]
+
+[ext_resource type="Script" uid="uid://c21mka2a2l7by" path="res://modules/gui/widgets/uf_label.gd" id="1_label"]
+
+[node name="UfLabel" type="Label" unique_id=583800110]
+text = "gui.sample.label"
+script = ExtResource("1_label")
+label_key = "gui.sample.label"

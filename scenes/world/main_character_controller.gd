@@ -1,5 +1,5 @@
 extends Node
-## Demo controller: grid-step movement (4-dir) with walk/idle animation and orientation flip.
+## Demo controller: grid-step movement (8-dir) with walk/idle animation per facing.
 ## Parent must be an NpcBody under a WorldModule.
 
 const _LOG := "NPC"
@@ -72,29 +72,15 @@ func _try_step(dir: int) -> void:
 	)
 
 func _read_grid_direction() -> int:
-	if Input.is_action_pressed(&"move_up"):
-		return Direction.Dir.N
-	if Input.is_action_pressed(&"move_down"):
-		return Direction.Dir.S
-	if Input.is_action_pressed(&"move_left"):
-		return Direction.Dir.W
-	if Input.is_action_pressed(&"move_right"):
-		return Direction.Dir.E
-	return -1
+	return Direction.from_input(
+		Input.is_action_pressed(&"move_up"),
+		Input.is_action_pressed(&"move_down"),
+		Input.is_action_pressed(&"move_left"),
+		Input.is_action_pressed(&"move_right"),
+	)
 
 func _set_orientation_for_direction(dir: int) -> void:
-	var orientation: StringName
-	match dir:
-		Direction.Dir.E:
-			orientation = &"side_right"
-		Direction.Dir.W:
-			orientation = &"side_left"
-		Direction.Dir.N:
-			orientation = &"back"
-		Direction.Dir.S:
-			orientation = &"front"
-		_:
-			orientation = &"front"
+	var orientation := Direction.to_orientation(dir)
 	if _appearance != null:
 		_appearance.set_orientation(orientation)
 	if _body.instance != null:

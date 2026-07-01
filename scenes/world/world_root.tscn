@@ -217,7 +217,6 @@ y_sort_enabled = true
 script = ExtResource("2_camera")
 
 [node name="Camera2D" type="Camera2D" parent="CameraRig" unique_id=874515724]
-ignore_rotation = false
 
 [node name="DemoRunner" type="Node" parent="." unique_id=330562187]
 script = ExtResource("3_demo")

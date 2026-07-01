@@ -189,15 +189,33 @@ func get_modifier_def(id: StringName) -> TileModifierDef:
 func can_move(from: Vector3i, dir: int) -> bool:
 	var from_cell := Vector2i(from.x, from.y)
 	var to_cell := from_cell + Direction.to_vector(dir)
-	var from_def := get_tile_def_at(from_cell)
 	var to_def := get_tile_def_at(to_cell)
 	if to_def == null:
 		return false
+	if not to_def.has_tag(TileTags.Tag.WALKABLE):
+		return false
+	if absi(cell_height(to_cell) - cell_height(from_cell)) > max_climb:
+		return false
+	if Direction.is_diagonal(dir):
+		return _can_move_diagonal(from_cell, to_cell, dir, to_def)
+	var from_def := get_tile_def_at(from_cell)
 	if from_def != null and not from_def.is_walkable_from(dir):
 		return false
 	if not to_def.is_walkable_from(Direction.opposite(dir)):
 		return false
-	return absi(cell_height(to_cell) - cell_height(from_cell)) <= max_climb
+	return true
+
+func _can_move_diagonal(from_cell: Vector2i, _to_cell: Vector2i, dir: int, to_def: TileDef) -> bool:
+	var offset := Direction.to_vector(dir)
+	var side_x := from_cell + Vector2i(offset.x, 0)
+	var side_y := from_cell + Vector2i(0, offset.y)
+	for side in [side_x, side_y]:
+		var side_def := get_tile_def_at(side)
+		if side_def == null or not side_def.has_tag(TileTags.Tag.WALKABLE):
+			return false
+	if not to_def.is_walkable_from(Direction.opposite(dir)):
+		return false
+	return true
 
 ## Returns whether vision from [param cell] is blocked toward [param dir].
 func blocks_vision(cell: Vector2i, dir: int) -> bool:

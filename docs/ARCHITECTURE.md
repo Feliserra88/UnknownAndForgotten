@@ -301,7 +301,7 @@ Mantener tabla actualizada al crear módulos:
 | Log | `autoload/log.gd` | LOG | `LOG_LOG_LEVEL` | Sistema de trazas |
 | World | `modules/world/` | WLD | `LOG_WORLD_LEVEL` | Tile (`TileDef`, flags, reglas por lado, modificadores), `MapHeightField`, capas `TileMapLayer`, consultas de paso/visión/cobertura |
 | World gen | `modules/world_gen/` | WGN | `LOG_WORLD_GEN_LEVEL` | `BiomeDef`, `WorldGenRequest`, generador con solver de restricciones (agua redondeada, caminos conectados); bioma `field` placeholder |
-| Camera | `modules/camera/` | CAM | `LOG_CAMERA_LEVEL` | Rig `Node2D` + `Camera2D` (pan/rotación; actores erguidos). Rotación inicial: `CAMERA_DEFAULT_ROTATION_DEG` o auto desde `WORLD_TILE_*`. |
+| Camera | `modules/camera/` | CAM | `LOG_CAMERA_LEVEL` | Rig `Node2D` + `Camera2D` (pan; vista fija 0°) |
 | NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype` (cadena de datos), `NpcInstanceData`, spawn; cadena `npc`→`humanoid`→`human` |
 | Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | `BodyPartMap`, `PartVisualDef`, `NpcAppearanceController` (rig modular por slot) |
 | Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | `AttributeSet`, `VitalsTemplate`, `NpcVitals` |

@@ -49,23 +49,8 @@ func _populate_widgets(panel: UfPanel, widgets: Array) -> void:
 			slot.add_child(widget)
 
 func _build_widget(id: String) -> Control:
-	match id:
-		"label":
-			var label := UfLabel.new()
-			label.label_key = "gui.sample.label"
-			return label
-		"button":
-			var button := UfButton.new()
-			button.label_key = "gui.sample.button"
-			return button
-		"list":
-			return UfList.new()
-		"grid":
-			var grid := UfGridContainer.new()
-			grid.columns = 4
-			return grid
-		_:
-			return null
+	var widget := _gui.instantiate_widget(id)
+	return widget
 
 func _save_panel(panel: UfPanel, panel_id: String) -> String:
 	DirAccess.make_dir_recursive_absolute(GuiModule.DOMAIN_DIR)

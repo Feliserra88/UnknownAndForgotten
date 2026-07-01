@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://dbcykjt237grq"]
+
+[ext_resource type="Script" uid="uid://cll0gvenwo4n1" path="res://modules/gui/widgets/uf_list.gd" id="1_list"]
+
+[node name="UfList" type="ScrollContainer" unique_id=880794120]
+custom_minimum_size = Vector2(0, 80)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_list")
