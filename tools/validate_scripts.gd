@@ -17,6 +17,7 @@ const _PATHS := [
 	"res://modules/gui/widgets/uf_grid_container.gd",
 	"res://addons/uf_gui_tools/plugin.gd",
 	"res://addons/uf_gui_tools/dock.gd",
+	"res://scenes/ui/world_hud.gd",
 ]
 
 func _initialize() -> void:

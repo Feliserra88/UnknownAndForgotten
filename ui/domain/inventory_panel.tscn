@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://ddgjkai7f0q7y"]
+
+[ext_resource type="Theme" path="res://ui/theme/uf_theme.tres" id="1_723a0"]
+[ext_resource type="Script" uid="uid://ox2gg36aq3w4" path="res://modules/gui/uf_info_panel.gd" id="2_itmx0"]
+[ext_resource type="Script" uid="uid://c21mka2a2l7by" path="res://modules/gui/widgets/uf_label.gd" id="3_crfuk"]
+[ext_resource type="Script" uid="uid://bgng5biwqiodr" path="res://modules/gui/widgets/uf_button.gd" id="4_itmx0"]
+[ext_resource type="Script" uid="uid://cll0gvenwo4n1" path="res://modules/gui/widgets/uf_list.gd" id="5_w8sj0"]
+[ext_resource type="Script" uid="uid://cag17wlbldrrm" path="res://modules/gui/widgets/uf_grid_container.gd" id="6_itmx0"]
+
+[node name="" type="PanelContainer" unique_id=1190874086]
+custom_minimum_size = Vector2(280, 200)
+theme = ExtResource("1_723a0")
+script = ExtResource("2_itmx0")
+title_key = "gui.inventory.title"
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=720337811]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="Layout" unique_id=281760123]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+mouse_filter = 0
+
+[node name="Title" type="Label" parent="Layout/Header" unique_id=1231324857]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "gui.inventory.title"
+
+[node name="CloseButton" type="Button" parent="Layout/Header" unique_id=78505516]
+layout_mode = 2
+text = "X"
+
+[node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=1193150118]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="@Label@21546" type="Label" parent="Layout/ContentSlot" unique_id=1665273129]
+layout_mode = 2
+text = "gui.sample.label"
+script = ExtResource("3_crfuk")
+label_key = "gui.sample.label"
+
+[node name="@Button@21547" type="Button" parent="Layout/ContentSlot" unique_id=1509981192]
+layout_mode = 2
+text = "gui.sample.button"
+script = ExtResource("4_itmx0")
+label_key = "gui.sample.button"
+
+[node name="@ScrollContainer@21550" type="ScrollContainer" parent="Layout/ContentSlot" unique_id=510487410]
+layout_mode = 2
+script = ExtResource("5_w8sj0")
+
+[node name="@GridContainer@21551" type="GridContainer" parent="Layout/ContentSlot" unique_id=134017693]
+layout_mode = 2
+columns = 4
+script = ExtResource("6_itmx0")
