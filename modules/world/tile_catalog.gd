@@ -1,3 +1,4 @@
+@tool
 class_name TileCatalog
 extends Resource
 ## Collection of TileDef assets looked up by id. Saveable as a .tres asset.

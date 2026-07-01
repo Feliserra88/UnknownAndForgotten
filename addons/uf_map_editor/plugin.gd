@@ -162,6 +162,7 @@ func _run_on_scratch(region: Rect2i, build_fn: Callable) -> void:
 	var world := _active_world()
 	if world == null or _scratch_world == null:
 		return
+	_cache_field_tilesets()
 	_scratch_world.configure(_field_catalog, _field_modifiers, region, _field_tileset, _field_modifier_pack)
 	_pending_status = build_fn.call(_scratch_world)
 	_copy_target = world
@@ -241,6 +242,8 @@ func _active_world() -> WorldModule:
 		set_dock_status("Scene root is missing Layers/Ground (open world_root.tscn).")
 		return null
 	_sync_scene_root_to_session(_map_session)
+	if _map_session.tile_catalog != null and _field_tileset != null:
+		PlaceholderTileSet.assign_tile_mapping(_map_session.tile_catalog.tiles, _field_tileset)
 	return _map_session
 
 func _is_world_node(node: Node) -> bool:

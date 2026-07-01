@@ -1,3 +1,4 @@
+@tool
 class_name TileDef
 extends Resource
 ## Parent definition of a map tile: non-exclusive type flags, per-side rules,
@@ -15,14 +16,18 @@ extends Resource
 ## Modifiers (wet, burning, ...) that may be applied to this tile.
 @export var allowed_modifiers: Array[TileModifierDef] = []
 
+@export_group("Art")
+## Optional isometric sprite. When set, used instead of the placeholder diamond in the TileSet atlas.
+@export var art_texture: Texture2D
+
 @export_group("Placeholder visual")
-## Flat colour used to build the placeholder diamond for this tile.
+## Flat colour used to build the placeholder diamond when [member art_texture] is unset.
 @export var placeholder_color: Color = Color.MAGENTA
 
 @export_group("TileSet mapping")
-## Atlas source id assigned when the placeholder TileSet is built.
+## Atlas source id assigned when the TileSet is built (runtime only; not saved on disk).
 @export var source_id: int = 0
-## Atlas coordinates assigned when the placeholder TileSet is built.
+## Atlas coordinates assigned when the TileSet is built (runtime only; not saved on disk).
 @export var atlas_coords: Vector2i = Vector2i.ZERO
 
 ## Returns true when [param tag] (a TileTags.Tag value) is set.

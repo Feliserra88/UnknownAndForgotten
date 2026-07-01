@@ -16,3 +16,4 @@ display_name_key = "tile.open_door.name"
 tags = 34
 side_rules = SubResource("Resource_v7vor")
 placeholder_color = Color(0.78, 0.66, 0.42, 1)
+atlas_coords = Vector2i(6, 0)

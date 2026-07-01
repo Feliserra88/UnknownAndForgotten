@@ -2,7 +2,7 @@
 extends VBoxContainer
 ## Dock UI for the map editor. Calls plugin methods via callv (EditorPlugin has no custom API type).
 
-const _TILE_IDS: Array[StringName] = [&"grass", &"dirt_path", &"pond_water", &"rock_wall", &"bush", &"open_door"]
+const _TILE_IDS: Array[StringName] = [&"grass", &"bare_dirt", &"dirt_path", &"pond_water", &"rock_wall", &"bush", &"open_door"]
 const _LAYER_NAMES := ["Ground", "Terrain", "Objects", "Structures"]
 
 var _plugin: EditorPlugin

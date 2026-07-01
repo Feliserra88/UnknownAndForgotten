@@ -7,7 +7,7 @@ const _LOG := "WGN"
 const _Field := preload("res://modules/world_gen/_private/field_biome.gd")
 const _Generator := preload("res://modules/world_gen/_private/generator.gd")
 
-## Builds the placeholder "field" tile catalog (grass, path, water, wall, bush, door).
+## Loads the field tile catalog from assets (grass, bare dirt, path, water, wall, bush, door).
 func build_field_catalog() -> TileCatalog:
 	return _Field.build_catalog()
 

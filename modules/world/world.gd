@@ -53,6 +53,7 @@ func configure(
 	var tile_size := Vector2i(Config.get_int("WORLD_TILE_WIDTH", 64), Config.get_int("WORLD_TILE_HEIGHT", 32))
 	if shared_tileset != null:
 		_tileset = shared_tileset
+		PlaceholderTileSet.assign_tile_mapping(catalog.tiles, _tileset)
 	else:
 		_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
 	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer]:

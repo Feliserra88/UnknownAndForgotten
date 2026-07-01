@@ -1,11 +1,13 @@
 [gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://ck1hpm7p0hhnq"]
 
-[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_mfmo4"]
-[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="2_g14k6"]
+[ext_resource type="Texture2D" uid="uid://i11ny21mbh3a" path="res://assets/world/tiles/art/grass.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="2_mfmo4"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="3_g14k6"]
 
 [resource]
-script = ExtResource("2_g14k6")
+script = ExtResource("3_g14k6")
 id = &"grass"
 display_name_key = "tile.grass.name"
 tags = 3
+art_texture = ExtResource("1_tex")
 placeholder_color = Color(0.45, 0.72, 0.36, 1)
