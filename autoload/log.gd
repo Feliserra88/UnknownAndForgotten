@@ -16,6 +16,7 @@ const _MODULE_KEYS := {
 	"NPC": "NPC",
 	"APP": "APPEARANCE",
 	"ATR": "ATTRIBUTES",
+	"GUI": "GUI",
 }
 
 ## Logs a summary-level event ([param code] = module, [param type] = short category).

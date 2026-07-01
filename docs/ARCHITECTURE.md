@@ -304,7 +304,9 @@ Mantener tabla actualizada al crear módulos:
 | NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype` (cadena de datos), `NpcInstanceData`, spawn; cadena `npc`→`humanoid`→`human` |
 | Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | `BodyPartMap`, `PartVisualDef`, `NpcAppearanceController` (rig modular por slot) |
 | Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | `AttributeSet`, `VitalsTemplate`, `NpcVitals` |
+| GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`), widgets `Uf*` (`modules/gui/widgets/`), theme; fachada `GuiModule` que crea paneles y carga assets de `ui/domain/` |
 | Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, guardar presets/mapas |
+| Herramientas GUI | `addons/uf_gui_tools/` | — | — | `EditorPlugin` sobre API `gui`: compone paneles de dominio (`UfPanel` + widgets) y los guarda como `PackedScene` en `res://ui/domain/` |
 
 Core compartido: `core/direction.gd` (`Direction`, enum N/E/S/W). Herramienta de build de assets placeholder: `tools/asset_builder.tscn` (genera `.tres` reutilizables en `res://assets/`).
 

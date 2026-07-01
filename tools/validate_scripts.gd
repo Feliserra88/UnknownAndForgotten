@@ -6,6 +6,17 @@ const _PATHS := [
 	"res://addons/uf_map_editor/plugin.gd",
 	"res://addons/uf_map_editor/dock.gd",
 	"res://modules/world/world.gd",
+	"res://modules/gui/gui.gd",
+	"res://modules/gui/uf_panel.gd",
+	"res://modules/gui/uf_info_panel.gd",
+	"res://modules/gui/uf_dialog_panel.gd",
+	"res://modules/gui/uf_tabbed_panel.gd",
+	"res://modules/gui/widgets/uf_label.gd",
+	"res://modules/gui/widgets/uf_button.gd",
+	"res://modules/gui/widgets/uf_list.gd",
+	"res://modules/gui/widgets/uf_grid_container.gd",
+	"res://addons/uf_gui_tools/plugin.gd",
+	"res://addons/uf_gui_tools/dock.gd",
 ]
 
 func _initialize() -> void:

@@ -13,3 +13,8 @@ archetype.npc.name,Creature,Criatura
 archetype.humanoid.name,Humanoid,Humanoide
 archetype.human.name,Human,Humano
 npc.main_character.name,Wanderer,Errante
+gui.action.accept,Accept,Aceptar
+gui.action.cancel,Cancel,Cancelar
+gui.inventory.title,Inventory,Inventario
+gui.sample.label,Sample Label,Etiqueta de ejemplo
+gui.sample.button,Sample Button,Botón de ejemplo

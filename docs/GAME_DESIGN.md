@@ -797,6 +797,8 @@ res://ui/
 
 Scripts de módulo en `res://modules/gui/` (fachada pública) con implementación en `_private/` según arquitectura.
 
+**Implementación actual:** los tipos base son scripts con `class_name` en `res://modules/gui/` (paneles) y `res://modules/gui/widgets/` (widgets); construyen su estructura (Header/ContentSlot) por código de forma idempotente. En `res://ui/` viven el `theme/` y los paneles de dominio generados (`domain/`). El plugin `uf_gui_tools` compone `UfPanel` + widgets y los guarda como `PackedScene` en `ui/domain/`, reutilizables como assets.
+
 ### 10.4 Clase base `UfPanel`
 
 `class_name UfPanel extends PanelContainer` (o `Control` raíz con `PanelContainer` hijo).
