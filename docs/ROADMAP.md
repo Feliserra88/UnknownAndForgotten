@@ -28,7 +28,7 @@ Cada nuevo módulo: código de log de 3 letras, `LOG_<MODULO>_LEVEL` en `venv.in
 - [ ] **Adoptar `AppearanceModule` en escenas** — `main_character_controller.gd` y `world_demo.gd` aún acceden a `body.get_node("MotionPivot/Appearance")`; migrar a `AppearanceModule.set_orientation/set_moving(body, ...)`.
 - [ ] **Inyectar `npc_base.tscn`** — eliminar la excepción allowlist `modules/npc/` → `res://scenes/npc/npc_base.tscn`: pasar la escena por `NpcArchetype.scene` / config en vez de `preload` en `npc.gd` y `human_factory.gd`.
 - [ ] **Reducir orquestación en escenas demo** — mover la lógica de bootstrap de `world_demo.gd` (generar + spawn + cámara) a un flujo de arranque explícito una vez existan `grid`/`player`.
-- [ ] **Fuga por `class_name` a `_private/`** — `uf_map_editor` usa `PlaceholderTileSet` (en `modules/world/_private/`) vía `class_name`. Exponerlo por la fachada `world` o mover el tipo, y ampliar el lint para detectar uso de `class_name` internos.
+- [x] **Fuga por `class_name` a `_private/`** — `PlaceholderTileSet` ya no registra `class_name`; el editor usa `WorldModule.build_tileset()` / `build_modifier_overlay_pack()` / `assign_tile_mapping()`. Lint ampliado (reglas D/E) para prohibir `class_name` en `_private/` y detectar referencias al identificador global.
 
 ## 4. EventBus — ampliar catálogo
 

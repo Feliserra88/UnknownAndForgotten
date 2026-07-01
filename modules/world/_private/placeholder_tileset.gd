@@ -1,4 +1,3 @@
-class_name PlaceholderTileSet
 extends RefCounted
 ## Builds isometric TileSets from TileDef art textures or coloured placeholder diamonds.
 ## Modifier overlays use overlay_texture (sprite) or tinted placeholder diamonds.

@@ -8,6 +8,7 @@ extends Node2D
 const _LOG := "WLD"
 const _MapSprites := preload("res://modules/world/_private/map_sprite_layer.gd")
 const _WangPainter := preload("res://modules/world/_private/wang_terrain_painter.gd")
+const _PlaceholderTileSet := preload("res://modules/world/_private/placeholder_tileset.gd")
 ## Default path for editor-painted tile data (under gitignored `res://local/`).
 const EDITOR_SESSION_MAP_PATH := "res://local/world/maps/editor_session.tscn"
 
@@ -70,9 +71,9 @@ func configure(
 	var tile_size := Vector2i(Config.get_int("WORLD_TILE_WIDTH", 64), Config.get_int("WORLD_TILE_HEIGHT", 32))
 	if shared_tileset != null:
 		_tileset = shared_tileset
-		PlaceholderTileSet.assign_tile_mapping(catalog.tiles, _tileset)
+		_PlaceholderTileSet.assign_tile_mapping(catalog.tiles, _tileset)
 	else:
-		_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
+		_tileset = _PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
 	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer]:
 		if layer != null and is_instance_valid(layer):
 			if layer.tile_set != _tileset:
@@ -85,7 +86,7 @@ func configure(
 		_modifier_source_id = shared_modifier_pack["source_id"]
 		_modifier_coords = shared_modifier_pack["coords"]
 	else:
-		var overlay := PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
+		var overlay := _PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
 		_modifier_tileset = overlay["tileset"]
 		_modifier_source_id = overlay["source_id"]
 		_modifier_coords = overlay["coords"]
@@ -546,9 +547,9 @@ func refresh_tilesets(
 	var tile_size := Vector2i(Config.get_int("WORLD_TILE_WIDTH", 64), Config.get_int("WORLD_TILE_HEIGHT", 32))
 	if shared_tileset != null:
 		_tileset = shared_tileset
-		PlaceholderTileSet.assign_tile_mapping(catalog.tiles, _tileset)
+		_PlaceholderTileSet.assign_tile_mapping(catalog.tiles, _tileset)
 	else:
-		_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
+		_tileset = _PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
 	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer]:
 		if layer != null and is_instance_valid(layer):
 			if layer.tile_set != _tileset:
@@ -561,7 +562,7 @@ func refresh_tilesets(
 		_modifier_source_id = shared_modifier_pack["source_id"]
 		_modifier_coords = shared_modifier_pack["coords"]
 	else:
-		var overlay := PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
+		var overlay := _PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
 		_modifier_tileset = overlay["tileset"]
 		_modifier_source_id = overlay["source_id"]
 		_modifier_coords = overlay["coords"]
@@ -687,3 +688,15 @@ func _clear_legacy_tile_map_layers() -> void:
 func _clear_sprite_layers() -> void:
 	_MapSprites.clear_layer(props_layer)
 	_MapSprites.clear_layer(decor_layer)
+
+## Builds an isometric TileSet from tile defs (art textures or coloured placeholders).
+static func build_tileset(tile_defs: Array, tile_size: Vector2i) -> TileSet:
+	return _PlaceholderTileSet.build_tiles(tile_defs, tile_size)
+
+## Builds modifier overlay TileSet metadata for the modifiers layer.
+static func build_modifier_overlay_pack(modifiers: Array, tile_size: Vector2i) -> Dictionary:
+	return _PlaceholderTileSet.build_modifier_overlays(modifiers, tile_size)
+
+## Syncs source_id/atlas_coords on tile defs to match an existing cached TileSet layout.
+static func assign_tile_mapping(tile_defs: Array, tileset: TileSet) -> void:
+	_PlaceholderTileSet.assign_tile_mapping(tile_defs, tileset)

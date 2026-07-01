@@ -7,6 +7,8 @@ extends SceneTree
 ##   A) A module script must not reference another module's _private/ folder.
 ##   B) Presentation code (scenes/, ui/, our addons) must not reference any module _private/.
 ##   C) A module must not reference res://scenes/ or res://ui/ unless allowed below.
+##   D) _private/ scripts must not declare class_name (internals are preload-only).
+##   E) No file may reference a class_name registered from a module's _private/ folder.
 
 ## Roots scanned as "presentation" for rule B.
 const _PRESENTATION_ROOTS := [
@@ -24,6 +26,8 @@ const _SCENE_REF_ALLOWLIST := [
 
 var _private_re: RegEx
 var _scene_ui_re: RegEx
+var _class_name_decl_re: RegEx
+var _private_global_classes: Dictionary = {}
 var _failures: Array[String] = []
 
 func _initialize() -> void:
@@ -31,6 +35,10 @@ func _initialize() -> void:
 	_private_re.compile("res://modules/([a-z0-9_]+)/_private/")
 	_scene_ui_re = RegEx.new()
 	_scene_ui_re.compile("res://(?:scenes|ui)/[A-Za-z0-9_./-]+")
+	_class_name_decl_re = RegEx.new()
+	_class_name_decl_re.compile("(?m)^class_name\\s+(\\w+)")
+
+	_index_private_class_names()
 
 	var module_files := _gd_files_in("res://modules")
 	for path in module_files:
@@ -60,12 +68,46 @@ func _check_module_file(path: String) -> void:
 		var ref := m.get_string()
 		if not _is_scene_ref_allowed(path, ref):
 			_failures.append("%s (module '%s') references presentation path %s" % [path, owner_module, ref])
+	_check_foreign_private_class_use(path, text)
 
 ## Rule B: presentation code must not reach into any module _private/.
 func _check_presentation_file(path: String) -> void:
 	var text := _read(path)
 	for m in _private_re.search_all(text):
 		_failures.append("%s references module _private '%s'" % [path, m.get_string(1)])
+	_check_foreign_private_class_use(path, text)
+
+## Rule D: index class_name declarations under _private/ (must be empty).
+func _index_private_class_names() -> void:
+	for path in _gd_files_in("res://modules"):
+		if "/_private/" not in path:
+			continue
+		for m in _class_name_decl_re.search_all(_read(path)):
+			var type_name := m.get_string(1)
+			_private_global_classes[type_name] = {
+				"module": _module_of(path),
+				"file": path,
+			}
+			_failures.append(
+				"%s declares class_name '%s' in _private/ (internals must be preload-only)" % [path, type_name]
+			)
+
+## Rule E: block use of global class names exported from _private/ internals.
+func _check_foreign_private_class_use(path: String, text: String) -> void:
+	for type_name in _private_global_classes:
+		var info: Dictionary = _private_global_classes[type_name]
+		var owner_module: String = info["module"]
+		var owner_private_prefix := "res://modules/%s/_private/" % owner_module
+		if path.begins_with(owner_private_prefix):
+			continue
+		if path == info["file"]:
+			continue
+		var use_re := RegEx.new()
+		use_re.compile("\\b%s\\b" % type_name)
+		if use_re.search(text) != null:
+			_failures.append(
+				"%s references private global class '%s' (module '%s')" % [path, type_name, owner_module]
+			)
 
 func _is_scene_ref_allowed(file_path: String, ref: String) -> bool:
 	for rule in _SCENE_REF_ALLOWLIST:

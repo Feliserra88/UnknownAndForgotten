@@ -133,6 +133,8 @@ Reglas comprobadas:
 - **A** — un módulo no referencia `_private/` de otro módulo.
 - **B** — presentación (`scenes/`, `ui/`, addons `uf_*`) no referencia ningún `_private/` de módulo.
 - **C** — un módulo no referencia `res://scenes/` ni `res://ui/` salvo allowlist.
+- **D** — scripts en `_private/` no declaran `class_name` (internos solo vía `preload`).
+- **E** — ningún fichero referencia un identificador global declarado en `_private/` ajeno.
 
 **Allowlist (excepciones temporales, con TODO en `docs/ROADMAP.md`):**
 

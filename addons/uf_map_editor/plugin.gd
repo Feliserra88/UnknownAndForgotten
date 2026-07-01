@@ -64,8 +64,8 @@ func _cache_field_tilesets() -> void:
 		Config.get_int("WORLD_TILE_WIDTH", 64),
 		Config.get_int("WORLD_TILE_HEIGHT", 32),
 	)
-	_field_tileset = PlaceholderTileSet.build_tiles(_field_catalog.tiles, tile_size)
-	_field_modifier_pack = PlaceholderTileSet.build_modifier_overlays(_field_modifiers, tile_size)
+	_field_tileset = WorldModule.build_tileset(_field_catalog.tiles, tile_size)
+	_field_modifier_pack = WorldModule.build_modifier_overlay_pack(_field_modifiers, tile_size)
 
 func _handles(object: Object) -> bool:
 	return object is Node and _is_world_node(object as Node)
@@ -278,7 +278,7 @@ func _active_world() -> WorldModule:
 		_sync_session_to_scene_root(_map_session)
 		_session_tilesets_refreshed = true
 	if _map_session.tile_catalog != null and _field_tileset != null:
-		PlaceholderTileSet.assign_tile_mapping(_map_session.tile_catalog.tiles, _field_tileset)
+		WorldModule.assign_tile_mapping(_map_session.tile_catalog.tiles, _field_tileset)
 	return _map_session
 
 func _is_world_node(node: Node) -> bool:
