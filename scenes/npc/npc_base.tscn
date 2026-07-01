@@ -10,10 +10,12 @@ radius = 24.0
 y_sort_enabled = true
 script = ExtResource("1_body")
 
-[node name="Appearance" type="Node2D" parent="." unique_id=2058671448]
+[node name="MotionPivot" type="Node2D" parent="." unique_id=1283746502]
+
+[node name="Appearance" type="Node2D" parent="MotionPivot" unique_id=2058671448]
 script = ExtResource("2_appearance")
 
-[node name="Area2D" type="Area2D" parent="." unique_id=1982063047]
+[node name="Area2D" type="Area2D" parent="MotionPivot" unique_id=1982063047]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=2135193877]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MotionPivot/Area2D" unique_id=2135193877]
 shape = SubResource("CircleShape2D_npc")

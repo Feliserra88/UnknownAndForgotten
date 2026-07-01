@@ -45,6 +45,7 @@ func _spawn_main_character(world: WorldModule, cell: Vector2i) -> void:
 	if body != null:
 		var actor_parent := world.get_actor_parent()
 		actor_parent.add_child(body)
+		world.apply_actor_y_sort(body)
 		body.global_position = world.grid_to_world(world.cell3(cell))
 		_attach_player_controller(body)
 		world.sync_actor_display_rotations()
@@ -58,7 +59,7 @@ func _attach_player_controller(body: Node2D) -> void:
 		var npc_body := body as NpcBody
 		if npc_body.instance != null:
 			npc_body.instance.orientation = &"front"
-		var appearance := body.get_node_or_null("Appearance") as NpcAppearanceController
+		var appearance := body.get_node_or_null("MotionPivot/Appearance") as NpcAppearanceController
 		if appearance != null:
 			appearance.set_orientation(&"front")
 

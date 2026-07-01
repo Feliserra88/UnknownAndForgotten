@@ -60,6 +60,9 @@ func configure(
 			if layer.tile_set != _tileset:
 				layer.tile_set = _tileset
 			layer.y_sort_enabled = true
+			if layer == ground_layer and layer.tile_set != null:
+				# Floor sorts at the diamond top so actors centered on the cell draw in front.
+				layer.y_sort_origin = -layer.tile_set.tile_size.y / 2
 	if shared_modifier_pack.has("tileset"):
 		_modifier_tileset = shared_modifier_pack["tileset"]
 		_modifier_source_id = shared_modifier_pack["source_id"]
@@ -82,13 +85,18 @@ func configure(
 	_modifiers.clear()
 	Log.info(_LOG, "init", "configured region=%s tiles=%d" % [region, catalog.tiles.size()])
 
-## Converts a logical cell (x, y, z) to the global position where an actor's feet stand.
-## Uses the bottom vertex of the isometric diamond (map_to_local is the cell center).
+## Converts a logical cell (x, y, z) to the global position at the tile center (map_to_local).
 func grid_to_world(cell: Vector3i) -> Vector2:
 	_ensure_layers()
 	var local := ground_layer.map_to_local(Vector2i(cell.x, cell.y))
-	local += _tile_foot_offset() + Vector2(0, -cell.z * height_step)
+	local += Vector2(0, -cell.z * height_step)
 	return ground_layer.to_global(local)
+
+## Applies draw-order settings for a spawned actor (tile center position, y-sort among layers).
+func apply_actor_y_sort(actor: Node2D) -> void:
+	if actor == null:
+		return
+	actor.y_sort_enabled = true
 
 ## TileMap container (stays at origin; view rotation is on CameraRig).
 func get_map_layers() -> Node2D:
@@ -116,12 +124,6 @@ func _get_view_rotation_rad() -> float:
 	if cam != null:
 		return cam.get_view_rotation_rad()
 	return 0.0
-
-func _tile_foot_offset() -> Vector2:
-	if ground_layer == null or ground_layer.tile_set == null:
-		return Vector2.ZERO
-	var tile_h := float(ground_layer.tile_set.tile_size.y)
-	return Vector2(0, tile_h * 0.5)
 
 ## Returns the map cell (x, y) under [param world_pos].
 func world_to_cell(world_pos: Vector2) -> Vector2i:
@@ -378,6 +380,8 @@ func _ensure_layers() -> bool:
 	modifiers_layer = layers_node.get_node_or_null("Modifiers") as TileMapLayer
 	layers = layers_node as Node2D
 	actors = layers_node.get_node_or_null("Actors") as Node2D
+	if ground_layer != null and ground_layer.tile_set != null:
+		ground_layer.y_sort_origin = -ground_layer.tile_set.tile_size.y / 2
 	return ground_layer != null
 
 func _ensure_actors() -> void:

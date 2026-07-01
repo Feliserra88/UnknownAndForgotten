@@ -81,7 +81,6 @@ func _build_sprite_rig(def: Resource) -> void:
 	_animated_sprite.name = "BodySprite"
 	_animated_sprite.sprite_frames = def.build_sprite_frames()
 	_animated_sprite.position = def.compute_placement_offset()
-	_animated_sprite.y_sort_enabled = true
 	add_child(_animated_sprite)
 	_refresh_animation()
 	Log.info(_LOG, "rig", "frame=%s idle=%d walk_r=%d walk_l=%d fps=%.1f" % [

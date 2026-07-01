@@ -53,6 +53,8 @@ func spawn(archetype: NpcArchetype, cell: Vector3i, _world: WorldModule = null) 
 	instance.grid_cell = cell
 	if body.has_method("initialize"):
 		body.initialize(instance, archetype)
+	if _world != null:
+		_world.apply_actor_y_sort(body)
 	body.add_to_group(&"npc")
 	for fid in instance.faction_ids:
 		body.add_to_group(StringName("faction_%s" % fid))
