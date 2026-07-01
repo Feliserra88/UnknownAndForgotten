@@ -372,12 +372,16 @@ Mantener tabla actualizada al crear módulos:
 | World | `modules/world/` | WLD | `LOG_WORLD_LEVEL` | Tile (`TileDef`, flags, reglas por lado, modificadores), `MapHeightField`, capas `TileMapLayer`, consultas de paso/visión/cobertura |
 | World gen | `modules/world_gen/` | WGN | `LOG_WORLD_GEN_LEVEL` | `BiomeDef`, `WorldGenRequest`, generador con solver de restricciones (agua redondeada, caminos conectados); bioma `field` placeholder |
 | Camera | `modules/camera/` | CAM | `LOG_CAMERA_LEVEL` | Rig `Node2D` + `Camera2D` (pan; vista fija 0°) |
-| NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype` (cadena de datos), `NpcInstanceData`, spawn; cadena `npc`→`humanoid`→`human` |
-| Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | Fachada `AppearanceModule` (localiza/acciona el rig); `NpcAppearanceController`, `BodyPartMap`, `PartVisualDef` (rig modular por slot) |
+| NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype` (cadena de datos, resolvers de facción/modificadores/equipo/inspección), `NpcInstanceData` (equipo + modificadores + `effective_attributes`), fachada `NpcModule` (inyección de facciones/modificadores/equipo, `assemble`, spawn); cadena `npc`→`humanoid`→`human` |
+| Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | Fachada `AppearanceModule` (localiza/acciona el rig); `NpcAppearanceController` (`set_equipment_texture`), `BodyPartMap`, `PartVisualDef`, `InspectionLayoutDef` (layout del panel de inspección por arquetipo) |
 | Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | Fachada estática `AttributesModule` (ciclo de vida de stats); `AttributeSet`, `VitalsTemplate`, `NpcVitals` (Resource-only) |
-| GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`), widgets `Uf*` (`modules/gui/widgets/`), theme; fachada `GuiModule` que crea paneles y carga assets de `ui/domain/` |
+| Faction | `modules/faction/` | FAC | `LOG_FACTION_LEVEL` | Fachada `FactionModule` (Resource-only); `FactionDef` (pertenencia a grupo, `granted_modifier_ids`, relaciones ally/hostile, tags) |
+| Modifier | `modules/modifier/` | MOD | `LOG_MODIFIER_LEVEL` | Fachada `ModifierModule` (Resource-only); `ModifierDef` (`kind` trait/malady/status/scaler, ops aditivas y multiplicativas por atributo, tags); `apply()` compone atributos efectivos |
+| Equipment | `modules/equipment/` | EQP | `LOG_EQUIPMENT_LEVEL` | Fachada `EquipmentModule`; `ItemDef`, `EquipmentVisualDef`, `EquipmentSlotMap`, `EquipmentState` (runtime slot→item); compatibilidad por slot/tags y resolución de visuales |
+| GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`, `UfInspectionPanel`), widgets `Uf*` (`modules/gui/widgets/`, incl. `UfEquipmentSlot`), theme; fachada `GuiModule` que crea paneles y carga assets de `ui/domain/` |
 | Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, guardar presets/mapas |
 | Herramientas GUI | `addons/uf_gui_tools/` | — | — | `EditorPlugin` sobre API `gui`: compone paneles de dominio (`UfPanel` + widgets) y los guarda como `PackedScene` en `res://ui/domain/` |
+| Editor de NPCs | `addons/uf_npc_editor/` | — | — | `EditorPlugin` de pantalla principal sobre API `npc`/`appearance`/`equipment`/`faction`/`modifier`/`gui`: 3 columnas (detalles, preview del rig, panel de inspección con drag-drop); edición en memoria (guardado de `.tres` diferido) |
 
 Core compartido: `core/direction.gd` (`Direction`, enum N/E/S/W) y `core/events.gd` (`GameEvents`, catálogo de canales del `EventBus`). Herramientas: `tools/asset_builder.tscn` (genera `.tres` placeholder en `res://assets/`), `tools/validate_scripts.gd` (sintaxis) y `tools/check_architecture.gd` (lint de dependencias §4.1).
 

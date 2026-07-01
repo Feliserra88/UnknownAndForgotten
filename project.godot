@@ -19,9 +19,9 @@ config/icon="res://icon.svg"
 
 Config="*res://autoload/config.gd"
 Log="*res://autoload/log.gd"
-EventBus="*res://autoload/event_bus.gd"
 Version="*res://autoload/version.gd"
 WindowPlacement="*res://autoload/window_placement.gd"
+EventBus="*res://autoload/event_bus.gd"
 
 [display]
 
@@ -30,7 +30,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/uf_gui_tools/plugin.cfg", "res://addons/uf_map_editor/plugin.cfg")
+enabled=PackedStringArray("res://addons/uf_gui_tools/plugin.cfg", "res://addons/uf_map_editor/plugin.cfg", "res://addons/uf_npc_editor/plugin.cfg")
 
 [input]
 

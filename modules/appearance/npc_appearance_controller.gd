@@ -37,6 +37,24 @@ func sync_from_instance(instance: NpcInstanceData) -> void:
 	if _animated_sprite != null:
 		set_orientation(instance.orientation)
 
+## Shows [param tex] on the EquipmentLayer of [param part_id]'s slot (cutout rig only).
+## No-op in sprite-sheet mode or when the part has no slot.
+func set_equipment_texture(part_id: StringName, tex: Texture2D) -> void:
+	var slot: Dictionary = _slots.get(part_id, {})
+	var layer := slot.get("equipment", null) as Sprite2D
+	if layer == null:
+		return
+	layer.texture = tex
+	layer.visible = tex != null
+
+## Hides and clears the EquipmentLayer of [param part_id]'s slot.
+func clear_equipment_texture(part_id: StringName) -> void:
+	set_equipment_texture(part_id, null)
+
+## Returns the anatomical part ids that currently have a built slot (cutout rig).
+func slot_part_ids() -> Array:
+	return _slots.keys()
+
 ## Sets facing direction and refreshes the active idle or walk animation.
 func set_orientation(orientation: StringName) -> void:
 	_orientation = orientation

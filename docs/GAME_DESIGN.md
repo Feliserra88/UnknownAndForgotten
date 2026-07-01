@@ -427,11 +427,15 @@ Cada `NpcArchetype` (`class_name NpcArchetype extends Resource`):
 - `scene: PackedScene` — escena visual/comportamiento (override del padre si vacío)
 - `base_attributes: AttributeSet`
 - `base_vitals: VitalsTemplate`
-- `slot_map: EquipmentSlotMap`
-- `default_factions: Array[FactionDef]`
-- `default_traits: Array[TraitDef]`
+- `body_part_map: BodyPartMap` — slots **anatómicos** del rig (cabeza, brazos…)
+- `equipment_slot_map: EquipmentSlotMap` — slots de **objeto** equipable (§7.1); distinto de `body_part_map`
+- `inspection_layout: InspectionLayoutDef` — silueta + posiciones de slots para `UfInspectionPanel` (§5.5.5)
+- `tags: Array[StringName]` — p. ej. `humanoid`; compatibilidad de items y agrupación
+- `default_factions: Array[StringName]` — ids de facción por defecto (resueltos vía `FactionModule`)
+- `default_traits: Array[StringName]` — ids de rasgo (legacy; preferir `default_modifiers` con `kind = TRAIT`)
+- `default_modifiers: Array[StringName]` — ids de `ModifierDef` aplicados al spawn (traits, scalers…)
 
-Resolver valores efectivos en el módulo `npc`: recorrer `parent` hasta la raíz (similar a `Resource` encadenados, sin duplicar scripts).
+Resolver valores efectivos en el módulo `npc`: recorrer `parent` hasta la raíz (`resolve_*`). Facciones y modificadores se referencian **por id**; las fachadas `FactionModule` / `ModifierModule` / `EquipmentModule` se inyectan en `NpcModule.set_facades()` (desacoplamiento; `spawn()` funciona sin ellas).
 
 ### 5.4 Escena base de NPC (rig modular)
 
@@ -546,6 +550,24 @@ Al curar: `remove_injury(part_id)` restaura base y re-aplica equipo visible.
 
 Ubicación: `res://assets/visuals/parts/`, `res://assets/visuals/equipment/`, `res://assets/visuals/injuries/`.
 
+#### 5.5.5 Panel de inspección (`InspectionLayoutDef` + `UfInspectionPanel`)
+
+Para inspeccionar o equipar un NPC (en juego o en `uf_npc_editor`), el arquetipo define un layout de inspección **independiente del rig 3D/2D**:
+
+| Pieza | Tipo | Rol |
+|-------|------|-----|
+| `InspectionLayoutDef` | `Resource` (`.tres`) | `background_texture`, `background_size`, `slots[]` con `{ slot_id, rect }` donde `rect` es **normalizado** 0..1 sobre el fondo |
+| `UfInspectionPanel` | `UfInfoPanel` (módulo `gui`) | Construye fondo + una `UfEquipmentSlot` por entrada del layout; **solo presentación** (señales `item_dropped`, `item_removed`, `slot_activated`) |
+| `UfEquipmentSlot` | `Panel` (widget `gui`) | Celda cuadrada con icono; drag-and-drop con payload opaco (`uf_equipment_item`); sin tipos de dominio |
+
+Flujo editor / runtime:
+
+1. `archetype.resolve_inspection_layout()` → `InspectionLayoutDef`.
+2. `GuiModule.create_inspection_panel(layout)` → `UfInspectionPanel.build_from_layout()`.
+3. Al soltar un item, el **consumidor** (editor o módulo `equipment`) actualiza `EquipmentState` y llama `NpcAppearanceController.set_equipment_texture(part_id, tex)`.
+
+Assets de ejemplo: `assets/visuals/parts/humanoid_inspection_layout.tres`. El módulo `gui` **no** importa `ItemDef` ni `FactionDef`.
+
 #### 5.5.5 Reglas de diseño
 
 - Un NPC **misma escena base** (`npc_base.tscn` o variante por `BodyPartMap`); variación por **datos + capas**, no por escena distinta por cada combinación casco/armadura.
@@ -578,11 +600,14 @@ Identificadores y estado **runtime** (no `.tres` compartido):
 - `orientation` — `front` | `front_right` | `side_right` | `back_right` | `back` | `back_left` | `side_left` | `front_left`
 - `vitals: NpcVitals` — copia mutable (`duplicate`)
 - `attributes: AttributeSet` — base + modificadores runtime
-- `equipment: EquipmentState`
+- `equipment: EquipmentState` — mapa runtime slot → `item_id`
+- `modifier_ids: Array[StringName]` — ids activos (`ModifierDef`); incluye defaults del arquetipo, grants de facción y runtime
 - `injuries: Array[InjuryState]` — partes lesionadas (visual + mecánicas)
 - `faction_ids: Array[StringName]`
-- `active_effects: Array[ActiveEffect]` — buffs, debuffs, maladies
-- `traits: Array[StringName]`
+- `active_effects: Array[ActiveEffect]` — buffs, debuffs, maladies (futuro módulo `status`)
+- `traits: Array[StringName]` — legacy; preferir `modifier_ids` con `ModifierDef.kind = TRAIT`
+
+Atributos efectivos: `NpcInstanceData.effective_attributes(ModifierModule, EquipmentModule)` — base → modificadores de instancia/facción/equipo vía `ModifierModule.apply()`.
 
 Señales en el nodo presentación (hacia `EventBus` o padre): `died`, `cell_changed`, `health_changed`.
 
@@ -605,13 +630,22 @@ O bien:
 ### 6.2 Modelo (`FactionDef` Resource)
 
 - `class_name FactionDef extends Resource` — `.tres` en `res://assets/data/factions/`.
-- Campos: `id`, `display_name_key`, relaciones (`hostile_to`, `ally_to`), modificadores de IA, loot tables, reglas de aggro, `default_traits`, plantillas de equipo.
+- Fachada: `FactionModule` (`modules/faction/`, log `FAC`).
+- Campos implementados: `id`, `display_name_key`, `granted_modifier_ids` (ids de `ModifierDef` otorgados a miembros), `hostile_to`, `ally_to`, `tags`.
+- Campos previstos (futuro): modificadores de IA, loot tables, reglas de aggro, plantillas de equipo.
 - Runtime: `faction_ids` en `NpcInstanceData` + **`add_to_group("faction_%s" % id)`** para consultas (`get_tree().get_nodes_in_group(...)`).
-- Un NPC tiene **0..N** facciones; la facción puede aportar:
-  - Modificadores de estado (§7)
-  - Rasgos adicionales
-  - Plantillas de equipo por defecto
-  - Comportamiento en combate y social
+- `NpcModule.assemble(instance)` fusiona `granted_modifier_ids` de las facciones activas en `instance.modifier_ids`.
+- Un NPC tiene **0..N** facciones; la facción aporta hoy **modificadores por id** y relaciones; comportamiento de combate/IA queda para fases posteriores.
+
+### 6.4 Tres conceptos separados (arquetipo / facción / modificador)
+
+| Concepto | Pregunta | Resource / módulo |
+|----------|----------|-------------------|
+| **Arquetipo** | ¿Qué **es**? (forma, stats base, rig, slots) | `NpcArchetype` → `npc` |
+| **Facción** | ¿A qué **grupo** pertenece? (alianzas, grants) | `FactionDef` → `faction` |
+| **Modificador** | ¿Qué **delta** aplica? (trait, malady, status, scaler) | `ModifierDef` → `modifier` |
+
+No mezclar facción con arquetipo en un solo `.tres`. Los tres se componen en `NpcInstanceData` y se resuelven vía fachadas inyectadas.
 
 ### 6.3 Separación arquetipo vs facción
 
@@ -669,6 +703,23 @@ Ver §5.5. Resumen:
 
 ## 8. Estado, atributos y efectos
 
+### 8.0 Modificadores unificados (`ModifierDef` + `ModifierModule`)
+
+Implementación actual: un solo Resource **`ModifierDef`** (`modules/modifier/`, log `MOD`) cubre traits, maladies, status y scalers mediante `kind`:
+
+| `ModifierDef.Kind` | Uso típico | Ejemplo asset |
+|--------------------|------------|---------------|
+| `TRAIT` | Rasgo permanente del individuo | `undead` (vía facción) |
+| `MALADY` | Enfermedad / condición duradera | (futuro) |
+| `STATUS` | Buff/debuff temporal | (futuro módulo `status`) |
+| `SCALER` | Multiplicador de balance (élite, jefe) | `elite` (+20% strength/vitality) |
+
+Campos: `id`, `display_name_key`, `additive` / `multiplicative` (Dictionary por nombre de atributo), `tags`.
+
+`ModifierModule.apply(base: AttributeSet, defs)` — primero todos los aditivos, luego todos los multiplicativos. Los `.tres` viven en `res://assets/data/modifiers/`.
+
+Los tipos `StatusEffectDef`, `MaladyDef`, `TraitDef` de diseño (§8.3–8.5) pueden migrar a `ModifierDef` con `kind` distinto; el runtime unificado usa ids en `NpcInstanceData.modifier_ids`.
+
 ### 8.1 Resources de definición vs estado runtime
 
 | Concepto | Definición (`.tres`) | Runtime (instancia) |
@@ -712,16 +763,16 @@ Usar `@export` tipado y `class_name` en cada Resource para edición en Inspector
 - Modificadores **permanentes** y distintivos del individuo (p. ej. `bold`, `fearless`).
 - Definidos en creación del NPC o eventos irreversibles; no confundir con maladies curables.
 
-### 8.6 Orden de aplicación (módulo `status`)
+### 8.6 Orden de aplicación (atributos efectivos)
 
 ```
-base attributes
-  → trait modifiers
-  → malady modifiers
-  → buff/debuff modifiers
-  → equipment modifiers
-  → effective values (combat, checks, UI)
+base attributes (AttributeSet en instancia)
+  → modifier_ids (arquetipo default_modifiers + facción granted_modifier_ids + runtime)
+  → equipment item attribute_modifier_id (opcional por item equipado)
+  → ModifierModule.apply() → effective values (combat, checks, UI, editor)
 ```
+
+Efectos temporales con duración/stacks (`ActiveEffect`) y maladies con curación propia quedan en el futuro módulo `status`; hoy los deltas estáticos pasan por `ModifierDef`.
 
 Emitir `changed` en Resources de runtime solo si un sistema `@tool` de editor lo requiere; en juego preferir señales del nodo NPC o `EventBus`.
 
@@ -926,6 +977,7 @@ func _on_drag_handle_input(event: InputEvent) -> void:
 |----------------|----------|-------|
 | `UfTabbedPanel` | `UfPanel` | `TabContainer`; pestañas con `title_key` por tab |
 | `UfInfoPanel` | `UfPanel` | Botón **cerrar**; emite `panel_closed` |
+| `UfInspectionPanel` | `UfInfoPanel` | Silueta + slots de equipo desde `InspectionLayoutDef`; señales drag-drop (§5.5.5) |
 | `UfDialogPanel` | `UfPanel` | Botones **accept** / **cancel** + señales `confirmed`, `cancelled` |
 | `UfInventoryPanel` | `UfPanel` o `UfTabbedPanel` | Componer `UfGridContainer` + lógica vía módulo `equipment` |
 | `UfStatusPanel` | `UfPanel` | Vitals, efectos; datos desde módulo `status` |
@@ -948,6 +1000,7 @@ Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 | `UfLabel` | `Label` | Texto localizado |
 | `UfSeparator` | `HSeparator` / `VSeparator` | Divisores |
 | `UfLayoutRegion` | `Control` | Zona de layout libre (anclas) dentro de un `ContentSlot` en flujo |
+| `UfEquipmentSlot` | `Panel` | Celda de slot de equipo (icono + drag-drop); usada por `UfInspectionPanel` |
 
 Cada widget: escena `.tscn` + script mínimo; expone API pequeña (`set_items()`, `set_label_key()`, etc.).
 
@@ -1093,7 +1146,7 @@ Si se cumplen **reuso + fine-tuning**, la herramienta pasa de “deseable” a *
 | Herramienta | Addon | Módulos | Qué hace el artista |
 |-------------|-------|---------|---------------------|
 | **Editor de mapas** | `uf_map_editor` | `world`, `world_gen`, `grid` | Pintar rejilla **x/y/z**, overlay de altura en viewport, biomas, zonas manuales, colocar estructuras prefab (`TileMapPattern`, scene tiles), máscaras de bioma; exportar escenas/recursos en `assets/world/` |
-| **Editor de NPCs** | `uf_npc_editor` | `npc`, `appearance`, `attributes`, `equipment` | Crear/editar `NpcArchetype`, `BodyPartMap`, preview del rig modular (equipo, lesiones, orientaciones), guardar `.tres` en `assets/data/archetypes/` y visuals en `assets/visuals/` |
+| **Editor de NPCs** | `uf_npc_editor` | `npc`, `appearance`, `attributes`, `equipment`, `faction`, `modifier`, `gui` | **En progreso (esqueleto):** pantalla principal 3 columnas (detalles / preview rig / panel de inspección con drag-drop); carga arquetipos reales; edición en memoria. Pendiente: guardar `.tres`, lesiones, IA de facción |
 | **Herramientas GUI** | `uf_gui_tools` | `gui` | Componer paneles de dominio (inventario, hechizos, estado…) desde `UfPanel` y widgets (§10.9) |
 
 Otras candidatas futuras (misma norma): editor de items (`ItemDef` + `EquipmentVisualDef`), editor de facciones, editor de biomas/terrains.
@@ -1127,6 +1180,7 @@ Assets en res://assets/…  ←  guarda  ←  EditorPlugin (@tool)
 | Cámara isométrica | `camera` | `Camera2D` + rig `Node2D` | CAM |
 | NPC / spawn | `npc` | `PackedScene`, `NpcAppearanceController`, `BodyPartMap` | NPC |
 | Facciones | `faction` | `FactionDef` Resource | FAC |
+| Modificadores | `modifier` | `ModifierDef` Resource | MOD |
 | Equipo | `equipment` | `ItemDef`, `EquipmentVisualDef`, `EquipmentState` | EQP |
 | Apariencia / lesiones | `appearance` | `PartVisualDef`, `InjuryVisualDef`, capas por slot | APP |
 | Estado / efectos | `status` | `StatusEffectDef`, `MaladyDef`, `TraitDef` | STS |
@@ -1134,7 +1188,7 @@ Assets en res://assets/…  ←  guarda  ←  EditorPlugin (@tool)
 | Jugador | `player` | Misma escena NPC + grupo `"player"` | PLR |
 | GUI / paneles | `gui` | `UfPanel`, `TabContainer`, widgets `Control` | GUI |
 | Editor de mapas | `addons/uf_map_editor` | `EditorPlugin` + API `world` / `world_gen` | — |
-| Editor de NPCs | `addons/uf_npc_editor` | `EditorPlugin` + API `npc` / `appearance` | — |
+| Editor de NPCs | `addons/uf_npc_editor` | `EditorPlugin` (main screen) + API `npc` / `appearance` / `equipment` / `faction` / `modifier` / `gui` | — |
 | Herramientas GUI | `addons/uf_gui_tools` | `EditorPlugin`, plantillas `UfPanel` | — |
 | Localización | — | `TranslationServer` + `res://locale/` | — |
 

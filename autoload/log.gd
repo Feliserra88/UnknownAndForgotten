@@ -18,6 +18,9 @@ const _MODULE_KEYS := {
 	"APP": "APPEARANCE",
 	"ATR": "ATTRIBUTES",
 	"GUI": "GUI",
+	"FAC": "FACTION",
+	"MOD": "MODIFIER",
+	"EQP": "EQUIPMENT",
 }
 
 ## Logs a summary-level event ([param code] = module, [param type] = short category).

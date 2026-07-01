@@ -14,6 +14,7 @@ const _PANEL_SCRIPTS := {
 	&"info": "res://modules/gui/uf_info_panel.gd",
 	&"dialog": "res://modules/gui/uf_dialog_panel.gd",
 	&"tabbed": "res://modules/gui/uf_tabbed_panel.gd",
+	&"inspection": "res://modules/gui/uf_inspection_panel.gd",
 }
 
 ## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
@@ -22,6 +23,7 @@ const PANEL_SCENES := {
 	&"info": "res://ui/panels/uf_info_panel.tscn",
 	&"dialog": "res://ui/panels/uf_dialog_panel.tscn",
 	&"tabbed": "res://ui/panels/uf_tabbed_panel.tscn",
+	&"inspection": "res://ui/panels/uf_inspection_panel.tscn",
 }
 
 const WIDGET_SCENES := {
@@ -30,6 +32,7 @@ const WIDGET_SCENES := {
 	"list": "res://ui/widgets/uf_list.tscn",
 	"grid": "res://ui/widgets/uf_grid_container.tscn",
 	"layout_region": "res://ui/widgets/uf_layout_region.tscn",
+	"equipment_slot": "res://ui/widgets/uf_equipment_slot.tscn",
 }
 
 ## Returns the panel kinds accepted by [method create_panel].
@@ -48,6 +51,16 @@ func create_panel(kind: StringName = &"panel", title_key: String = "") -> UfPane
 		panel.set_title_key(title_key)
 	apply_theme(panel)
 	Log.detail(_LOG, "create", "panel kind=%s" % kind)
+	return panel
+
+## Creates an inspection panel built from [param layout] with the shared theme applied. Returns null
+## when the panel asset is missing. Used by uf_npc_editor and in-game NPC inspection.
+func create_inspection_panel(layout: InspectionLayoutDef, title_key: String = "gui.inspection.title") -> UfInspectionPanel:
+	var panel := create_panel(&"inspection", title_key) as UfInspectionPanel
+	if panel == null:
+		return null
+	if layout != null:
+		panel.build_from_layout(layout)
 	return panel
 
 ## Returns the PackedScene path for a widget id used by uf_gui_tools ("label", "button", …).

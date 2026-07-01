@@ -7,6 +7,32 @@ const _LOG := "NPC"
 const _DEFAULT_SCENE := preload("res://scenes/npc/npc_base.tscn")
 const _Human := preload("res://modules/npc/_private/human_factory.gd")
 
+## Sibling facades injected by callers (e.g. the NPC editor). Optional: spawn works without them.
+var _faction: FactionModule
+var _modifier: ModifierModule
+var _equipment: EquipmentModule
+
+## Injects the sibling module facades used to resolve factions, modifiers and equipment.
+## Any of them may be null; assembly/effective attributes degrade gracefully when absent.
+func set_facades(faction: FactionModule, modifier: ModifierModule, equipment: EquipmentModule) -> void:
+	_faction = faction
+	_modifier = modifier
+	_equipment = equipment
+
+## Resolves faction-granted modifiers onto [param instance], merging them into its modifier_ids.
+## No-op when no faction facade is injected.
+func assemble(instance: NpcInstanceData) -> void:
+	if instance == null or _faction == null:
+		return
+	for mid in _faction.granted_modifier_ids(instance.faction_ids):
+		if not instance.modifier_ids.has(mid):
+			instance.modifier_ids.append(mid)
+
+## Returns [param instance]'s attributes with all modifiers and equipment applied, using the injected
+## facades. Falls back to base attributes when no modifier facade is available.
+func effective_attributes(instance: NpcInstanceData) -> AttributeSet:
+	return instance.effective_attributes(_modifier, _equipment)
+
 ## Builds the placeholder archetype chain and returns the "human" leaf archetype.
 func build_human_archetype() -> NpcArchetype:
 	return _Human.build_chain()
@@ -50,6 +76,7 @@ func spawn(archetype: NpcArchetype, cell: Vector3i, _world: WorldModule = null) 
 	var body := scene.instantiate()
 	var instance := NpcInstanceData.new()
 	instance.apply_archetype(archetype)
+	assemble(instance)
 	instance.grid_cell = cell
 	if body.has_method("initialize"):
 		body.initialize(instance, archetype)

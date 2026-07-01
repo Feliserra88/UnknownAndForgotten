@@ -12,6 +12,9 @@ var attributes: AttributeSet
 var vitals: NpcVitals
 var faction_ids: Array[StringName] = []
 var traits: Array[StringName] = []
+## Modifier ids active on this instance (defaults + faction grants + runtime). See ModifierModule.
+var modifier_ids: Array[StringName] = []
+var equipment: EquipmentState = EquipmentState.new()
 
 static var _next_uid: int = 1
 
@@ -23,8 +26,22 @@ func apply_archetype(archetype: NpcArchetype) -> void:
 	display_name_key = archetype.display_name_key
 	attributes = AttributesModule.clone_attributes(archetype.resolve_attributes())
 	vitals = AttributesModule.spawn_vitals(archetype.resolve_vitals())
-	faction_ids = archetype.default_factions.duplicate()
+	faction_ids = archetype.resolve_factions()
 	traits = archetype.default_traits.duplicate()
+	modifier_ids = archetype.resolve_default_modifiers()
+	equipment = EquipmentState.new()
+
+## Returns base attributes with all modifiers (and equipped item modifiers when [param equipment_module]
+## is given) applied via [param modifier_module]. Base attributes are left untouched.
+func effective_attributes(modifier_module: ModifierModule, equipment_module: EquipmentModule = null) -> AttributeSet:
+	if modifier_module == null:
+		return AttributesModule.clone_attributes(attributes)
+	var ids: Array = modifier_ids.duplicate()
+	if equipment_module != null:
+		for mid in equipment_module.attribute_modifier_ids(equipment):
+			if not ids.has(mid):
+				ids.append(mid)
+	return modifier_module.apply(attributes, modifier_module.resolve(ids))
 
 ## Returns the localized display name for this instance.
 func get_display_name() -> String:

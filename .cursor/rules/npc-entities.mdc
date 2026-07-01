@@ -8,31 +8,50 @@ alwaysApply: false
 
 Ver `docs/GAME_DESIGN.md` §5–8. Godot no tiene sistema RPG integrado; usar **Resources + escenas + composición**.
 
+## Tres conceptos separados
+
+| Concepto | Resource | Módulo | Pregunta |
+|----------|----------|--------|----------|
+| Arquetipo | `NpcArchetype` | `npc` | ¿Qué **es**? (rig, stats base, slots) |
+| Facción | `FactionDef` | `faction` | ¿A qué **grupo** pertenece? (relaciones, `granted_modifier_ids`) |
+| Modificador | `ModifierDef` | `modifier` | ¿Qué **delta** aplica? (`kind`: trait / malady / status / scaler) |
+
+Referencias **por id** (`StringName`) en datos; resolución vía fachadas (`FactionModule`, `ModifierModule`, `EquipmentModule`) inyectadas en `NpcModule.set_facades()`. `spawn()` debe funcionar sin facades inyectadas.
+
 ## Reglas
 
-- **Definición** → `Resource` (`.tres`) con `class_name`: `NpcArchetype`, `FactionDef`, `ItemDef`, `AttributeSet`, `StatusEffectDef`, etc.
+- **Definición** → `Resource` (`.tres`) con `class_name`: `NpcArchetype`, `FactionDef`, `ModifierDef`, `ItemDef`, `AttributeSet`, etc.
 - **Runtime** → `NpcInstanceData` (`RefCounted`) o `.duplicate(true)` al spawn; **nunca** mutar `.tres` compartidos cargados con `load()`.
-- **Spawn** → `PackedScene.instantiate()` + `initialize(instance)` (inyección de dependencias).
+- **Spawn** → `PackedScene.instantiate()` + `initialize(instance)` + `NpcModule.assemble(instance)` (grants de facción).
 - **Arquetipos** → jerarquía de Resources (`parent: NpcArchetype`), no herencia profunda de scripts GDScript.
-- **Facciones** → `FactionDef` + `add_to_group("faction_%s" % id)`.
+- **Facciones** → ids en `faction_ids` + `add_to_group("faction_%s" % id)`; no embeber `FactionDef` en `NpcArchetype`.
+- **Modificadores** → ids en `modifier_ids`; atributos efectivos vía `ModifierModule.apply()` + `effective_attributes()`.
 - **Grid** → `Vector3i` (`grid_cell`); **`MapHeightField`** para altura por `(x, y)`; posicionar con `grid_to_world`, no solo `map_to_local`.
 - **Cuerpo** → `Node2D` en rejilla; `CharacterBody2D` solo si hay movimiento continuo.
-- **Animación** → `AnimationTree` / `AnimationNodeStateMachine`; vitals/efectos en módulo `status`, no en el árbol.
-- **Apariencia modular** → rig por **slots** (`BaseLayer` / `EquipmentLayer` / `InjuryLayer`); API `NpcAppearanceController`; ver §5.5.
-- **Equipar/desequipar** → cambiar capas visuales + `base_coverage`; lesiones con `InjuryVisualDef` (`replace`/`overlay`).
+- **Animación** → `AnimationTree` / `AnimationNodeStateMachine`; vitals/efectos temporales en módulo `status` (futuro), no en el árbol.
+- **Apariencia modular** → rig por **slots** (`BaseLayer` / `EquipmentLayer` / `InjuryLayer`); API `NpcAppearanceController` (`set_equipment_texture`); ver §5.5.
+- **Inspección UI** → `InspectionLayoutDef` (datos) + `UfInspectionPanel` / `UfEquipmentSlot` (módulo `gui`, sin tipos de dominio).
+- **Equipar/desequipar** → `EquipmentState` + capas visuales + `base_coverage`; lesiones con `InjuryVisualDef` (`replace`/`overlay`).
 - **Texto visible** → `display_name_key` + `tr()` (ver `localization.mdc`).
+
+## Editor
+
+- `addons/uf_npc_editor/` — `EditorPlugin` de **pantalla principal** (`_has_main_screen()`); habilitado en `project.godot`.
+- Solo API pública de módulos; edición en memoria en esta fase (guardado `.tres` diferido).
 
 ## Prohibido
 
 - Clase GDScript por cada raza/tipo (`extends Wolf`, `extends Archer`…) salvo comportamiento único no expresable como datos.
 - Stats/inventario/vitals en variables sueltas sin `NpcInstanceData` o Resource duplicado.
 - `get_node("/root/...")` desde el NPC para autoconfigurarse.
+- Importar `ItemDef` / `FactionDef` desde widgets GUI (`UfInspectionPanel` es solo presentación).
 
 ```gdscript
 # ✅
 var body = archetype.resolve_scene().instantiate()
 var data = NpcInstanceData.new()
 data.apply_archetype(archetype)
+npc_module.assemble(data)
 body.initialize(data)
 
 # ❌

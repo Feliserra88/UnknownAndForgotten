@@ -14,8 +14,16 @@ extends Resource
 @export var part_visuals: Array[PartVisualDef] = []
 ## Optional full-body spritesheet rig; when set, appearance uses AnimatedSprite2D instead of cutout slots.
 @export var sprite_anim: Resource
+## Equipment (object) slots offered by this archetype; distinct from anatomical body_part_map.
+@export var equipment_slot_map: EquipmentSlotMap
+## Layout driving the GUI inspection panel (background + slot squares) for this archetype.
+@export var inspection_layout: InspectionLayoutDef
+## Free-form tags (e.g. "humanoid") used for item/archetype compatibility and grouping.
+@export var tags: Array[StringName] = []
 @export var default_factions: Array[StringName] = []
 @export var default_traits: Array[StringName] = []
+## Modifier ids applied to instances of this archetype by default (traits, scalers, ...).
+@export var default_modifiers: Array[StringName] = []
 
 const _MAX_DEPTH := 32
 
@@ -66,6 +74,41 @@ func resolve_part_visuals() -> Array[PartVisualDef]:
 	var out: Array[PartVisualDef] = []
 	for v in by_part.values():
 		out.append(v)
+	return out
+
+## Returns the nearest non-null equipment slot map walking up the parent chain.
+func resolve_equipment_slot_map() -> EquipmentSlotMap:
+	for a in _chain():
+		if a.equipment_slot_map != null:
+			return a.equipment_slot_map
+	return null
+
+## Returns the nearest non-null inspection layout walking up the parent chain.
+func resolve_inspection_layout() -> InspectionLayoutDef:
+	for a in _chain():
+		if a.inspection_layout != null:
+			return a.inspection_layout
+	return null
+
+## Returns the union of tags from this archetype and its ancestors (deduplicated).
+func resolve_tags() -> Array[StringName]:
+	return _merge_ids(func(a): return a.tags)
+
+## Returns the union of default faction ids from self and ancestors (deduplicated).
+func resolve_factions() -> Array[StringName]:
+	return _merge_ids(func(a): return a.default_factions)
+
+## Returns the union of default modifier ids from self and ancestors (deduplicated).
+func resolve_default_modifiers() -> Array[StringName]:
+	return _merge_ids(func(a): return a.default_modifiers)
+
+## Returns the deduplicated union of the StringName arrays produced by [param getter] over the chain.
+func _merge_ids(getter: Callable) -> Array[StringName]:
+	var out: Array[StringName] = []
+	for a in _chain():
+		for id in getter.call(a):
+			if not out.has(id):
+				out.append(id)
 	return out
 
 ## Returns the localized display name resolved from this archetype or its ancestors.

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="FactionDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://modules/faction/faction_def.gd" id="1_faction"]
+
+[resource]
+script = ExtResource("1_faction")
+id = &"undead"
+display_name_key = "faction.undead.name"
+granted_modifier_ids = Array[StringName]([&"undead"])
+hostile_to = Array[StringName]([&"living"])
+ally_to = Array[StringName]([])
+tags = Array[StringName]([&"undead"])

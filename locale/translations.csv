@@ -25,5 +25,15 @@ npc.main_character.name,Wanderer,Errante
 gui.action.accept,Accept,Aceptar
 gui.action.cancel,Cancel,Cancelar
 gui.inventory.title,Inventory,Inventario
+gui.inspection.title,Inspection,Inspección
 gui.sample.label,Sample Label,Etiqueta de ejemplo
 gui.sample.button,Sample Button,Botón de ejemplo
+faction.undead.name,Undead,No muerto
+modifier.elite.name,Elite,Élite
+modifier.undead.name,Undead,No muerto
+item.iron_helmet.name,Iron Helmet,Casco de hierro
+item.leather_vest.name,Leather Vest,Chaleco de cuero
+npc_editor.title,NPC Editor,Editor de PNJ
+npc_editor.details,Details,Detalles
+npc_editor.preview,Preview,Vista previa
+npc_editor.compatible_items,Compatible items,Objetos compatibles

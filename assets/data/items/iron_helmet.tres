@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://modules/equipment/item_def.gd" id="1_item"]
+[ext_resource type="Script" path="res://modules/equipment/equipment_visual_def.gd" id="2_visual"]
+[ext_resource type="Texture2D" path="res://assets/visuals/equipment/icons/iron_helmet.svg" id="3_icon"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+slot = &"head"
+base_coverage = 1
+textures = {}
+z_offset = 0
+
+[resource]
+script = ExtResource("1_item")
+id = &"iron_helmet"
+display_name_key = "item.iron_helmet.name"
+slot = &"head"
+allowed_archetype_tags = Array[StringName]([&"humanoid"])
+icon = ExtResource("3_icon")
+visual = SubResource("Resource_visual")
+attribute_modifier_id = &""

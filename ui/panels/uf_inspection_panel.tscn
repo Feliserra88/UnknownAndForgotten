@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cs124hen41ls2"]
+
+[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://cf6613urhlo5h" path="res://modules/gui/uf_inspection_panel.gd" id="2_inspection"]
+
+[node name="UfInspectionPanel" type="PanelContainer" unique_id=1540991670]
+custom_minimum_size = Vector2(260, 360)
+theme = ExtResour
