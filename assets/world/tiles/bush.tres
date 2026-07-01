@@ -1,6 +1,5 @@
 [gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://lguvtdlbowe8"]
 
-[ext_resource type="Texture2D" path="res://assets/world/tiles/art/bush.png" id="1_tex"]
 [ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="2_ht4gd"]
 [ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="3_mrxtk"]
 
@@ -9,6 +8,6 @@ script = ExtResource("3_mrxtk")
 id = &"bush"
 display_name_key = "tile.bush.name"
 tags = 194
-art_texture = ExtResource("1_tex")
-placeholder_color = Color(0.24, 0.45, 0.25, 1)
 y_sort_origin_offset = 20
+placeholder_color = Color(0.24, 0.45, 0.25, 1)
+atlas_coords = Vector2i(5, 0)

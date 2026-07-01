@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="TileDef" format=3]
+[gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://dxcchg7s6j6r4"]
 
-[ext_resource type="Texture2D" path="res://assets/world/tiles/art/grass.png" id="1_tex"]
-[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="2_mfmo4"]
-[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="3_g14k6"]
+[ext_resource type="Texture2D" uid="uid://i11ny21mbh3a" path="res://assets/world/tiles/art/grass.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="2_mfmo4"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="3_g14k6"]
 
 [resource]
 script = ExtResource("3_g14k6")

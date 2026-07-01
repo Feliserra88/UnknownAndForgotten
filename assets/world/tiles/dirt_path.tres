@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="TileDef" format=3]
+[gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://cqt7i6oc175dp"]
 
-[ext_resource type="Texture2D" path="res://assets/world/tiles/art/dirt_path.png" id="1_tex"]
-[ext_resource type="Script" path="res://modules/world/tile_modifier_def.gd" id="2_7cg85"]
-[ext_resource type="Script" path="res://modules/world/tile_placement_rule.gd" id="3_3811a"]
-[ext_resource type="Script" path="res://modules/world/tile_def.gd" id="4_n0l0s"]
+[ext_resource type="Texture2D" uid="uid://7v0hbm6pfswf" path="res://assets/world/tiles/art/dirt_path.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="2_7cg85"]
+[ext_resource type="Script" uid="uid://ull6noa7f3sj" path="res://modules/world/tile_placement_rule.gd" id="3_3811a"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="4_n0l0s"]
 
 [sub_resource type="Resource" id="Resource_7x7wa"]
 script = ExtResource("3_3811a")

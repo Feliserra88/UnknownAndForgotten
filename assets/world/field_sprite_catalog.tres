@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="MapSpriteCatalog" format=3]
+[gd_resource type="Resource" script_class="MapSpriteCatalog" format=3 uid="uid://bdd5ypul781bc"]
 
-[ext_resource type="Script" path="res://modules/world/map_sprite_catalog.gd" id="1_cat"]
-[ext_resource type="Resource" path="res://assets/world/props/oak_tree.tres" id="2_tree"]
-[ext_resource type="Resource" path="res://assets/world/props/large_rock.tres" id="3_rock"]
-[ext_resource type="Resource" path="res://assets/world/props/field_bush.tres" id="4_bush"]
-[ext_resource type="Resource" path="res://assets/world/decors/scatter_pebble.tres" id="5_peb"]
-[ext_resource type="Resource" path="res://assets/world/decors/wildflower.tres" id="6_flower"]
-[ext_resource type="Resource" path="res://assets/world/decors/grass_tuft.tres" id="7_tuft"]
+[ext_resource type="Script" uid="uid://duytr6rhihgrh" path="res://modules/world/map_sprite_catalog.gd" id="1_cat"]
+[ext_resource type="Script" uid="uid://7syowvjbj7wy" path="res://modules/world/map_decor_def.gd" id="1_dp8i4"]
+[ext_resource type="Resource" uid="uid://by47fscur34a3" path="res://assets/world/props/oak_tree.tres" id="2_tree"]
+[ext_resource type="Resource" uid="uid://dvkhk0x8h58un" path="res://assets/world/props/large_rock.tres" id="3_rock"]
+[ext_resource type="Resource" uid="uid://cphqjj6dke456" path="res://assets/world/props/field_bush.tres" id="4_bush"]
+[ext_resource type="Resource" uid="uid://csy83qelhf04f" path="res://assets/world/decors/scatter_pebble.tres" id="5_peb"]
+[ext_resource type="Script" uid="uid://chn06b5626ln6" path="res://modules/world/map_prop_def.gd" id="5_ycmx2"]
+[ext_resource type="Resource" uid="uid://csw7e2140fmcj" path="res://assets/world/decors/wildflower.tres" id="6_flower"]
+[ext_resource type="Resource" uid="uid://b1b7ox5ku5ax6" path="res://assets/world/decors/grass_tuft.tres" id="7_tuft"]
 
 [resource]
 script = ExtResource("1_cat")
-props = Array[ExtResource("2_tree")]([ExtResource("2_tree"), ExtResource("3_rock"), ExtResource("4_bush")])
-decors = Array[ExtResource("5_peb")]([ExtResource("5_peb"), ExtResource("6_flower"), ExtResource("7_tuft")])
+props = Array[ExtResource("5_ycmx2")]([ExtResource("2_tree"), ExtResource("3_rock"), ExtResource("4_bush")])
+decors = Array[ExtResource("1_dp8i4")]([ExtResource("5_peb"), ExtResource("6_flower"), ExtResource("7_tuft")])

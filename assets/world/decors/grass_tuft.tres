@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="MapDecorDef" format=3]
+[gd_resource type="Resource" script_class="MapDecorDef" format=3 uid="uid://b1b7ox5ku5ax6"]
 
-[ext_resource type="Texture2D" path="res://assets/world/decors/art/grass_tuft.png" id="1_tex"]
-[ext_resource type="Script" path="res://modules/world/map_decor_def.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://bkvin3ciixo6b" path="res://assets/world/decors/art/grass_tuft.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://7syowvjbj7wy" path="res://modules/world/map_decor_def.gd" id="2"]
 
 [resource]
 script = ExtResource("2")
 id = &"grass_tuft"
 display_name_key = "decor.grass_tuft.name"
 sprite_texture = ExtResource("1_tex")
-offset_spread = Vector2(14, 8)
 scale_range = Vector2(0.9, 1.25)

@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="MapDecorDef" format=3]
+[gd_resource type="Resource" script_class="MapDecorDef" format=3 uid="uid://csw7e2140fmcj"]
 
-[ext_resource type="Texture2D" path="res://assets/world/decors/art/wildflower.png" id="1_tex"]
-[ext_resource type="Script" path="res://modules/world/map_decor_def.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://chrxbs0unnfs5" path="res://assets/world/decors/art/wildflower.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://7syowvjbj7wy" path="res://modules/world/map_decor_def.gd" id="2"]
 
 [resource]
 script = ExtResource("2")
@@ -9,4 +9,3 @@ id = &"wildflower"
 display_name_key = "decor.wildflower.name"
 sprite_texture = ExtResource("1_tex")
 offset_spread = Vector2(12, 7)
-scale_range = Vector2(0.85, 1.15)

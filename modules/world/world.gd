@@ -77,10 +77,9 @@ func configure(
 		if layer != null and is_instance_valid(layer):
 			if layer.tile_set != _tileset:
 				layer.tile_set = _tileset
-			layer.y_sort_enabled = true
-			if layer == ground_layer and layer.tile_set != null:
-				# Floor sorts at the diamond top so actors centered on the cell draw in front.
-				layer.y_sort_origin = -layer.tile_set.tile_size.y / 2
+	_flatten_legacy_tile_layers()
+	_apply_cell_tile_layer_settings(ground_layer)
+	_clear_legacy_tile_map_layers()
 	if shared_modifier_pack.has("tileset"):
 		_modifier_tileset = shared_modifier_pack["tileset"]
 		_modifier_source_id = shared_modifier_pack["source_id"]
@@ -110,7 +109,8 @@ func configure(
 	if modifiers_layer != null and is_instance_valid(modifiers_layer):
 		if modifiers_layer.tile_set != _modifier_tileset:
 			modifiers_layer.tile_set = _modifier_tileset
-		modifiers_layer.y_sort_enabled = true
+		modifiers_layer.y_sort_enabled = false
+		modifiers_layer.z_index = 1
 	height_field = MapHeightField.new()
 	height_field.height_step = height_step
 	height_field.resize(region)
@@ -182,6 +182,8 @@ func set_tile(layer: int, cell: Vector2i, tile_id: StringName) -> void:
 	if map_layer == null or not is_instance_valid(map_layer):
 		return
 	map_layer.set_cell(cell, def.source_id, def.atlas_coords)
+	if Engine.is_editor_hint() and map_layer == ground_layer:
+		map_layer.queue_redraw()
 
 ## Clears any tile on [param layer] at [param cell].
 func clear_tile(layer: int, cell: Vector2i) -> void:
@@ -192,13 +194,9 @@ func set_height(cell: Vector2i, z: int) -> void:
 	if height_field != null:
 		height_field.set_height(cell, z)
 
-## Returns the top-most TileDef present at plane [param cell], searching from structures to ground.
+## Returns the top-most TileDef present at plane [param cell] (single y-sorted cell layer).
 func get_tile_def_at(cell: Vector2i) -> TileDef:
-	for layer in [structures_layer, objects_layer, terrain_layer, ground_layer]:
-		var def := _tile_def_on(layer, cell)
-		if def != null:
-			return def
-	return null
+	return _tile_def_on(ground_layer, cell)
 
 ## Returns the configured MapPropDef registered under [param id], or null.
 func get_prop_def(id: StringName) -> MapPropDef:
@@ -457,6 +455,9 @@ func apply_map_from(source: WorldModule) -> void:
 	apply_map_layer_from(source, &"modifiers")
 	_copy_sprite_layer_from(source.props_layer, props_layer)
 	_copy_sprite_layer_from(source.decor_layer, decor_layer)
+	_flatten_legacy_tile_layers()
+	_apply_cell_tile_layer_settings(ground_layer)
+	_clear_legacy_tile_map_layers()
 
 ## Copies catalog, height field and modifier bookkeeping from [param source].
 func apply_map_metadata_from(source: WorldModule) -> void:
@@ -550,10 +551,11 @@ func refresh_tilesets(
 		_tileset = PlaceholderTileSet.build_tiles(catalog.tiles, tile_size)
 	for layer in [ground_layer, terrain_layer, objects_layer, structures_layer]:
 		if layer != null and is_instance_valid(layer):
-			layer.tile_set = _tileset
-			layer.y_sort_enabled = true
-			if layer == ground_layer and layer.tile_set != null:
-				layer.y_sort_origin = -layer.tile_set.tile_size.y / 2
+			if layer.tile_set != _tileset:
+				layer.tile_set = _tileset
+	_flatten_legacy_tile_layers()
+	_apply_cell_tile_layer_settings(ground_layer)
+	_clear_legacy_tile_map_layers()
 	if shared_modifier_pack.has("tileset"):
 		_modifier_tileset = shared_modifier_pack["tileset"]
 		_modifier_source_id = shared_modifier_pack["source_id"]
@@ -568,7 +570,8 @@ func refresh_tilesets(
 		_modifier_defs[m.id] = m
 	if modifiers_layer != null and is_instance_valid(modifiers_layer):
 		modifiers_layer.tile_set = _modifier_tileset
-		modifiers_layer.y_sort_enabled = true
+		modifiers_layer.y_sort_enabled = false
+		modifiers_layer.z_index = 1
 
 func _refresh_editor_tilesets_from_catalog() -> void:
 	if not Engine.is_editor_hint() or tile_catalog == null:
@@ -602,8 +605,7 @@ func _ensure_layers() -> bool:
 	decor_layer = layers_node.get_node_or_null("Decor") as Node2D
 	layers = layers_node as Node2D
 	actors = layers_node.get_node_or_null("Actors") as Node2D
-	if ground_layer != null and ground_layer.tile_set != null:
-		ground_layer.y_sort_origin = -ground_layer.tile_set.tile_size.y / 2
+	_apply_cell_tile_layer_settings(ground_layer)
 	return ground_layer != null
 
 func _ensure_actors() -> void:
@@ -627,12 +629,60 @@ func _tile_def_on(layer: TileMapLayer, cell: Vector2i) -> TileDef:
 	return tile_catalog.get_tile(data.get_custom_data("tile_def_id"))
 
 func _layer(layer: int) -> TileMapLayer:
+	# All gameplay cell tiles share Ground so y-sort is per cell, not paint order / layer tree order.
 	match layer:
-		Layer.GROUND: return ground_layer
-		Layer.TERRAIN: return terrain_layer
-		Layer.OBJECTS: return objects_layer
-		Layer.STRUCTURES: return structures_layer
-		_: return ground_layer
+		Layer.GROUND, Layer.TERRAIN, Layer.OBJECTS, Layer.STRUCTURES:
+			return ground_layer
+		_:
+			return ground_layer
+
+## Y-sort anchor at the diamond foot: higher grid y draws in front at the same z.
+func _apply_cell_tile_layer_settings(map_layer: TileMapLayer) -> void:
+	if map_layer == null or not is_instance_valid(map_layer) or map_layer.tile_set == null:
+		return
+	map_layer.y_sort_enabled = true
+	map_layer.y_sort_origin = map_layer.tile_set.tile_size.y / 2
+
+## Merges legacy Terrain/Objects/Structures cells into Ground (older maps and generator splits).
+func _flatten_legacy_tile_layers() -> void:
+	if not _ensure_layers() or ground_layer == null:
+		return
+	var winner: Dictionary = {}
+	for src in [ground_layer, terrain_layer, objects_layer, structures_layer]:
+		if src == null or not is_instance_valid(src):
+			continue
+		for cell in src.get_used_cells():
+			if src.get_cell_source_id(cell) == -1:
+				continue
+			winner[cell] = {
+				"source": src.get_cell_source_id(cell),
+				"atlas": src.get_cell_atlas_coords(cell),
+				"alt": src.get_cell_alternative_tile(cell),
+			}
+	if winner.is_empty():
+		return
+	for src in [ground_layer, terrain_layer, objects_layer, structures_layer]:
+		if src == null or not is_instance_valid(src):
+			continue
+		if Engine.is_editor_hint():
+			for cell in src.get_used_cells():
+				src.erase_cell(cell)
+		else:
+			src.clear()
+	for cell in winner:
+		var w: Dictionary = winner[cell]
+		ground_layer.set_cell(cell, w["source"], w["atlas"], w["alt"])
+
+func _clear_legacy_tile_map_layers() -> void:
+	for legacy in [terrain_layer, objects_layer, structures_layer]:
+		if legacy == null or not is_instance_valid(legacy) or legacy == ground_layer:
+			continue
+		if Engine.is_editor_hint():
+			for cell in legacy.get_used_cells():
+				legacy.erase_cell(cell)
+		else:
+			legacy.clear()
+		legacy.y_sort_enabled = false
 
 func _clear_sprite_layers() -> void:
 	_MapSprites.clear_layer(props_layer)

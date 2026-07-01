@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="MapDecorDef" format=3]
+[gd_resource type="Resource" script_class="MapDecorDef" format=3 uid="uid://csy83qelhf04f"]
 
-[ext_resource type="Texture2D" path="res://assets/world/decors/art/scatter_pebble.png" id="1_tex"]
-[ext_resource type="Script" path="res://modules/world/map_decor_def.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://7or1ii3eu3rx" path="res://assets/world/decors/art/scatter_pebble.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://7syowvjbj7wy" path="res://modules/world/map_decor_def.gd" id="2"]
 
 [resource]
 script = ExtResource("2")
 id = &"scatter_pebble"
 display_name_key = "decor.scatter_pebble.name"
 sprite_texture = ExtResource("1_tex")
-offset_spread = Vector2(14, 8)
 scale_range = Vector2(0.8, 1.2)

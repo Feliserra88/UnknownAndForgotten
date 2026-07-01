@@ -99,6 +99,7 @@ Sincronizar altura visual con Godot:
 
 - Offset de posición: `map_to_local(Vector2i(x, y))` + **`z * height_step`** en Y (o eje acordado al isométrico).
 - **`y_sort_enabled`** + `y_sort_origin` del tile / capa ([TileMapLayer.y_sort_origin](https://docs.godotengine.org/en/stable/classes/class_tilemaplayer.html)) para separar niveles en profundidad.
+- **Orden isométrico (misma `z`):** todos los `TileDef` de celda (ground, terrain, objects, structures) se pintan en la capa **`Ground`** para que el y-sort sea **por coordenada de rejilla**, no por orden de pintado ni por orden de capas en el árbol. Ancla de sort en el **pie del rombo** (`y_sort_origin = tile_size.y / 2`): a igual altura lógica, la celda con **mayor `y` de mapa** se dibuja delante (más cerca de la cámara en `DIAMOND_DOWN`).
 - Opcional: `TileMapLayer._tile_data_runtime_update()` para ajustar `TileData` por celda al pintar.
 
 **Editor (`uf_map_editor`):** en modo *Edit height*, overlay sobre el viewport 2D: tinte por celda (azul = `z>0`, rojo = `z<0`, etiqueta con el valor `z`, borde amarillo en la celda bajo el cursor). Implementación en `addons/uf_map_editor/height_overlay.gd`; datos siguen en `MapHeightField`.
