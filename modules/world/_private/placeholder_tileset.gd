@@ -1,6 +1,7 @@
 class_name PlaceholderTileSet
 extends RefCounted
 ## Builds isometric TileSets from TileDef art textures or coloured placeholder diamonds.
+## Modifier overlays use overlay_texture (sprite) or tinted placeholder diamonds.
 ## Internal to the world module.
 
 const _ART_REGION := Vector2i(64, 64)
@@ -8,7 +9,7 @@ const _ART_REGION := Vector2i(64, 64)
 ## Builds a TileSet with one tile per [param tile_defs] entry and assigns each
 ## def its source_id/atlas_coords. The custom data layer "tile_def_id" stores the tile id.
 static func build_tiles(tile_defs: Array, tile_size: Vector2i) -> TileSet:
-	var region_size := _resolve_region_size(tile_defs, tile_size)
+	var region_size := _resolve_art_region_size(tile_defs, tile_size)
 	var ts := _new_isometric_tileset(tile_size, "tile_def_id")
 	var source := TileSetAtlasSource.new()
 	source.texture = _build_tile_atlas(tile_defs, tile_size, region_size)
@@ -40,20 +41,25 @@ static func assign_tile_mapping(tile_defs: Array, tileset: TileSet) -> void:
 		def.source_id = source_id
 		def.atlas_coords = Vector2i(i, 0)
 
-## Builds a TileSet of semi-transparent overlays for [param modifier_defs] and assigns
-## each one a stable atlas coordinate (index order). The data layer "modifier_id" stores its id.
+## Builds a TileSet of overlays for [param modifier_defs] and assigns each one a stable
+## atlas coordinate (index order). The data layer "modifier_id" stores its id.
 static func build_modifier_overlays(modifier_defs: Array, tile_size: Vector2i) -> Dictionary:
+	var region_size := _resolve_modifier_region_size(modifier_defs, tile_size)
 	var ts := _new_isometric_tileset(tile_size, "modifier_id")
 	var source := TileSetAtlasSource.new()
-	source.texture = _build_atlas(modifier_defs, tile_size, tile_size, true)
-	source.texture_region_size = tile_size
+	source.texture = _build_modifier_atlas(modifier_defs, tile_size, region_size)
+	source.texture_region_size = region_size
+	var texture_origin := _texture_origin_for(region_size, tile_size)
 	var source_id := ts.add_source(source)
 	var coords_by_id := {}
 	for i in modifier_defs.size():
 		var def: TileModifierDef = modifier_defs[i]
 		var coords := Vector2i(i, 0)
 		source.create_tile(coords)
-		source.get_tile_data(coords, 0).set_custom_data("modifier_id", def.id)
+		var data := source.get_tile_data(coords, 0)
+		data.set_custom_data("modifier_id", def.id)
+		if region_size != tile_size:
+			data.texture_origin = texture_origin
 		coords_by_id[def.id] = coords
 	return {"tileset": ts, "source_id": source_id, "coords": coords_by_id}
 
@@ -67,9 +73,15 @@ static func _new_isometric_tileset(tile_size: Vector2i, data_layer_name: String)
 	ts.set_custom_data_layer_type(0, TYPE_STRING_NAME)
 	return ts
 
-static func _resolve_region_size(tile_defs: Array, tile_size: Vector2i) -> Vector2i:
+static func _resolve_art_region_size(tile_defs: Array, tile_size: Vector2i) -> Vector2i:
 	for def in tile_defs:
 		if def is TileDef and def.art_texture != null:
+			return _ART_REGION
+	return tile_size
+
+static func _resolve_modifier_region_size(modifier_defs: Array, tile_size: Vector2i) -> Vector2i:
+	for def in modifier_defs:
+		if def is TileModifierDef and def.overlay_texture != null:
 			return _ART_REGION
 	return tile_size
 
@@ -86,13 +98,17 @@ static func _build_tile_atlas(tile_defs: Array, tile_size: Vector2i, region_size
 			_draw_diamond(img, origin, tile_size, def.placeholder_color, true)
 	return ImageTexture.create_from_image(img)
 
-static func _build_atlas(defs: Array, tile_size: Vector2i, region_size: Vector2i, overlay: bool) -> ImageTexture:
-	var count: int = maxi(defs.size(), 1)
+static func _build_modifier_atlas(modifier_defs: Array, tile_size: Vector2i, region_size: Vector2i) -> ImageTexture:
+	var count: int = maxi(modifier_defs.size(), 1)
 	var img := Image.create(count * region_size.x, region_size.y, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	for i in defs.size():
-		var color: Color = defs[i].overlay_color if overlay else defs[i].placeholder_color
-		_draw_diamond(img, Vector2i(i * region_size.x, 0), tile_size, color, not overlay)
+	for i in modifier_defs.size():
+		var def: TileModifierDef = modifier_defs[i]
+		var origin := Vector2i(i * region_size.x, 0)
+		if def.overlay_texture != null:
+			_blit_texture(img, origin, region_size, def.overlay_texture)
+		else:
+			_draw_tinted_diamond(img, origin, tile_size, def.overlay_color)
 	return ImageTexture.create_from_image(img)
 
 static func _blit_texture(img: Image, origin: Vector2i, region_size: Vector2i, texture: Texture2D) -> void:
@@ -144,3 +160,13 @@ static func _draw_diamond(img: Image, origin: Vector2i, size: Vector2i, color: C
 				if outline and d >= 0.82:
 					c = edge
 				img.set_pixel(origin.x + px, origin.y + py, c)
+
+static func _draw_tinted_diamond(img: Image, origin: Vector2i, size: Vector2i, color: Color) -> void:
+	var hw := size.x / 2.0
+	var hh := size.y / 2.0
+	for px in size.x:
+		for py in size.y:
+			var nx: float = absf(px + 0.5 - hw) / hw
+			var ny: float = absf(py + 0.5 - hh) / hh
+			if nx + ny <= 1.0:
+				img.set_pixel(origin.x + px, origin.y + py, color)

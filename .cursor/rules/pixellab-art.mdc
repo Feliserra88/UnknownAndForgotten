@@ -1,0 +1,76 @@
+---
+description: PixelLab MCP — generación de arte isométrico coherente y tileable para U&F
+globs: assets/world/**,modules/world/**,modules/world_gen/**
+alwaysApply: false
+---
+
+# PixelLab — arte de mapa (U&F)
+
+Documentación MCP: https://api.pixellab.ai/mcp/docs  
+Recurso Godot isométrico: `pixellab://docs/godot/isometric-tiles`
+
+## Constantes del proyecto
+
+| Clave | Valor | Uso |
+|-------|-------|-----|
+| **Style seed** | `42001` | Mismo `seed` en todas las llamadas del bioma *field* para paleta y sombreado coherentes |
+| **Tile canvas** | `64` | `create_isometric_tile(size=64)` — alineado con `WORLD_TILE_WIDTH` |
+| **Grid cell** | `64×32` | `TileSet.tile_size` en runtime (`venv.ini`) |
+| **Outline** | `lineless` | **Nunca** `single color outline` en terreno ni overlays (rompe el tileado) |
+
+## Terreno (`TileDef.art_texture`)
+
+**Herramienta:** `create_isometric_tile` (MCP `user-pixellab`).
+
+**Prompt — incluir siempre:**
+- `seamless tileable` / `edges blend when repeated`
+- `lineless`, `no black outline borders`
+- `fantasy RPG isometric`
+- `seed: 42001`
+
+**Forma (`tile_shape`):**
+- `thin tile` — suelos: hierba, tierra, camino, agua plana
+- `thick tile` — decoración baja (arbusto)
+- `block` — muros, rocas altas
+
+**Parámetros recomendados:**
+```
+outline: lineless
+shading: basic shading
+detail: medium detail
+size: 64
+seed: 42001
+```
+
+**Destino:** `res://assets/world/tiles/art/<id>.png` → asignar en `assets/world/tiles/<id>.tres` → `art_texture`.
+
+**Lote con referencia de estilo** (cuando haya créditos): `create_tiles_pro` con `style_images` desde `grass.png`, `outline_mode: segmentation`.
+
+## Modificadores (`TileModifierDef.overlay_texture`)
+
+Estado sobre un tile existente (charco, nieve, quemado) → **capa `modifiers`**, no sustituir el suelo.
+
+**Herramienta:** `create_map_object` (fondo transparente).
+
+**Prompt — incluir:**
+- `overlay sprite`, `transparent background outside`
+- `isometric`, `low top-down`
+- `lineless`
+- Para charcos sobre hierba: preferir `background_image` = `grass.png` + `inpainting` oval ~0.35 (solo pinta el charco)
+
+**Destino:** `res://assets/world/modifiers/art/<id>.png` → `overlay_texture` en `assets/world/modifiers/<id>.tres`.
+
+## Integración en código
+
+- `PlaceholderTileSet.build_tiles()` — atlas 64×64, `texture_origin (0, -16)` si hay arte
+- `PlaceholderTileSet.build_modifier_overlays()` — igual si hay `overlay_texture`
+- Catálogo: `assets/world/field_catalog.tres` (no duplicar con `duplicate()` en editor `@tool`)
+- Tras añadir PNG: abrir Godot o `--import` para `.import`
+
+## Errores conocidos
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| Rejilla visible al repetir tiles | `single color outline` | Regenerar con `lineless` |
+| `get_tile` placeholder en editor | `TileCatalog.duplicate()` sin `@tool` | Cargar `.tres` directo; `TileCatalog`/`TileDef` llevan `@tool` |
+| Overlay parece tile completo | `create_map_object` sin transparencia | Modo inpainting sobre `grass.png` o sprite solo del efecto |

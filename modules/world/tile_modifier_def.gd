@@ -1,3 +1,4 @@
+@tool
 class_name TileModifierDef
 extends Resource
 ## Optional state layered over a tile (wet, snowy, burning): gameplay data plus an

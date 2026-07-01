@@ -307,10 +307,14 @@ El generador (`world_gen`) **coloca** respetando estas reglas (blobs redondeados
 Estados opcionales sobre un tile (`mojado`, `nevado`, `ardiendo`): **dato + overlay visual**.
 
 - Dato: `adds_tags` (p. ej. ardiendo añade `Hazard`), `movement_cost_mult`, `permanent`.
-- Visual: `overlay_texture`/`overlay_color` dibujados en la capa `modifiers` (`TileMapLayer` propia).
+- Visual: `overlay_texture` (sprite PixelLab con alpha) o `overlay_color` (diamante tintado placeholder) en la capa `modifiers` (`TileMapLayer` propia). El suelo de la celda **no** se sustituye.
 - Aplicación runtime vía `world.add_modifier(cell, def)` / `clear_modifiers(cell)`; el dato y el overlay van juntos.
 
-Assets generados (placeholder): tiles en `res://assets/world/tiles/`, catálogo `field_catalog.tres`, modificadores en `res://assets/world/modifiers/`, bioma `biomes/field.tres`, presets `presets/`.
+**Terreno vs modificador:** agua de estanque / muro / arbusto = `TileDef` (celda completa). Charco, nieve o quemado = `TileModifierDef` (overlay sobre hierba u otro suelo).
+
+Assets: tiles en `res://assets/world/tiles/art/` + `*.tres`; modificadores en `res://assets/world/modifiers/` + `modifiers/art/`; catálogo `field_catalog.tres`; bioma `biomes/field.tres`.
+
+**Arte PixelLab (campo *field*):** seed de estilo **`42001`**, outline **`lineless`**, prompts con *seamless tileable*. Regla Cursor `pixellab-art.mdc`; MCP https://api.pixellab.ai/mcp/docs .
 
 ---
 

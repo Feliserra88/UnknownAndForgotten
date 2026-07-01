@@ -1,21 +1,22 @@
 [gd_resource type="Resource" script_class="TileDef" format=3 uid="uid://cget3k4whfok6"]
 
-[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="1_vlvan"]
-[ext_resource type="Script" uid="uid://ull6noa7f3sj" path="res://modules/world/tile_placement_rule.gd" id="2_rr1vo"]
-[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="3_6djqu"]
+[ext_resource type="Texture2D" path="res://assets/world/tiles/art/pond_water.png" id="1_tex"]
+[ext_resource type="Script" uid="uid://pk8dqjf8amo3" path="res://modules/world/tile_modifier_def.gd" id="2_vlvan"]
+[ext_resource type="Script" uid="uid://ull6noa7f3sj" path="res://modules/world/tile_placement_rule.gd" id="3_rr1vo"]
+[ext_resource type="Script" uid="uid://uvdflf3kmltw" path="res://modules/world/tile_def.gd" id="4_6djqu"]
 
 [sub_resource type="Resource" id="Resource_if63w"]
-script = ExtResource("2_rr1vo")
+script = ExtResource("3_rr1vo")
 forbid_isolated = true
 min_cluster_size = 6
 max_cluster_size = 24
 roundness_min = 0.55
 
 [resource]
-script = ExtResource("3_6djqu")
+script = ExtResource("4_6djqu")
 id = &"pond_water"
 display_name_key = "tile.pond_water.name"
 tags = 8
 placement_rule = SubResource("Resource_if63w")
+art_texture = ExtResource("1_tex")
 placeholder_color = Color(0.27, 0.49, 0.78, 1)
-atlas_coords = Vector2i(3, 0)
