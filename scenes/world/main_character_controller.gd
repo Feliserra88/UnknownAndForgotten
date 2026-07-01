@@ -51,10 +51,11 @@ func _try_step(dir: int) -> void:
 	if _body.instance == null:
 		return
 	var from := _body.instance.grid_cell
-	if not _world.can_move(from, dir):
+	var step := Direction.to_isometric_step(dir)
+	var grid_dir := Direction.grid_dir_for_delta(step)
+	if grid_dir == -1 or not _world.can_move(from, grid_dir):
 		return
-	var offset := Direction.to_vector(dir)
-	var target_xy := Vector2i(from.x, from.y) + offset
+	var target_xy := Vector2i(from.x, from.y) + step
 	var target := Vector3i(target_xy.x, target_xy.y, _world.cell_height(target_xy))
 	_is_stepping = true
 	_repeat_delay = _repeat_interval
@@ -72,12 +73,8 @@ func _try_step(dir: int) -> void:
 	)
 
 func _read_grid_direction() -> int:
-	return Direction.from_input(
-		Input.is_action_pressed(&"move_up"),
-		Input.is_action_pressed(&"move_down"),
-		Input.is_action_pressed(&"move_left"),
-		Input.is_action_pressed(&"move_right"),
-	)
+	var vec := Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down")
+	return Direction.from_input_vector(vec)
 
 func _set_orientation_for_direction(dir: int) -> void:
 	var orientation := Direction.to_orientation(dir)

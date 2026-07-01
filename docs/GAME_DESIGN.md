@@ -160,6 +160,7 @@ Hoja idle 8 vías (export Pixelorama): columnas 0–7 = S, SE, E, NE, N, NW, W, 
 
 - Animaciones walk por orientación cuando exista hoja dedicada; si no, idle de esa orientación.
 - Al cambiar de celda, la orientación sigue la dirección del paso (8 vías en demo del personaje principal).
+- **Movimiento del jugador (`DIAMOND_DOWN`):** WASD es pantalla (arriba/abajo/izq/der); el paso en rejilla usa `Direction.to_isometric_step()` (p. ej. W → celda `(-1,-1)` visualmente arriba). Pathfinding y reglas de tile siguen brújula de mapa (`Direction.to_vector()`).
 - Posicionar con `grid_to_world(grid_cell)` (§3.4), no solo `map_to_local(Vector2i)`.
 
 ---

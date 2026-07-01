@@ -27,9 +27,30 @@ const _OPPOSITES := {
 	Dir.NW: Dir.SE,
 }
 
-## Returns the unit grid offset for [param dir] on the x/y plane.
+## Screen-aligned player step on a DIAMOND_DOWN isometric map (see docs/GAME_DESIGN.md §2).
+## Input facing N/E/S/W maps to a grid diagonal; input diagonals map to grid cardinals.
+const _ISOMETRIC_STEPS := {
+	Dir.N: Vector2i(-1, -1),
+	Dir.E: Vector2i(1, -1),
+	Dir.S: Vector2i(1, 1),
+	Dir.W: Vector2i(-1, 1),
+	Dir.NE: Vector2i(0, -1),
+	Dir.SE: Vector2i(1, 0),
+	Dir.SW: Vector2i(0, 1),
+	Dir.NW: Vector2i(-1, 0),
+}
+
+## Returns the unit grid offset for [param dir] on the x/y plane (map compass).
 static func to_vector(dir: int) -> Vector2i:
 	return _VECTORS[dir]
+
+## Returns the grid cell delta for screen-aligned player movement on DIAMOND_DOWN isometric tiles.
+static func to_isometric_step(dir: int) -> Vector2i:
+	return _ISOMETRIC_STEPS.get(dir, Vector2i.ZERO)
+
+## Returns the map-compass direction for a single-step [param delta], or -1 when invalid.
+static func grid_dir_for_delta(delta: Vector2i) -> int:
+	return between(Vector2i.ZERO, delta)
 
 ## Returns true when [param dir] is a diagonal step (NE, SE, SW, NW).
 static func is_diagonal(dir: int) -> bool:
@@ -69,25 +90,43 @@ static func to_orientation(dir: int) -> StringName:
 		_:
 			return &"front"
 
-## Returns movement direction from held move actions (diagonals before cardinals).
+## Returns movement direction from a WASD vector (x = right−left, y = down−up).
+static func from_input_vector(vec: Vector2) -> int:
+	return _dir_from_input_vector(Vector2i(
+		clampi(roundi(vec.x), -1, 1),
+		clampi(roundi(vec.y), -1, 1),
+	))
+
+## Returns movement direction from held move actions (opposing keys cancel out).
 static func from_input(up: bool, down: bool, left: bool, right: bool) -> int:
-	if up and right:
-		return Dir.NE
-	if up and left:
-		return Dir.NW
-	if down and right:
-		return Dir.SE
-	if down and left:
-		return Dir.SW
-	if up:
-		return Dir.N
-	if down:
-		return Dir.S
-	if left:
-		return Dir.W
-	if right:
-		return Dir.E
-	return -1
+	if up and down:
+		up = false
+		down = false
+	if left and right:
+		left = false
+		right = false
+	return _dir_from_input_vector(Vector2i(int(right) - int(left), int(down) - int(up)))
+
+static func _dir_from_input_vector(v: Vector2i) -> int:
+	match v:
+		Vector2i(0, -1):
+			return Dir.N
+		Vector2i(1, 0):
+			return Dir.E
+		Vector2i(0, 1):
+			return Dir.S
+		Vector2i(-1, 0):
+			return Dir.W
+		Vector2i(1, -1):
+			return Dir.NE
+		Vector2i(1, 1):
+			return Dir.SE
+		Vector2i(-1, 1):
+			return Dir.SW
+		Vector2i(-1, -1):
+			return Dir.NW
+		_:
+			return -1
 
 ## Returns all four cardinal directions in index order (N, E, S, W).
 static func all() -> Array[int]:
