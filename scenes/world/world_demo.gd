@@ -47,6 +47,7 @@ func _spawn_main_character(world: WorldModule, cell: Vector2i) -> void:
 		actor_parent.add_child(body)
 		body.global_position = world.grid_to_world(world.cell3(cell))
 		_attach_player_controller(body)
+		world.sync_actor_display_rotations()
 		Log.info(_LOG, "spawn_player", "cell=%s pos=%s" % [cell, body.global_position])
 
 func _attach_player_controller(body: Node2D) -> void:

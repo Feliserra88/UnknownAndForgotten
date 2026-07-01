@@ -38,7 +38,7 @@ Implementar un **rig de cámara** (`Node2D` padre + `Camera2D` hijo):
 | Requisito de diseño | API / propiedad Godot |
 |---------------------|------------------------|
 | Traslación (pan) | Mover el rig (`Node2D.position`) o `Camera2D.offset` |
-| Rotación | `rotation` del rig; en `Camera2D`: `ignore_rotation = false` |
+| Rotación de vista | `rotation` del rig `CameraRig` con `Camera2D.ignore_rotation = false`. Actores en `Layers/Actors` con contrarrotación (`WorldModule.sync_actor_display_rotations()`). El nodo `Layers` no se traslada ni rota. |
 | Inclinación fija | No variable: proyección fijada por `TileSet` isométrico |
 | Zoom fijo | `Camera2D.zoom` constante (p. ej. `Vector2(1, 1)`); sin zoom libre salvo cambio documentado |
 | Suavizado opcional | `position_smoothing_enabled`, `rotation_smoothing_enabled` |

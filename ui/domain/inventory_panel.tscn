@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://ddgjkai7f0q7y"]
 
-[ext_resource type="Theme" path="res://ui/theme/uf_theme.tres" id="1_723a0"]
+[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_723a0"]
 [ext_resource type="Script" uid="uid://ox2gg36aq3w4" path="res://modules/gui/uf_info_panel.gd" id="2_itmx0"]
 [ext_resource type="Script" uid="uid://c21mka2a2l7by" path="res://modules/gui/widgets/uf_label.gd" id="3_crfuk"]
 [ext_resource type="Script" uid="uid://bgng5biwqiodr" path="res://modules/gui/widgets/uf_button.gd" id="4_itmx0"]
 [ext_resource type="Script" uid="uid://cll0gvenwo4n1" path="res://modules/gui/widgets/uf_list.gd" id="5_w8sj0"]
 [ext_resource type="Script" uid="uid://cag17wlbldrrm" path="res://modules/gui/widgets/uf_grid_container.gd" id="6_itmx0"]
 
-[node name="" type="PanelContainer" unique_id=1190874086]
+[node name="PanelContainer" type="PanelContainer" unique_id=1190874086]
 custom_minimum_size = Vector2(280, 200)
 theme = ExtResource("1_723a0")
 script = ExtResource("2_itmx0")

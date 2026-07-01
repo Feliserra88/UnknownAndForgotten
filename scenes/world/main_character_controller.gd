@@ -104,6 +104,7 @@ func _snap_to_cell() -> void:
 	if _body == null or _world == null or _body.instance == null:
 		return
 	_body.global_position = _world.grid_to_world(_body.instance.grid_cell)
+	_world.sync_actor_display_rotations()
 
 func _find_world_module(from: Node) -> WorldModule:
 	var node: Node = from

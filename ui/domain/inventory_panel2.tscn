@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ckp8nple04n5w"]
 
-[ext_resource type="Theme" path="res://ui/theme/uf_theme.tres" id="1_bas4n"]
+[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_bas4n"]
 [ext_resource type="Script" uid="uid://ox2gg36aq3w4" path="res://modules/gui/uf_info_panel.gd" id="2_8co1q"]
 [ext_resource type="Script" uid="uid://c21mka2a2l7by" path="res://modules/gui/widgets/uf_label.gd" id="3_wqfe7"]
 [ext_resource type="Script" uid="uid://bgng5biwqiodr" path="res://modules/gui/widgets/uf_button.gd" id="4_e68ic"]

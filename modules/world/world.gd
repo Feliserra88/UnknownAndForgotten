@@ -19,6 +19,7 @@ var objects_layer: TileMapLayer
 var structures_layer: TileMapLayer
 var modifiers_layer: TileMapLayer
 var layers: Node2D
+var actors: Node2D
 
 var tile_catalog: TileCatalog
 var height_field: MapHeightField
@@ -89,10 +90,32 @@ func grid_to_world(cell: Vector3i) -> Vector2:
 	local += _tile_foot_offset() + Vector2(0, -cell.z * height_step)
 	return ground_layer.to_global(local)
 
+## TileMap container (stays at origin; view rotation is on CameraRig).
+func get_map_layers() -> Node2D:
+	_ensure_layers()
+	return layers
+
 ## Node2D parent for actors; shares y-sort with tile layers (see docs/GAME_DESIGN.md §3.4).
 func get_actor_parent() -> Node2D:
 	_ensure_layers()
-	return layers
+	_ensure_actors()
+	return actors
+
+## Counter-rotates actor sprites so they stay upright when the camera rig is rotated.
+func sync_actor_display_rotations() -> void:
+	_ensure_actors()
+	if actors == null:
+		return
+	var upright := -_get_view_rotation_rad()
+	for child in actors.get_children():
+		if child is Node2D:
+			(child as Node2D).rotation = upright
+
+func _get_view_rotation_rad() -> float:
+	var cam := get_node_or_null("CameraRig") as CameraRig
+	if cam != null:
+		return cam.get_view_rotation_rad()
+	return 0.0
 
 func _tile_foot_offset() -> Vector2:
 	if ground_layer == null or ground_layer.tile_set == null:
@@ -254,6 +277,10 @@ static func create_scratch() -> WorldModule:
 		var layer := TileMapLayer.new()
 		layer.name = layer_name
 		layers_node.add_child(layer)
+	var actors_node := Node2D.new()
+	actors_node.name = "Actors"
+	actors_node.y_sort_enabled = true
+	layers_node.add_child(actors_node)
 	world.ensure_layers()
 	return world
 
@@ -322,6 +349,7 @@ func _ensure_layers() -> bool:
 	structures_layer = null
 	modifiers_layer = null
 	layers = null
+	actors = null
 	var layers_node := get_node_or_null("Layers")
 	if layers_node == null:
 		return false
@@ -331,7 +359,20 @@ func _ensure_layers() -> bool:
 	structures_layer = layers_node.get_node_or_null("Structures") as TileMapLayer
 	modifiers_layer = layers_node.get_node_or_null("Modifiers") as TileMapLayer
 	layers = layers_node as Node2D
+	actors = layers_node.get_node_or_null("Actors") as Node2D
 	return ground_layer != null
+
+func _ensure_actors() -> void:
+	if actors != null and is_instance_valid(actors):
+		return
+	if layers == null:
+		return
+	actors = layers.get_node_or_null("Actors") as Node2D
+	if actors == null:
+		actors = Node2D.new()
+		actors.name = "Actors"
+		actors.y_sort_enabled = true
+		layers.add_child(actors)
 
 func _tile_def_on(layer: TileMapLayer, cell: Vector2i) -> TileDef:
 	if layer == null or layer.get_cell_source_id(cell) == -1:
