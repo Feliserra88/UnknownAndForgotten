@@ -46,6 +46,7 @@ const _PATHS := [
 	"res://modules/gui/uf_tabbed_panel.gd",
 	"res://modules/gui/uf_inspection_panel.gd",
 	"res://modules/gui/uf_panel_ingame_loot.gd",
+	"res://modules/gui/uf_panel_ingame_status.gd",
 	"res://modules/gui/widgets/uf_label.gd",
 	"res://modules/gui/widgets/uf_button.gd",
 	"res://modules/gui/widgets/uf_list.gd",

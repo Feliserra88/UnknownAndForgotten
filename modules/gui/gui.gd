@@ -20,6 +20,7 @@ const _PANEL_SCRIPTS := {
 	&"inspection": "res://modules/gui/uf_inspection_panel.gd",
 	&"loot": "res://modules/gui/uf_panel_ingame_loot.gd",
 	&"inventory": "res://modules/gui/uf_panel_ingame_inventory.gd",
+	&"status": "res://modules/gui/uf_panel_ingame_status.gd",
 }
 
 ## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
@@ -32,6 +33,7 @@ const PANEL_SCENES := {
 	&"inspection": "res://ui/templates/uf_panel_ingame_inspection.tscn",
 	&"loot": "res://ui/templates/uf_panel_ingame_loot.tscn",
 	&"inventory": "res://ui/panels/uf_inventory.tscn",
+	&"status": "res://ui/templates/uf_panel_ingame_status.tscn",
 }
 
 const WIDGET_SCENES := {

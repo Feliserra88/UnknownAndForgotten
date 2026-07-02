@@ -41,6 +41,17 @@ gui.action.cancel,Cancel,Cancelar
 gui.inventory.title,Inventory,Inventario
 gui.inspection.title,Inspection,InspecciÃ³n
 gui.loot.title,Loot,BotÃ­n
+gui.status.title,Status,Estado
+gui.vital.health,Health,Salud
+gui.vital.energy,Energy,Energía
+gui.vital.mana,Mana,Maná
+gui.vital.sanity,Sanity,Cordura
+gui.vital.morale,Morale,Moral
+gui.vital.hunger,Hunger,Hambre
+gui.vital.thirst,Thirst,Sed
+gui.vital.fatigue,Fatigue,Cansancio
+gui.vital.encumbrance,Encumbrance,Carga
+gui.vital.temperature,Temperature,Temperatura
 gui.sample.label,Sample Label,Etiqueta de ejemplo
 gui.sample.button,Sample Button,BotÃ³n de ejemplo
 gui.header.close,Close,Cerrar

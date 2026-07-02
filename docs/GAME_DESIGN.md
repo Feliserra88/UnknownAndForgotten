@@ -996,6 +996,7 @@ res://ui/
 │   ├── uf_panel_dialog.tscn               # Aceptar / Cancelar
 │   ├── uf_panel_info.tscn                 # Informativo + cerrar
 │   ├── uf_panel_ingame_inspection.tscn
+│   ├── uf_panel_ingame_status.tscn      # Barras de vitals (UfStatusPanel)
 │   └── uf_panel_ingame_loot.tscn       # Rejilla 4×4 de items arrastrables
 ├── widgets/                  # Elementos atómicos reutilizables
 │   ├── uf_button.tscn
@@ -1057,7 +1058,7 @@ func _on_drag_handle_input(event: InputEvent) -> void:
 | `UfInspectionPanel` | `UfPanelIngame` | Silueta + slots de equipo desde `InspectionLayoutDef`; señales drag-drop (§5.5.5) |
 | `UfLootPanel` | `UfPanelIngame` | Rejilla `LootGrid` 4×4 (tunable) de `UfItemSlot`; move/swap interno + señales drag-drop |
 | `UfInventoryPanel` | `UfPanelIngame` o `UfTabbedPanel` | Componer `UfGridContainer` + lógica vía módulo `equipment` |
-| `UfStatusPanel` | `UfPanel` | Vitals, efectos; datos desde módulo `status` |
+| `UfStatusPanel` | `UfPanelIngame` | Barras de vitals (`VitalsList` + `UfProgressBar`); datos vía [method UfStatusPanel.set_vitals] |
 | `UfSkillsPanel` / `UfSpellsPanel` | `UfPanel` | Dominio combate/magia (futuro) |
 
 Reglas:
