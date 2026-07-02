@@ -72,4 +72,4 @@ func apply(base: AttributeSet, defs: Array) -> AttributeSet:
 		for key in def.multiplicative:
 			var scaled := float(result.get(key)) * (1.0 + float(def.multiplicative[key]))
 			result.set(key, int(round(scaled)))
-	return result
+	return AttributesModule.clamp_attributes(result)

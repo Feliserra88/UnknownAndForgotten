@@ -8,11 +8,6 @@
 
 [sub_resource type="Resource" id="Resource_oe16l"]
 script = ExtResource("1_i6k2b")
-strength = 7
-agility = 9
-vitality = 6
-perception = 3
-charisma = 4
 
 [resource]
 script = ExtResource("4_q8m5x")

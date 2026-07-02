@@ -419,19 +419,29 @@ Sistema **flexible y escalable** para añadir personajes sin reescribir la base.
 
 ### 5.3 Taxonomía de arquetipos (datos, no herencia profunda de scripts)
 
-La jerarquía conceptual se modela como **árbol de Resources**, no como cadena larga de `extends` en GDScript:
+La jerarquía conceptual se modela como **árbol de Resources**, no como cadena larga de `extends` en GDScript. Los **tipos jugables del catálogo** (editor y listados de diseño) son hermanos bajo `npc_root.tres`; variantes concretas (humano, lobo, arquero…) cuelgan de esos tipos como hijos opcionales.
+
+**Fuente de verdad del catálogo:** `res://assets/data/archetypes/catalog.tres` (`NpcArchetypeCatalog`) — lista ordenada de rutas `.tres`. El runtime y el editor leen **solo** ese catálogo vía `NpcModule.list_catalog_archetypes()` / `catalog_archetype_paths()`. No escanear la carpeta a mano.
+
+| id | Clave i18n | Notas |
+|----|------------|-------|
+| `humanoid` | `archetype.humanoid.name` | Humanoide (rig completo, inspección humanoide) |
+| `quadruped_animal` | `archetype.quadruped_animal.name` | Animal cuadrúpedo |
+| `beast` | `archetype.beast.name` | Bestia |
+| `horror` | `archetype.horror.name` | Horror |
+| `winged_horror` | `archetype.winged_horror.name` | Horror alado |
+
+Jerarquía de ejemplo (variantes futuras):
 
 ```
-NpcArchetype (Resource)
-├── humanoid.tres
-│   ├── archer.tres
-│   └── warrior.tres
-├── beast.tres
-└── animal.tres
-    ├── quadruped.tres
-    │   ├── dog.tres
-    │   └── wolf.tres
-    └── bipedal.tres
+npc_root.tres
+├── humanoid.tres          ← catálogo
+│   ├── human.tres
+│   └── main_character.tres
+├── quadruped_animal.tres  ← catálogo
+├── beast.tres             ← catálogo
+├── horror.tres            ← catálogo
+└── winged_horror.tres     ← catálogo
 ```
 
 Cada `NpcArchetype` (`class_name NpcArchetype extends Resource`):
@@ -646,7 +656,15 @@ O bien:
 
 - `class_name FactionDef extends Resource` — `.tres` en `res://assets/data/factions/`.
 - Fachada: `FactionModule` (`modules/faction/`, log `FAC`).
+- **Fuente de verdad del catálogo:** `res://assets/data/factions/catalog.tres` (`FactionCatalog`) — lista ordenada de rutas `.tres`. El runtime y el editor leen **solo** ese catálogo vía `FactionModule.list_catalog_defs()`.
 - Campos implementados: `id`, `display_name_key`, `granted_modifier_ids` (ids de `ModifierDef` otorgados a miembros), `hostile_to`, `ally_to`, `tags`.
+
+| id | Clave i18n |
+|----|------------|
+| `none` | `faction.none.name` |
+| `bandit` | `faction.bandit.name` |
+| `chaos` | `faction.chaos.name` |
+| `undead` | `faction.undead.name` |
 - Campos previstos (futuro): modificadores de IA, loot tables, reglas de aggro, plantillas de equipo.
 - Runtime: `faction_ids` en `NpcInstanceData` + **`add_to_group("faction_%s" % id)`** para consultas (`get_tree().get_nodes_in_group(...)`).
 - `NpcModule.assemble(instance)` fusiona `granted_modifier_ids` de las facciones activas en `instance.modifier_ids`.
@@ -816,8 +834,17 @@ Atributos base (Resource o sub-resource dentro de `NpcArchetype`):
 | Percepción | `perception` |
 | Carisma | `charisma` |
 
-- Valores numéricos; escalado en `.tres` bajo `res://assets/data/attributes/`.
-- Los modificadores de §8.3–8.5 alteran valores **efectivos**; la base en `AttributeSet` solo cambia por progresión explícita.
+**Escala y valores por defecto**
+
+| Regla | Valor |
+|-------|-------|
+| **Por defecto** | **10** en los seis atributos cuando el arquetipo no define `base_attributes` o un campo concreto queda sin valor (`AttributeSet.DEFAULT`) |
+| **Mínimo** | **1** (`AttributeSet.MIN`) |
+| **Máximo (cap)** | **30** — ningún atributo puede superar 30 (base ni efectivo tras modificadores; `AttributeSet.MAX`) |
+
+- Constantes en código: `AttributeSet.DEFAULT` / `MIN` / `MAX`; clamp centralizado en `AttributesModule.clamp_attributes()`.
+- Plantilla de referencia: `res://assets/data/attributes/default.tres` (todos en 10).
+- Los modificadores de §8.3–8.5 alteran valores **efectivos** (`ModifierModule.apply()`); la base en `AttributeSet` solo cambia por progresión explícita. Tras la composición, el resultado se **clampea** a **30** como máximo.
 
 ### 8.8 Estados de animación vs estado de juego
 

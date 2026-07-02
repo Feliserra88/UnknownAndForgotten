@@ -4,12 +4,16 @@ extends Resource
 ## Base character attributes (see docs/GAME_DESIGN.md section 8.7). Saveable as a .tres asset.
 ## Runtime modifiers are applied elsewhere; this holds the unmodified base values.
 
-@export var strength: int = 5
-@export var agility: int = 5
-@export var willpower: int = 5
-@export var vitality: int = 5
-@export var perception: int = 5
-@export var charisma: int = 5
+const DEFAULT := 10
+const MIN := 1
+const MAX := 30
+
+@export_range(MIN, MAX, 1) var strength: int = DEFAULT
+@export_range(MIN, MAX, 1) var agility: int = DEFAULT
+@export_range(MIN, MAX, 1) var willpower: int = DEFAULT
+@export_range(MIN, MAX, 1) var vitality: int = DEFAULT
+@export_range(MIN, MAX, 1) var perception: int = DEFAULT
+@export_range(MIN, MAX, 1) var charisma: int = DEFAULT
 
 ## Returns a mutable copy safe to store on a runtime instance.
 func clone() -> AttributeSet:

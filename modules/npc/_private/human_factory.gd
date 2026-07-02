@@ -60,13 +60,11 @@ static func _default_visuals() -> Array[PartVisualDef]:
 
 static func _random_attributes(rng: RandomNumberGenerator) -> AttributeSet:
 	var a := AttributeSet.new()
-	a.strength = rng.randi_range(3, 9)
-	a.agility = rng.randi_range(3, 9)
-	a.willpower = rng.randi_range(3, 9)
-	a.vitality = rng.randi_range(3, 9)
-	a.perception = rng.randi_range(3, 9)
-	a.charisma = rng.randi_range(3, 9)
-	return a
+	var lo := AttributesModule.ATTR_DEFAULT - 2
+	var hi := AttributesModule.ATTR_DEFAULT + 2
+	for attr_name in AttributesModule.ATTR_NAMES:
+		a.set(attr_name, rng.randi_range(lo, hi))
+	return AttributesModule.clamp_attributes(a)
 
 static func _visual(part: StringName, color: Color, size: Vector2i, offset: Vector2, z: int) -> PartVisualDef:
 	var v := PartVisualDef.new()

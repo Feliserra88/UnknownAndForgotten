@@ -7,9 +7,6 @@
 
 [sub_resource type="Resource" id="Resource_attrs"]
 script = ExtResource("1_attrs")
-strength = 6
-agility = 6
-vitality = 6
 
 [resource]
 script = ExtResource("3_arch")

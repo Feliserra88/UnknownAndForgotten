@@ -41,7 +41,7 @@ func effective_attributes(modifier_module: ModifierModule, equipment_module: Equ
 	if equipment_module != null:
 		var eq_defs := equipment_module.resolve_equipped_modifier_defs(equipment, modifier_module)
 		result = modifier_module.apply(result, eq_defs)
-	return result
+	return AttributesModule.clamp_attributes(result)
 
 ## Returns the localized display name for this instance.
 func get_display_name() -> String:

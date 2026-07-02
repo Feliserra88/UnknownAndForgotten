@@ -8,6 +8,7 @@ const _PATHS := [
 	"res://core/events.gd",
 	"res://autoload/event_bus.gd",
 	"res://modules/attributes/attributes.gd",
+	"res://modules/attributes/attribute_set.gd",
 	"res://modules/appearance/appearance.gd",
 	"res://modules/appearance/inspection_layout_def.gd",
 	"res://modules/npc/npc.gd",
