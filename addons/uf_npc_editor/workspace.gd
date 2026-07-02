@@ -22,6 +22,7 @@ var _gui: GuiModule
 var _faction: FactionModule
 var _modifier: ModifierModule
 var _equipment: EquipmentModule
+var _items: ItemsModule
 
 var _archetype: NpcArchetype
 var _instance: NpcInstanceData
@@ -42,6 +43,7 @@ var _inspection_panel: UfInspectionPanel
 var _items_box: VBoxContainer
 var _cols: HSplitContainer
 var _right_split: VSplitContainer
+var _splits_initialized: bool = false
 
 func setup() -> void:
 	_npc = NpcModule.new()
@@ -51,6 +53,7 @@ func setup() -> void:
 	_faction = FactionModule.new()
 	_modifier = ModifierModule.new()
 	_equipment = EquipmentModule.new()
+	_items = ItemsModule.new()
 	_npc.set_facades(_faction, _modifier, _equipment)
 	_build_ui()
 
@@ -59,6 +62,10 @@ func ensure_ready() -> void:
 		call_deferred("_bootstrap_data")
 	elif _archetype != null:
 		call_deferred("_rebuild_all")
+
+func sync_layout() -> void:
+	_sync_preview_viewport_size()
+	_finalize_layout()
 
 func _bootstrap_data() -> void:
 	_populate_archetypes()
@@ -80,11 +87,22 @@ func _bootstrap_data() -> void:
 	call_deferred("_finalize_layout")
 
 func _finalize_layout() -> void:
-	if _cols != null:
-		_cols.split_offset = 260
-	if _right_split != null and _right_split.size.y > 240:
-		_right_split.split_offset = int(_right_split.size.y - 200)
+	if not _splits_initialized:
+		if _cols != null:
+			_cols.split_offset = 260
+		if _right_split != null and _right_split.size.y > 240:
+			_right_split.split_offset = int(_right_split.size.y * 0.55)
+		_splits_initialized = true
+	_sync_preview_viewport_size()
 	_center_preview_rig()
+
+func _sync_preview_viewport_size() -> void:
+	if _preview_host == null or _preview_viewport == null:
+		return
+	var sz := _preview_host.size
+	if sz.x < 8 or sz.y < 8:
+		return
+	_preview_viewport.size = Vector2i(int(sz.x), int(sz.y))
 
 func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -155,6 +173,7 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 func _build_left_column(parent: HSplitContainer) -> void:
 	var left := ScrollContainer.new()
 	left.custom_minimum_size = Vector2(240, 0)
+	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(left)
 	_details_box = VBoxContainer.new()
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -164,12 +183,13 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	var center := VBoxContainer.new()
 	center.custom_minimum_size = Vector2(300, 0)
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(center)
 
 	center.add_child(_section_label("Preview"))
 
 	var preview_frame := Panel.new()
-	preview_frame.custom_minimum_size = Vector2(280, 280)
+	preview_frame.custom_minimum_size = Vector2(200, 200)
 	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	preview_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.add_child(preview_frame)
@@ -181,7 +201,7 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	_preview_host.add_child(preview_svc)
 
 	_preview_viewport = SubViewport.new()
-	_preview_viewport.size = Vector2i(280, 280)
+	_preview_viewport.size = Vector2i(320, 320)
 	_preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_preview_viewport.handle_input_locally = false
 	_preview_viewport.disable_3d = true
@@ -202,6 +222,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	var right := VSplitContainer.new()
 	right.custom_minimum_size = Vector2(280, 0)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(right)
 	_right_split = right
 
@@ -213,7 +234,6 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	inspection_scroll.add_child(_inspection_holder)
 
 	var items_panel := VBoxContainer.new()
-	items_panel.custom_minimum_size = Vector2(0, 200)
 	items_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(items_panel)
 	items_panel.add_child(_section_label("Compatible items"))
@@ -221,7 +241,6 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	var items_scroll := ScrollContainer.new()
 	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	items_scroll.custom_minimum_size = Vector2(0, 160)
 	items_panel.add_child(items_scroll)
 	_items_box = VBoxContainer.new()
 	_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -317,7 +336,8 @@ func _apply_starter_loadout() -> void:
 	if _archetype == null or _archetype.id != _DUMMY_ARCHETYPE_ID:
 		return
 	for pair in _STARTER_EQUIPMENT:
-		_instance.equipment.equip(pair[0], pair[1])
+		var inst := _items.create_instance(pair[1])
+		_instance.equipment.equip(pair[0], inst)
 
 func _sync_faction_picker() -> void:
 	if _faction_option == null or _instance == null:
@@ -355,9 +375,11 @@ func _reapply_equipment_visuals() -> void:
 	if _appearance == null:
 		return
 	for slot in _instance.equipment.occupied_slots():
-		var item := _equipment.load_item(_instance.equipment.get_item(slot))
-		if item != null and item.icon != null:
-			_appearance.set_equipment_texture(slot, item.icon)
+		var inst := _instance.equipment.get_instance(slot)
+		if inst != null:
+			var icon_tex := _items.resolve_icon(inst)
+			if icon_tex != null:
+				_appearance.set_equipment_texture(slot, icon_tex)
 
 func _rebuild_inspection() -> void:
 	for child in _inspection_holder.get_children():
@@ -378,9 +400,10 @@ func _rebuild_inspection() -> void:
 	if not _inspection_panel.item_removed.is_connected(_on_item_removed):
 		_inspection_panel.item_removed.connect(_on_item_removed)
 	for slot in _instance.equipment.occupied_slots():
-		var item := _equipment.load_item(_instance.equipment.get_item(slot))
-		if item != null:
-			_inspection_panel.set_slot_item(slot, item.id, item.icon)
+		var inst := _instance.equipment.get_instance(slot)
+		if inst != null:
+			var icon_tex := _items.resolve_icon(inst)
+			_inspection_panel.set_slot_item(slot, inst.def_id, icon_tex)
 
 func _rebuild_items() -> void:
 	for child in _items_box.get_children():
@@ -468,7 +491,10 @@ func _refresh_effective() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
+		_sync_preview_viewport_size()
 		_center_preview_rig()
+	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
+		call_deferred("sync_layout")
 
 # --- Signal handlers ---------------------------------------------------------
 
@@ -506,16 +532,18 @@ func _on_orientation_pressed(orientation: StringName) -> void:
 func _on_item_dropped(slot_id: StringName, payload: Dictionary) -> void:
 	var item_id := StringName(payload.get("item_id", &""))
 	var item := _equipment.load_item(item_id)
-	if item == null or item.slot != slot_id:
+	if item == null or item.get_equip_slot() != slot_id:
 		return
 	var from_slot := StringName(payload.get("from_slot", &""))
 	if not String(from_slot).is_empty() and from_slot != slot_id:
 		_instance.equipment.unequip(from_slot)
 		_inspection_panel.clear_slot(from_slot)
 		_appearance.clear_equipment_texture(from_slot)
-	_instance.equipment.equip(slot_id, item_id)
-	_inspection_panel.set_slot_item(slot_id, item_id, item.icon)
-	_appearance.set_equipment_texture(slot_id, item.icon)
+	var inst := _items.create_instance(item_id)
+	_instance.equipment.equip(slot_id, inst)
+	var icon_tex := _items.resolve_icon(inst)
+	_inspection_panel.set_slot_item(slot_id, item_id, icon_tex)
+	_appearance.set_equipment_texture(slot_id, icon_tex)
 	_refresh_effective()
 
 func _on_item_removed(slot_id: StringName) -> void:

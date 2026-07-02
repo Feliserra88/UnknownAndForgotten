@@ -62,3 +62,16 @@ npc_editor.title,NPC Editor,Editor de PNJ
 npc_editor.details,Details,Detalles
 npc_editor.preview,Preview,Vista previa
 npc_editor.compatible_items,Compatible items,Objetos compatibles
+item.category.weapon,Weapon,Arma
+item.category.armor,Armor,Armadura
+item.category.food,Food,Comida
+item.category.valuable,Valuable,Valioso
+item.state.pristine,Pristine,Impecable
+item.state.good,Good,Bueno
+item.state.worn,Worn,Usado
+item.state.rusty,Rusty,Oxidado
+item.state.battered,Battered,Maltratado
+item.quality.common,Common,Común
+item.quality.uncommon,Uncommon,Poco común
+item.quality.rare,Rare,Raro
+item.quality.epic,Epic,Épico

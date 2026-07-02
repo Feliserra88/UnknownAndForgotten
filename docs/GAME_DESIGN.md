@@ -673,15 +673,27 @@ No mezclar facción con arquetipo en un solo `.tres`. Los tres se componen en `N
 
 ## 7. Equipo e inventario
 
-Definiciones como **`ItemDef extends Resource`** (`.tres`); estado equipado en **`EquipmentState`** (runtime, `RefCounted` o `duplicate`).
+**Definiciones** → módulo `items`: **`ItemDef`** (`.tres` en `assets/data/items/`), categorías en `assets/data/item_categories/`. **Runtime** → **`ItemInstance`** (`def_id`, índices de estado/calidad, `modifier_ids`, durabilidad, stacks). **Equipar** → módulo `equipment`: **`EquipmentState`** mapea slot → `ItemInstance`.
 
 Cada NPC (incluido el jugador) tiene tres conjuntos en `EquipmentState`:
 
 | Conjunto | Descripción |
 |----------|-------------|
-| `equipped` | Items actualmente equipados |
-| `inventory` | Items portables no equipados |
-| `death_loot` | Items que suelta al morir (puede derivar de equipped + inventory según reglas) |
+| `equipped` | `ItemInstance` en slots de cuerpo |
+| `inventory` | `ItemInstance` portables no equipados |
+| `death_loot` | `ItemInstance` que suelta al morir |
+
+### 7.0 Categorías y capas definición / instancia
+
+| Capa | Tipo | Contenido |
+|------|------|-----------|
+| Definición | `ItemDef` | `category_id`, `tags`, peso, precio base, huella inventario, `state_tiers[]`, `quality_tiers[]`, `category_data` (payload) |
+| Instancia | `ItemInstance` | `state_index`, `quality_index`, `modifier_ids` (ModifierDef ajenos al ItemDef), `durability`, `count` |
+
+- **Estado** (pristine … battered): tiers en `ItemDef` definen sprite (strip) y multiplicadores; el índice activo vive en la instancia.
+- **Calidad** (common … epic): igual patrón que estado.
+- **Modificadores** (enchanted, coated…): solo en `ItemInstance`; referencian `ModifierDef` con `kind = ITEM` o tags `item_modifier`.
+- Categorías v1: `weapon` (completa), `armor`, `food`, `valuable` (payloads stub donde aplique). Payloads: `WeaponItemData`, `ArmorItemData`, `FoodItemData`, `ValuableItemData`.
 
 ### 7.1 Slots de humanoide
 
@@ -701,8 +713,8 @@ Para arquetipos humanoides (`Humanoid` y derivados):
 | Espalda | `back` |
 
 - Otros arquetipos definen **`BodyPartMap`** propio (p. ej. cuadrúpedo: `leg_*`, sin `arm_left`).
-- Validar compatibilidad item ↔ slot ↔ arquetipo en módulo `equipment`.
-- Cada `ItemDef` referencia opcionalmente **`EquipmentVisualDef`** (§5.5); equipar actualiza stats **y** capas visuales vía `NpcAppearanceController`.
+- Validar compatibilidad item ↔ slot ↔ arquetipo en módulo `equipment` (carga `ItemDef` vía `ItemsModule`).
+- Cada item equipable referencia opcionalmente **`EquipmentVisualDef`** en su payload (§5.5); equipar actualiza stats **y** capas visuales vía `NpcAppearanceController`.
 
 ### 7.2 Equipo visual modular
 
@@ -1173,7 +1185,8 @@ Si se cumplen **reuso + fine-tuning**, la herramienta pasa de “deseable” a *
 | Herramienta | Addon | Módulos | Qué hace el artista |
 |-------------|-------|---------|---------------------|
 | **Editor de mapas** | `uf_map_editor` | `world`, `world_gen`, `grid` | Pintar rejilla **x/y/z**, overlay de altura en viewport, biomas, zonas manuales, colocar estructuras prefab (`TileMapPattern`, scene tiles), máscaras de bioma; exportar escenas/recursos en `assets/world/` |
-| **Editor de NPCs** | `uf_npc_editor` | `npc`, `appearance`, `attributes`, `equipment`, `faction`, `modifier`, `gui` | **En progreso (esqueleto):** pantalla principal 3 columnas (detalles / preview rig / panel de inspección con drag-drop); carga arquetipos reales; edición en memoria. Pendiente: guardar `.tres`, lesiones, IA de facción |
+| **Editor de NPCs** | `uf_npc_editor` | `npc`, `appearance`, `attributes`, `equipment`, `items`, `faction`, `modifier`, `gui` | Pantalla principal 3 columnas; equipa `ItemInstance` |
+| **Editor de items** | `uf_item_editor` | `items` | Pantalla principal 3 columnas: propiedades `ItemDef`, lista sprites/items, CRUD y filtros; v1 completo en `weapon` |
 | **Herramientas GUI** | `uf_gui_tools` | `gui` | Componer paneles de dominio (inventario, hechizos, estado…) desde `UfPanel` y widgets (§10.9) |
 
 Otras candidatas futuras (misma norma): editor de items (`ItemDef` + `EquipmentVisualDef`), editor de facciones, editor de biomas/terrains.
@@ -1208,14 +1221,16 @@ Assets en res://assets/…  ←  guarda  ←  EditorPlugin (@tool)
 | NPC / spawn | `npc` | `PackedScene`, `NpcAppearanceController`, `BodyPartMap` | NPC |
 | Facciones | `faction` | `FactionDef` Resource | FAC |
 | Modificadores | `modifier` | `ModifierDef` Resource | MOD |
-| Equipo | `equipment` | `ItemDef`, `EquipmentVisualDef`, `EquipmentState` | EQP |
+| Equipo | `equipment` | `EquipmentVisualDef`, `EquipmentState`, `EquipmentSlotMap` | EQP |
+| Items | `items` | `ItemDef`, `ItemInstance`, `ItemCategoryDef`, payloads por categoría | ITM |
 | Apariencia / lesiones | `appearance` | `PartVisualDef`, `InjuryVisualDef`, capas por slot | APP |
 | Estado / efectos | `status` | `StatusEffectDef`, `MaladyDef`, `TraitDef` | STS |
 | Atributos | `attributes` | `AttributeSet` Resource | ATR |
 | Jugador | `player` | Misma escena NPC + grupo `"player"` | PLR |
 | GUI / paneles | `gui` | `UfPanel`, `TabContainer`, widgets `Control` | GUI |
 | Editor de mapas | `addons/uf_map_editor` | `EditorPlugin` + API `world` / `world_gen` | — |
-| Editor de NPCs | `addons/uf_npc_editor` | `EditorPlugin` (main screen) + API `npc` / `appearance` / `equipment` / `faction` / `modifier` / `gui` | — |
+| Editor de NPCs | `addons/uf_npc_editor` | `EditorPlugin` (main screen) + API `npc` / `appearance` / `equipment` / `items` / `faction` / `modifier` / `gui` | — |
+| Editor de items | `addons/uf_item_editor` | `EditorPlugin` (main screen) + API `items` | — |
 | Herramientas GUI | `addons/uf_gui_tools` | `EditorPlugin`, plantillas `UfPanel` | — |
 | Localización | — | `TranslationServer` + `res://locale/` | — |
 

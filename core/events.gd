@@ -12,9 +12,14 @@ const WORLD_GENERATED := &"world.generated"
 ## Payload: { uid: int, archetype_id: StringName, cell: Vector3i }
 const NPC_SPAWNED := &"npc.spawned"
 
+## An item instance was added to a portable inventory bag.
+## Payload: { owner_uid: int, instance_uid: String, def_id: StringName, count: int }
+const INVENTORY_ITEM_ADDED := &"inventory.item_added"
+
 ## Returns every registered event channel; used by EventBus to pre-declare its signals.
 static func all() -> Array[StringName]:
 	return [
 		WORLD_GENERATED,
 		NPC_SPAWNED,
+		INVENTORY_ITEM_ADDED,
 	]

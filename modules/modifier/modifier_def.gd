@@ -7,7 +7,7 @@ extends Resource
 ## Saveable as a .tres asset under res://assets/data/modifiers/.
 
 ## Overlay category. Same math for all; kind only groups them in UI and queries.
-enum Kind { TRAIT, MALADY, STATUS, SCALER }
+enum Kind { TRAIT, MALADY, STATUS, SCALER, ITEM }
 
 @export var id: StringName = &""
 @export var display_name_key: String = ""

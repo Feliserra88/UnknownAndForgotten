@@ -74,7 +74,7 @@ res://
 ├── locale/                # Traducciones (CSV/PO): claves → en, es, …
 └── ui/                    # GUI: theme/, widgets/, panels/, domain/ (ver GAME_DESIGN §10)
 
-addons/                    # Plugins de editor (uf_map_editor, uf_npc_editor, uf_gui_tools)
+addons/                    # Plugins de editor (uf_map_editor, uf_npc_editor, uf_item_editor, uf_gui_tools)
 │   ├── uf_map_editor/     # Editor de mapas → API world / world_gen
 │   ├── uf_npc_editor/     # Editor de NPCs → API npc / appearance
 │   └── uf_gui_tools/      # Composición paneles GUI
@@ -236,6 +236,7 @@ Autoload `EventBus` (`autoload/event_bus.gd`) para eventos de dominio desacoplad
 |-----------|-------|---------|--------|
 | `WORLD_GENERATED` | `world.generated` | `{ region: Rect2i, seed: int }` | `WorldGenModule.generate()` |
 | `NPC_SPAWNED` | `npc.spawned` | `{ uid: int, archetype_id: StringName, cell: Vector3i }` | `NpcModule.spawn()` |
+| `INVENTORY_ITEM_ADDED` | `inventory.item_added` | `{ owner_uid: int, instance_uid: String, def_id: StringName, count: int }` | (futuro) módulo `items` / inventario |
 
 Ampliar el catálogo aquí al añadir eventos (ver backlog en `docs/ROADMAP.md`).
 
@@ -393,11 +394,13 @@ Mantener tabla actualizada al crear módulos:
 | Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | Fachada estática `AttributesModule` (ciclo de vida de stats); `AttributeSet`, `VitalsTemplate`, `NpcVitals` (Resource-only) |
 | Faction | `modules/faction/` | FAC | `LOG_FACTION_LEVEL` | Fachada `FactionModule` (Resource-only); `FactionDef` (pertenencia a grupo, `granted_modifier_ids`, relaciones ally/hostile, tags) |
 | Modifier | `modules/modifier/` | MOD | `LOG_MODIFIER_LEVEL` | Fachada `ModifierModule` (Resource-only); `ModifierDef` (`kind` trait/malady/status/scaler, ops aditivas y multiplicativas por atributo, tags); `apply()` compone atributos efectivos |
-| Equipment | `modules/equipment/` | EQP | `LOG_EQUIPMENT_LEVEL` | Fachada `EquipmentModule`; `ItemDef`, `EquipmentVisualDef`, `EquipmentSlotMap`, `EquipmentState` (runtime slot→item); compatibilidad por slot/tags y resolución de visuales |
+| Equipment | `modules/equipment/` | EQP | `LOG_EQUIPMENT_LEVEL` | Fachada `EquipmentModule`; `EquipmentVisualDef`, `EquipmentSlotMap`, `EquipmentState` (runtime slot→`ItemInstance`, inventario/death_loot); validación equipar y resolución de visuales (depende de `items`) |
+| Items | `modules/items/` | ITM | `LOG_ITEMS_LEVEL` | Fachada `ItemsModule`; `ItemDef`, `ItemInstance`, `ItemCategoryDef`, tiers estado/calidad, payloads por categoría (`WeaponItemData`, `FoodItemData`, …); catálogo y resolución de icono/precio |
 | GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`, `UfInspectionPanel`), widgets `Uf*` (`modules/gui/widgets/`, incl. `UfEquipmentSlot`), theme; plantillas en `ui/templates/`; fachada `GuiModule` que crea paneles y carga assets de `ui/panels/` |
 | Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, colocar piezas de estructura (`StructurePieceDef`), guardar presets/mapas |
 | Herramientas GUI | `addons/uf_gui_tools/` | — | — | `EditorPlugin` sobre API `gui`: compone paneles de juego (`UfPanel` + widgets desde `ui/templates/` y `ui/widgets/`) y los guarda como `PackedScene` en `res://ui/panels/` |
-| Editor de NPCs | `addons/uf_npc_editor/` | — | — | `EditorPlugin` de pantalla principal sobre API `npc`/`appearance`/`equipment`/`faction`/`modifier`/`gui`: 3 columnas (detalles, preview del rig, panel de inspección con drag-drop); edición en memoria (guardado de `.tres` diferido) |
+| Editor de NPCs | `addons/uf_npc_editor/` | — | — | `EditorPlugin` de pantalla principal sobre API `npc`/`appearance`/`equipment`/`faction`/`modifier`/`gui`/`items`: 3 columnas (detalles, preview del rig, panel de inspección con drag-drop); equipa `ItemInstance` |
+| Editor de items | `addons/uf_item_editor/` | — | — | `EditorPlugin` de pantalla principal sobre API `items`: 3 columnas (propiedades, lista sprites/items, acciones y filtros); guarda `ItemDef` en `assets/data/items/` |
 
 Core compartido: `core/direction.gd` (`Direction`, enum N/E/S/W) y `core/events.gd` (`GameEvents`, catálogo de canales del `EventBus`). Herramientas: `tools/asset_builder.tscn` (genera `.tres` placeholder en `res://assets/`), `tools/validate_scripts.gd` (sintaxis) y `tools/check_architecture.gd` (lint de dependencias §4.1).
 

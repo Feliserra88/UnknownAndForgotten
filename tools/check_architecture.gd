@@ -16,6 +16,8 @@ const _PRESENTATION_ROOTS := [
 	"res://ui",
 	"res://addons/uf_map_editor",
 	"res://addons/uf_gui_tools",
+	"res://addons/uf_npc_editor",
+	"res://addons/uf_item_editor",
 ]
 
 ## Allowed module -> presentation references for rule C, as {from: module dir, to: path prefix}.
