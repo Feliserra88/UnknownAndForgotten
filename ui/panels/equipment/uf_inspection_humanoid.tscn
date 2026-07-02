@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://bm4dk3wy878lo"]
+
+[ext_resource type="PackedScene" uid="uid://cs124hen41ls2" path="res://ui/templates/uf_panel_ingame_equipment.tscn" id="1_tjxo4"]
+[ext_resource type="Texture2D" uid="uid://d3w0c1nm4f2n8" path="res://assets/visuals/parts/portraits/humanoid/preset_pixellab_01.png" id="2_60eld"]
+[ext_resource type="PackedScene" uid="uid://dp6ydmn6l7wxf" path="res://ui/widgets/uf_equipment_slot.tscn" id="3_60eld"]
+
+[node name="UfInspectionPanel" unique_id=1540991670 instance=ExtResource("1_tjxo4")]
+offset_right = 401.0
+offset_bottom = 616.0
+
+[node name="UfEquipmentNeck" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=981317227 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 139.0
+offset_top = 5.0
+offset_right = 179.0
+offset_bottom = 45.0
+layout_center_anchored = true
+layout_center_norm = Vector2(2.0101092, -0.34)
+
+[node name="UfEquipmentRingH" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=1005274802 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 93.0
+offset_top = 5.0
+offset_right = 133.0
+offset_bottom = 45.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.78710586, -0.38666666)
+
+[node name="UfEquipmentRingL" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=1399838581 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 185.78851
+offset_top = 5.0
+offset_right = 225.78851
+offset_bottom = 45.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.7300914, 0.37333333)
+
+[node name="UfEquipmentArms" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=1459081410 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 181.89426
+offset_top = 121.0
+offset_right = 221.89426
+offset_bottom = 161.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.10863544, -0.033333335)
+
+[node name="UfEquipmentBack" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=610156146 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 84.94713
+offset_top = 60.0
+offset_right = 124.94713
+offset_bottom = 100.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.08316387, 0.18)
+
+[node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=2124956090 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 138.19427
+offset_top = 192.0
+offset_right = 178.19427
+offset_bottom = 232.0
+layout_center_anchored = true
+layout_center_norm = Vector2(-0.079505526, 0.18333334)
+
+[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=894582718 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 137.65332
+offset_top = 51.0
+offset_right = 177.65332
+offset_bottom = 91.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.0052991034, -0.26333332)
+
+[node name="UfEquipmentHandR" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="7" unique_id=104910558 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 59.001312
+offset_top = 132.0
+offset_right = 99.00131
+offset_bottom = 172.0
+layout_center_anchored = true
+layout_center_norm = Vector2(-0.13461117, -0.07)
+
+[node name="UfEquipmentHandL" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="8" unique_id=261583111 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 226.6079
+offset_top = 131.0
+offset_right = 266.6079
+offset_bottom = 171.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.1525895, -0.08)
+
+[node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="9" unique_id=54164175 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 142.0
+offset_right = 180.0
+offset_bottom = 182.0
+tooltip_text = "body"
+layout_center_anchored = true
+layout_center_norm = Vector2(0.4551282, 0.22)
+slot_id = &"body"
+
+[node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="10" unique_id=861024505]
+texture = ExtResource("2_60eld")
+metadata/_edit_lock_ = true
+
+[node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="11" unique_id=981317227]
+offset_left = 139.0
+offset_top = 98.0
+offset_right = 179.0
+offset_bottom = 138.0

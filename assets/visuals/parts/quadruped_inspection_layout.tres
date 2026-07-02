@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_layout")
 background_texture = ExtResource("2_bg")
-panel_path = "res://ui/panels/inspection/uf_inspection_quadruped.tscn"
+panel_path = "res://ui/panels/equipment/uf_inspection_quadruped.tscn"
 slots = Array[Dictionary]([{
 "rect": Rect2(0.4, 0.06, 0.2, 0.14),
 "slot_id": &"head"

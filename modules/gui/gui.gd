@@ -30,7 +30,7 @@ const PANEL_SCENES := {
 	&"info": "res://ui/templates/uf_panel_info.tscn",
 	&"dialog": "res://ui/templates/uf_panel_dialog.tscn",
 	&"tabbed": "res://ui/templates/uf_panel_tabbed.tscn",
-	&"inspection": "res://ui/templates/uf_panel_ingame_inspection.tscn",
+	&"inspection": "res://ui/templates/uf_panel_ingame_equipment.tscn",
 	&"loot": "res://ui/templates/uf_panel_ingame_loot.tscn",
 	&"inventory": "res://ui/panels/uf_inventory.tscn",
 	&"status": "res://ui/templates/uf_panel_ingame_status.tscn",

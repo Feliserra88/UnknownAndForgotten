@@ -592,7 +592,7 @@ Para inspeccionar o equipar un NPC (en juego o en `uf_npc_editor`), el arquetipo
 Flujo editor / runtime:
 
 1. `archetype.resolve_inspection_layout()` → `InspectionLayoutDef` (referenciado en el `.tres` del arquetipo del catálogo).
-2. Si `layout.panel_path` apunta a un `.tscn` en `ui/panels/inspection/`, `GuiModule` **instancia ese panel** y enlaza `slot_id` (`bind_scene_slots`). Si no, `build_from_layout(layout)` (fallback procedural).
+2. Si `layout.panel_path` apunta a un `.tscn` en `ui/panels/equipment/`, `GuiModule` **instancia ese panel** y enlaza `slot_id` (`bind_scene_slots`). Si no, `build_from_layout(layout)` (fallback procedural).
 3. `GuiModule.create_inspection_panel_for_archetype(archetype)` orquesta el paso anterior.
 4. Al soltar un item, el **consumidor** (editor o módulo `equipment`) actualiza `EquipmentState` y llama `NpcAppearanceController.set_equipment_texture(part_id, tex)`.
 
@@ -600,9 +600,9 @@ Flujo editor / runtime:
 
 | Arquetipo (catálogo) | Layout | Panel (`panel_path`) |
 |----------------------|--------|----------------------|
-| `humanoid` | `humanoid_inspection_layout.tres` | `ui/panels/inspection/uf_inspection_humanoid.tscn` |
-| `quadruped_animal` | `quadruped_inspection_layout.tres` | `ui/panels/inspection/uf_inspection_quadruped.tscn` |
-| `beast` | `beast_inspection_layout.tres` | `ui/panels/inspection/uf_inspection_beast.tscn` |
+| `humanoid` | `humanoid_inspection_layout.tres` | `ui/panels/equipment/uf_inspection_humanoid.tscn` |
+| `quadruped_animal` | `quadruped_inspection_layout.tres` | `ui/panels/equipment/uf_inspection_quadruped.tscn` |
+| `beast` | `beast_inspection_layout.tres` | `ui/panels/equipment/uf_inspection_beast.tscn` |
 | `horror` | `horror_inspection_layout.tres` | (pendiente) |
 | `winged_horror` | `winged_horror_inspection_layout.tres` | (pendiente) |
 
@@ -995,7 +995,7 @@ res://ui/
 │   ├── uf_panel_tabbed.tscn
 │   ├── uf_panel_dialog.tscn               # Aceptar / Cancelar
 │   ├── uf_panel_info.tscn                 # Informativo + cerrar
-│   ├── uf_panel_ingame_inspection.tscn
+│   ├── uf_panel_ingame_equipment.tscn   # Plantilla inspección/equipo (UfInspectionPanel)
 │   ├── uf_panel_ingame_status.tscn      # Barras de vitals (UfStatusPanel)
 │   └── uf_panel_ingame_loot.tscn       # Rejilla 4×4 de items arrastrables
 ├── widgets/                  # Elementos atómicos reutilizables

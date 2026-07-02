@@ -10,11 +10,12 @@
 [ext_resource type="PackedScene" uid="uid://dbcykjt237grq" path="res://ui/widgets/uf_list.tscn" id="9_jblaq"]
 
 [node name="UfInspectionPanel" type="PanelContainer" unique_id=1540991670]
-custom_minimum_size = Vector2(260, 360)
+custom_minimum_size = Vector2(400, 600)
+custom_maximum_size = Vector2(400, 600)
 offset_left = 1.0
 offset_top = 13.0
-offset_right = 394.0
-offset_bottom = 532.0
+offset_right = 381.0
+offset_bottom = 557.0
 theme = ExtResource("1_theme")
 script = ExtResource("2_inspection")
 title_key = "gui.inspection.title"
@@ -102,16 +103,16 @@ grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
+metadata/_edit_lock_ = true
 
 [node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=981317227 instance=ExtResource("8_se78u")]
 layout_mode = 0
-offset_left = 131.28316
+offset_left = 136.0
 offset_top = 130.0
-offset_right = 171.28316
+offset_right = 176.0
 offset_bottom = 170.0
 tooltip_text = "body"
 layout_center_anchored = true
-layout_center_norm = Vector2(-0.003989657, 0)
 slot_id = &"body"
 
 [node name="UfList" parent="Layout/ContentSlot" unique_id=880794120 instance=ExtResource("9_jblaq")]
