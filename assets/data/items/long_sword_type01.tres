@@ -41,6 +41,7 @@ price_multiplier = 4.0
 [sub_resource type="Resource" id="SpriteRef"]
 script = ExtResource("3_sprite")
 library_path = "res://assets/visuals/equipment/weapons/long_sword/type01.png"
+strip_cell_size = Vector2i(64, 64)
 
 [sub_resource type="Resource" id="State_0"]
 script = ExtResource("4_state")
@@ -94,6 +95,8 @@ sprite_ref = SubResource("SpriteRef")
 inventory_size = Vector2i(3, 1)
 weight = 3.5
 base_price = 120.0
+default_state_index = 1
+default_quality_index = 0
 state_tiers = Array[ExtResource("4_state")]([SubResource("State_0"), SubResource("State_1"), SubResource("State_2"), SubResource("State_3"), SubResource("State_4")])
 quality_tiers = Array[ExtResource("5_quality")]([SubResource("Quality_0"), SubResource("Quality_1"), SubResource("Quality_2"), SubResource("Quality_3")])
 category_data = SubResource("WeaponData")

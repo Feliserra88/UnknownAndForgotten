@@ -6,6 +6,11 @@ extends RefCounted
 const _LOG := "ITM"
 const DIR := "res://assets/data/items"
 const CATEGORIES_DIR := "res://assets/data/item_categories"
+## Default wear tier for new weapon/armor defs: `good` (index 1 in default_weapon_state_tiers).
+const DEFAULT_STATE_INDEX_GOOD := 1
+## Default quality tier: `common` (index 0).
+const DEFAULT_QUALITY_INDEX_COMMON := 0
+const _STRIP_CATEGORIES: Array[StringName] = [&"weapon", &"armor"]
 
 const _Catalog := preload("res://modules/items/_private/item_catalog.gd")
 const _SpriteLibrary := preload("res://modules/items/_private/sprite_library.gd")
@@ -111,7 +116,7 @@ func resolve_strip_icon(
 			column = tier.sprite_index
 	var columns := maxi(1, int(tex.get_width() / maxi(cell_size.x, 1)))
 	column = clampi(column, 0, columns - 1)
-	return _slice_strip(tex, column, cell_size)
+	return _bake_strip_frame(_slice_strip(tex, column, cell_size))
 
 ## Returns every ItemTagDef, optionally limited to [param category_id].
 func list_tag_defs(category_id: StringName = &"") -> Array[ItemTagDef]:
@@ -171,6 +176,7 @@ func resolve_icon(instance: ItemInstance, def: ItemDef = null) -> Texture2D:
 		def = load_def(instance.def_id)
 	if def == null:
 		return null
+	ensure_def_tiers(def)
 	var tier := def.get_state_tier(instance.state_index)
 	if tier != null and tier.icon_override != null:
 		return tier.icon_override
@@ -217,6 +223,7 @@ func resolve_list_row(
 		def = load_def(instance.def_id)
 	if def == null:
 		return {}
+	ensure_def_tiers(def)
 	var state_idx := instance.state_index if instance != null else def.default_state_index
 	var quality_idx := instance.quality_index if instance != null else def.default_quality_index
 	var preview_inst := instance if instance != null else create_instance(def.id, state_idx, quality_idx)
@@ -282,10 +289,30 @@ func create_blank_def(category_id: StringName) -> ItemDef:
 				def.category_data = ValuableItemData.new()
 			&"armor":
 				def.category_data = ArmorItemData.new()
-	else:
-		def.state_tiers = default_weapon_state_tiers()
-		def.quality_tiers = default_quality_tiers()
+	ensure_def_tiers(def)
+	apply_strip_item_defaults(def)
 	return def
+
+## Fills missing tier arrays and clamps default indices (weapon/armor strip items).
+func ensure_def_tiers(def: ItemDef) -> void:
+	if def == null:
+		return
+	if def.state_tiers.is_empty():
+		def.state_tiers = default_weapon_state_tiers()
+	if def.quality_tiers.is_empty():
+		def.quality_tiers = default_quality_tiers()
+	def.default_state_index = clampi(def.default_state_index, 0, maxi(0, def.state_tiers.size() - 1))
+	def.default_quality_index = clampi(def.default_quality_index, 0, maxi(0, def.quality_tiers.size() - 1))
+
+## Sets default wear/quality indices for strip-based equipment categories.
+func apply_strip_item_defaults(def: ItemDef) -> void:
+	if def == null or not _STRIP_CATEGORIES.has(def.category_id):
+		return
+	if def.state_tiers.size() > DEFAULT_STATE_INDEX_GOOD:
+		def.default_state_index = DEFAULT_STATE_INDEX_GOOD
+	else:
+		def.default_state_index = 0
+	def.default_quality_index = DEFAULT_QUALITY_INDEX_COMMON
 
 ## Returns ModifierDef ids that apply to [param instance] (equipped payload + instance modifiers).
 func instance_modifier_ids(instance: ItemInstance) -> Array[StringName]:
@@ -433,6 +460,26 @@ func _effective_strip_cell_size(sprite_ref: ItemSpriteRef) -> Vector2i:
 			if h > 0:
 				return Vector2i(h, h)
 	return Vector2i(64, 64)
+
+func _bake_strip_frame(atlas: AtlasTexture) -> Texture2D:
+	if atlas == null:
+		return null
+	var base_tex: Texture2D = atlas.atlas
+	if base_tex == null:
+		return atlas
+	var img := base_tex.get_image()
+	if img == null or img.is_empty():
+		return atlas
+	var region := atlas.region
+	var region_img := img.get_region(Rect2i(
+		int(region.position.x),
+		int(region.position.y),
+		int(region.size.x),
+		int(region.size.y),
+	))
+	if region_img == null or region_img.is_empty():
+		return atlas
+	return ImageTexture.create_from_image(region_img)
 
 func _make_state_tier(
 	id: StringName,

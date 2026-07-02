@@ -461,7 +461,8 @@ func _build_compatible_item_row(item: ItemDef) -> Control:
 	var entry := _ITEM.new()
 	entry.custom_minimum_size = Vector2(0, 36)
 	var label := _T(item.display_name_key) if not item.display_name_key.is_empty() else String(item.id)
-	entry.setup(item.id, label, item.icon)
+	var row := _items.resolve_list_row(item)
+	entry.setup(item.id, label, row.get("icon", null))
 	return entry
 
 func _rebuild_details() -> void:
