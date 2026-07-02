@@ -54,8 +54,10 @@ var _details_box: VBoxContainer
 var _list_box: VBoxContainer
 var _preview_icon: TextureRect
 var _preview_summary: _PREVIEW_SUMMARY
-var _cols: HSplitContainer
-var _center_right: HSplitContainer
+var _cols: HBoxContainer
+var _col_left: Control
+var _col_center: Control
+var _col_right: Control
 var _center_split: VSplitContainer
 var _id_field: LineEdit
 var _name_key_field: LineEdit
@@ -150,24 +152,29 @@ func _refresh_tag_pickers(reset_filters: bool = false) -> void:
 			_tag_palette_flow.refresh(cat)
 
 func _finalize_layout() -> void:
-	_apply_column_splits()
+	if not is_visible_in_tree():
+		return
+	call_deferred("_apply_column_splits")
 	_apply_center_split()
 
 func _apply_column_splits() -> void:
-	if _cols == null or _cols.size.x < 360:
+	if _cols == null:
 		return
-	var total_w := _cols.size.x
-	var sep_outer := _cols.get_theme_constant("separation", "HSplitContainer")
-	var left_w := int(round(total_w * _COL_LEFT))
-	var center_w := int(round(total_w * _COL_CENTER))
-	var right_w := maxi(int(round(total_w * _COL_RIGHT)), _COL_MIN_RIGHT)
-	left_w = clampi(left_w, _COL_MIN_LEFT, total_w - center_w - right_w - sep_outer - 4)
-	_cols.split_offset = left_w
-	if _center_right == null:
+	var min_total := _COL_MIN_LEFT + _COL_MIN_CENTER + _COL_MIN_RIGHT + 16
+	if _cols.size.x < min_total:
 		return
-	var inner_w := maxi(total_w - left_w - sep_outer, _COL_MIN_CENTER + _COL_MIN_RIGHT)
-	center_w = clampi(center_w, _COL_MIN_CENTER, inner_w - _COL_MIN_RIGHT)
-	_center_right.split_offset = center_w
+	for col in [_col_left, _col_center, _col_right]:
+		if col == null:
+			continue
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		col.custom_minimum_size.x = 0.0
+	if _col_left != null:
+		_col_left.size_flags_stretch_ratio = _COL_LEFT
+	if _col_center != null:
+		_col_center.size_flags_stretch_ratio = _COL_CENTER
+	if _col_right != null:
+		_col_right.size_flags_stretch_ratio = _COL_RIGHT
 
 func _apply_center_split() -> void:
 	if _center_split == null:
@@ -201,17 +208,14 @@ func _build_ui() -> void:
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
 	_build_toolbar(root)
-	_cols = HSplitContainer.new()
+	_cols = HBoxContainer.new()
+	_cols.add_theme_constant_override("separation", _PANEL_SEP)
 	_cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_cols)
-	_build_left_column(_cols)
-	_center_right = HSplitContainer.new()
-	_center_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_center_right.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_cols.add_child(_center_right)
-	_build_center_column(_center_right)
-	_build_right_column(_center_right)
+	_col_left = _build_left_column(_cols)
+	_col_center = _build_center_column(_cols)
+	_col_right = _build_right_column(_cols)
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_label.custom_minimum_size = Vector2(0, 22)
@@ -230,8 +234,8 @@ func _on_parent_resized() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
-		_apply_column_splits()
-		_apply_center_split()
+		if is_visible_in_tree():
+			call_deferred("_finalize_layout")
 	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
 		call_deferred("sync_layout")
 	elif what == NOTIFICATION_TRANSLATION_CHANGED:
@@ -260,10 +264,12 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
 
-func _build_left_column(parent: HSplitContainer) -> void:
+func _build_left_column(parent: HBoxContainer) -> Control:
 	var column := VBoxContainer.new()
+	column.name = "LeftColumn"
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.size_flags_stretch_ratio = _COL_LEFT
 	column.custom_minimum_size.x = 0
 	column.add_theme_constant_override("separation", 4)
 	parent.add_child(column)
@@ -281,11 +287,13 @@ func _build_left_column(parent: HSplitContainer) -> void:
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_child(_details_box)
 	_rebuild_details_form()
+	return column
 
-func _build_center_column(parent: HSplitContainer) -> void:
+func _build_center_column(parent: HBoxContainer) -> Control:
 	var column := VBoxContainer.new()
 	column.name = "CenterColumn"
 	column.custom_minimum_size.x = 0
+	column.size_flags_stretch_ratio = _COL_CENTER
 	column.add_theme_constant_override("separation", _PANEL_SEP)
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -357,10 +365,13 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	_list_box.add_theme_constant_override("separation", 6)
 	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_list_box)
+	return column
 
-func _build_right_column(parent: HSplitContainer) -> void:
+func _build_right_column(parent: HBoxContainer) -> Control:
 	var column := VBoxContainer.new()
+	column.name = "RightColumn"
 	column.custom_minimum_size.x = 0
+	column.size_flags_stretch_ratio = _COL_RIGHT
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(column)
@@ -417,6 +428,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	_tag_filter_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_filter_flow.filter_changed.connect(_on_tag_filter_changed)
 	tag_filter_wrap.body.add_child(_tag_filter_flow)
+	return column
 
 func _rebuild_details_form() -> void:
 	if _details_box == null:

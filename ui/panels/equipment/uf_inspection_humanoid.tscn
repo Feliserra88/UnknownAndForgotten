@@ -15,7 +15,7 @@ offset_top = 5.0
 offset_right = 179.0
 offset_bottom = 45.0
 layout_center_anchored = true
-layout_center_norm = Vector2(2.0101092, -0.34)
+layout_center_norm = Vector2(0.009615385, -0.41666666)
 
 [node name="UfEquipmentRingH" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=1005274802 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -24,7 +24,7 @@ offset_top = 5.0
 offset_right = 133.0
 offset_bottom = 45.0
 layout_center_anchored = true
-layout_center_norm = Vector2(0.78710586, -0.38666666)
+layout_center_norm = Vector2(-0.13782051, -0.41666666)
 
 [node name="UfEquipmentRingL" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=1399838581 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -33,7 +33,7 @@ offset_top = 5.0
 offset_right = 225.78851
 offset_bottom = 45.0
 layout_center_anchored = true
-layout_center_norm = Vector2(0.7300914, 0.37333333)
+layout_center_norm = Vector2(0.15957856, -0.41666666)
 
 [node name="UfEquipmentArms" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=1459081410 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -42,7 +42,7 @@ offset_top = 121.0
 offset_right = 221.89426
 offset_bottom = 161.0
 layout_center_anchored = true
-layout_center_norm = Vector2(0.10863544, -0.033333335)
+layout_center_norm = Vector2(0.14709698, -0.03)
 
 [node name="UfEquipmentBack" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=610156146 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -51,7 +51,7 @@ offset_top = 60.0
 offset_right = 124.94713
 offset_bottom = 100.0
 layout_center_anchored = true
-layout_center_norm = Vector2(0.08316387, 0.18)
+layout_center_norm = Vector2(-0.16363099, -0.23333333)
 
 [node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=2124956090 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -60,7 +60,7 @@ offset_top = 192.0
 offset_right = 178.19427
 offset_bottom = 232.0
 layout_center_anchored = true
-layout_center_norm = Vector2(-0.079505526, 0.18333334)
+layout_center_norm = Vector2(0.0070329322, 0.20666666)
 
 [node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=894582718 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -78,16 +78,16 @@ offset_top = 132.0
 offset_right = 99.00131
 offset_bottom = 172.0
 layout_center_anchored = true
-layout_center_norm = Vector2(-0.13461117, -0.07)
+layout_center_norm = Vector2(-0.24679066, 0.006666667)
 
 [node name="UfEquipmentHandL" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="8" unique_id=261583111 instance=ExtResource("3_60eld")]
 layout_mode = 0
-offset_left = 226.6079
+offset_left = 226.60791
 offset_top = 131.0
 offset_right = 266.6079
 offset_bottom = 171.0
 layout_center_anchored = true
-layout_center_norm = Vector2(0.1525895, -0.08)
+layout_center_norm = Vector2(0.29040998, 0.0033333334)
 
 [node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="9" unique_id=54164175 instance=ExtResource("3_60eld")]
 layout_mode = 0
@@ -97,15 +97,15 @@ offset_right = 180.0
 offset_bottom = 182.0
 tooltip_text = "body"
 layout_center_anchored = true
-layout_center_norm = Vector2(0.4551282, 0.22)
+layout_center_norm = Vector2(0.012820513, 0.04)
 slot_id = &"body"
 
 [node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="10" unique_id=861024505]
 texture = ExtResource("2_60eld")
-metadata/_edit_lock_ = true
 
 [node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="11" unique_id=981317227]
 offset_left = 139.0
 offset_top = 98.0
 offset_right = 179.0
 offset_bottom = 138.0
+layout_center_norm = Vector2(0.009615385, -0.10666667)

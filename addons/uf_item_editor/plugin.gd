@@ -43,7 +43,7 @@ func _make_visible(visible: bool) -> void:
 	if visible:
 		_fit_workspace_to_main_screen()
 		_workspace.ensure_ready()
-		_workspace.sync_layout()
+		_workspace.call_deferred("sync_layout")
 
 func _on_main_screen_resized() -> void:
 	if _workspace != null and _workspace.visible:

@@ -57,8 +57,10 @@ var _appearance: NpcAppearanceController
 var _inspection_holder: VBoxContainer
 var _inspection_panel: UfInspectionPanel
 var _items_box: VBoxContainer
-var _cols: HSplitContainer
-var _center_right: HSplitContainer
+var _cols: HBoxContainer
+var _col_left: Control
+var _col_center: Control
+var _col_right: Control
 var _right_split: VSplitContainer
 var _details_scroll: ScrollContainer
 var _inspection_scroll: ScrollContainer
@@ -127,31 +129,31 @@ func _bootstrap_data() -> void:
 	call_deferred("_finalize_layout")
 
 func _finalize_layout() -> void:
-	_apply_column_splits()
+	if not is_visible_in_tree():
+		return
+	call_deferred("_apply_column_splits")
 	_sync_preview_viewport_size()
 	_sync_right_vertical_split()
 	_center_preview_rig()
 
 func _apply_column_splits() -> void:
-	if _cols == null or _cols.size.x < 480:
+	if _cols == null:
 		return
-	var total_w := _cols.size.x
-	var weight_sum := _COL_LEFT + _COL_CENTER + _COL_RIGHT
-	var left_w := clampi(
-		int(total_w * _COL_LEFT / weight_sum),
-		_COL_MIN_LEFT,
-		total_w - _COL_MIN_CENTER - _COL_MIN_RIGHT - 16,
-	)
-	_cols.split_offset = left_w
-	if _center_right != null:
-		var sep_outer := _cols.get_theme_constant("separation", "HSplitContainer")
-		var inner_w := maxi(total_w - left_w - sep_outer, _COL_MIN_CENTER + _COL_MIN_RIGHT)
-		var center_w := clampi(
-			int(total_w * _COL_CENTER / weight_sum),
-			_COL_MIN_CENTER,
-			inner_w - _COL_MIN_RIGHT,
-		)
-		_center_right.split_offset = center_w
+	var min_total := _COL_MIN_LEFT + _COL_MIN_CENTER + _COL_MIN_RIGHT + 16
+	if _cols.size.x < min_total:
+		return
+	for col in [_col_left, _col_center, _col_right]:
+		if col == null:
+			continue
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		col.custom_minimum_size.x = 0.0
+	if _col_left != null:
+		_col_left.size_flags_stretch_ratio = _COL_LEFT
+	if _col_center != null:
+		_col_center.size_flags_stretch_ratio = _COL_CENTER
+	if _col_right != null:
+		_col_right.size_flags_stretch_ratio = _COL_RIGHT
 	if _right_split != null and _right_split.size.y > _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
 		_sync_right_vertical_split()
 
@@ -204,19 +206,16 @@ func _build_ui() -> void:
 
 	_build_toolbar(root)
 
-	var cols := HSplitContainer.new()
+	var cols := HBoxContainer.new()
+	cols.add_theme_constant_override("separation", _PANEL_SEP)
 	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(cols)
 	_cols = cols
 
-	_build_left_column(cols)
-	_center_right = HSplitContainer.new()
-	_center_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_center_right.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cols.add_child(_center_right)
-	_build_center_column(_center_right)
-	_build_right_column(_center_right)
+	_col_left = _build_left_column(cols)
+	_col_center = _build_center_column(cols)
+	_col_right = _build_right_column(cols)
 
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -270,9 +269,11 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	_action_buttons.append({"button": save, "key": "npc_editor.action.save_todo"})
 	bar.add_child(save)
 
-func _build_left_column(parent: HSplitContainer) -> void:
+func _build_left_column(parent: HBoxContainer) -> Control:
 	var left := ScrollContainer.new()
-	left.custom_minimum_size = Vector2(220, 0)
+	left.name = "LeftColumn"
+	left.custom_minimum_size = Vector2(0, 0)
+	left.size_flags_stretch_ratio = _COL_LEFT
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -283,9 +284,13 @@ func _build_left_column(parent: HSplitContainer) -> void:
 	_details_box.add_theme_constant_override("separation", _FIELD_SEP)
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_child(_details_box)
+	return left
 
-func _build_center_column(parent: HSplitContainer) -> void:
+func _build_center_column(parent: HBoxContainer) -> Control:
 	var center := VBoxContainer.new()
+	center.name = "CenterColumn"
+	center.custom_minimum_size.x = 0
+	center.size_flags_stretch_ratio = _COL_CENTER
 	center.add_theme_constant_override("separation", _FIELD_SEP)
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -330,9 +335,13 @@ func _build_center_column(parent: HSplitContainer) -> void:
 		_orientation_buttons.append({"button": b, "key": "npc_editor.orient.%s" % o})
 		b.text = _T("npc_editor.orient.%s" % o)
 		orient.add_child(b)
+	return center
 
-func _build_right_column(parent: HSplitContainer) -> void:
+func _build_right_column(parent: HBoxContainer) -> Control:
 	var right := VSplitContainer.new()
+	right.name = "RightColumn"
+	right.custom_minimum_size.x = 0
+	right.size_flags_stretch_ratio = _COL_RIGHT
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(right)
@@ -382,6 +391,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	_items_box.add_theme_constant_override("separation", 6)
 	_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_scroll.add_child(_items_box)
+	return right
 
 # --- Population ---------------------------------------------------------------
 
@@ -659,8 +669,11 @@ func _refresh_attribute_total() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
-		_sync_preview_viewport_size()
-		_center_preview_rig()
+		if is_visible_in_tree():
+			call_deferred("_finalize_layout")
+		else:
+			_sync_preview_viewport_size()
+			_center_preview_rig()
 	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
 		call_deferred("sync_layout")
 		if _data_ready:

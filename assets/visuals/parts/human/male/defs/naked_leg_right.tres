@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://wlv52cul0o28"]
+
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+part_id = &"leg_right"
+offset = Vector2(6, 22)

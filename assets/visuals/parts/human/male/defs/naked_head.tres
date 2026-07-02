@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://blgwa22aiegns"]
+
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+part_id = &"head"
+offset = Vector2(0, -22)
+z_index = 2

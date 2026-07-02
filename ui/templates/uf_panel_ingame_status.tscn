@@ -1,154 +1,147 @@
 [gd_scene format=3 uid="uid://defg32crmyps3"]
 
 [ext_resource type="PackedScene" uid="uid://1ro8v8hbpg1g" path="res://ui/templates/uf_panel_ingame.tscn" id="1_base"]
-[ext_resource type="Script" path="res://modules/gui/uf_panel_ingame_status.gd" id="2_status"]
+[ext_resource type="Script" uid="uid://c0d8xd0ig7dn5" path="res://modules/gui/uf_panel_ingame_status.gd" id="2_status"]
 [ext_resource type="PackedScene" uid="uid://davv6wmgpv4hf" path="res://ui/widgets/uf_progress_bar.tscn" id="3_bar"]
 
-[node name="UfStatusPanel" instance=ExtResource("1_base")]
+[node name="UfStatusPanel" unique_id=812562821 instance=ExtResource("1_base")]
 custom_minimum_size = Vector2(240, 360)
 script = ExtResource("2_status")
 title_key = "gui.status.title"
 
-[node name="VitalsList" type="VBoxContainer" parent="Layout/ContentSlot" index="0"]
+[node name="Title" parent="Layout/Header/Body" parent_id_path=PackedInt32Array(503964933) index="0" unique_id=251428798]
+text = "gui.status.title"
+
+[node name="VitalsList" type="VBoxContainer" parent="Layout/ContentSlot" parent_id_path=PackedInt32Array(1022281880) index="0" unique_id=833072429]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="VitalRow_health" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_health" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="0" unique_id=1010339127]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_health"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_health" index="0" unique_id=244590251]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.health"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_health" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_health" index="1" unique_id=78190251 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.85
+value = 85.0
 
-[node name="VitalRow_energy" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_energy" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="1" unique_id=482229927]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_energy"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_energy" index="0" unique_id=1285168232]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.energy"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_energy" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_energy" index="1" unique_id=1712800300 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.72
+value = 72.0
 
-[node name="VitalRow_mana" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_mana" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="2" unique_id=1809513911]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_mana"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_mana" index="0" unique_id=1272997995]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.mana"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_mana" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_mana" index="1" unique_id=1579609379 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.0
+value = 0.0
 
-[node name="VitalRow_sanity" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_sanity" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="3" unique_id=858973950]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_sanity"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_sanity" index="0" unique_id=614864855]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.sanity"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_sanity" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_sanity" index="1" unique_id=903334034 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.9
+value = 90.0
 
-[node name="VitalRow_morale" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_morale" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="4" unique_id=505642413]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_morale"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_morale" index="0" unique_id=1644493117]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.morale"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_morale" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_morale" index="1" unique_id=1125354103 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.8
+value = 80.0
 
-[node name="VitalRow_hunger" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_hunger" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="5" unique_id=2005795270]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_hunger"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_hunger" index="0" unique_id=1713933794]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.hunger"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_hunger" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_hunger" index="1" unique_id=2025832658 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.65
+value = 65.0
 
-[node name="VitalRow_thirst" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_thirst" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="6" unique_id=498624977]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_thirst"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_thirst" index="0" unique_id=2015561022]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.thirst"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_thirst" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_thirst" index="1" unique_id=1446767499 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.55
+value = 55.0
 
-[node name="VitalRow_fatigue" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_fatigue" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="7" unique_id=1495387944]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_fatigue"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_fatigue" index="0" unique_id=1045020415]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.fatigue"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_fatigue" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_fatigue" index="1" unique_id=1342814160 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.2
+value = 20.0
 
-[node name="VitalRow_encumbrance" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_encumbrance" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="8" unique_id=1552629834]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_encumbrance"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_encumbrance" index="0" unique_id=1937649724]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.encumbrance"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_encumbrance" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_encumbrance" index="1" unique_id=1304155519 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.1
+value = 10.0
 
-[node name="VitalRow_temperature" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList"]
+[node name="VitalRow_temperature" type="HBoxContainer" parent="Layout/ContentSlot/VitalsList" index="9" unique_id=459463361]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_temperature"]
+[node name="Label" type="Label" parent="Layout/ContentSlot/VitalsList/VitalRow_temperature" index="0" unique_id=272385823]
 custom_minimum_size = Vector2(92, 0)
 layout_mode = 2
 text = "gui.vital.temperature"
 
-[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_temperature" instance=ExtResource("3_bar")]
+[node name="Bar" parent="Layout/ContentSlot/VitalsList/VitalRow_temperature" index="1" unique_id=235316220 instance=ExtResource("3_bar")]
 layout_mode = 2
-size_flags_horizontal = 3
-ratio = 0.58
+value = 58.0

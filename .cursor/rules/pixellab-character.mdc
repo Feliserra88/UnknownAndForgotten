@@ -22,7 +22,7 @@ Diseño rig: `docs/GAME_DESIGN.md` §5.4–5.5, `assets/visuals/parts/human/male
 
 | Necesidad | PixelLab | Destino Godot |
 |-----------|----------|---------------|
-| Idle 4-dir por parte anatómica | `create_8_direction_object` | `loincloth/<part>/{view}_idle.png` |
+| Idle 4-dir por parte anatómica | `create_8_direction_object` | `naked/<part>/{view}_idle.png` |
 | Walk 4-dir por parte | `animate_object` (`mode=v3`, `directions=[south,north,east,west]`) | `{view}_walk.png` (strip) |
 | Coherencia entre partes | `style_image_base64` del torso sur | Tras generar `body` |
 
@@ -45,7 +45,7 @@ Añadir por parte: torso+taparrabos, cabeza, brazo, pierna (ver README).
 
 1. `get_object(object_id)` cuando `status=completed`.
 2. Manifest JSON → `tools/import_pixellab_cutout_object.gd`.
-3. `tools/build_loincloth_part_defs.gd` → actualizar `.tres`.
+3. `tools/build_human_cutout_part_defs.gd -- naked` → actualizar `.tres`.
 4. Ajustar offsets en `uf_npc_editor`.
 
 ## Prohibido

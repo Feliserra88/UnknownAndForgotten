@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://brnkaet8g22xe"]
+
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1_m3m53"]
+[ext_resource type="Texture2D" uid="uid://dilyx624r5co1" path="res://assets/visuals/parts/human/male/_dummy/arm_right/front_idle.png" id="2_tceh1"]
+[ext_resource type="Texture2D" uid="uid://snoug0v1wi81" path="res://assets/visuals/parts/human/male/_dummy/arm_right/back_idle.png" id="3_ndjma"]
+[ext_resource type="Texture2D" uid="uid://bo58tto6sbiek" path="res://assets/visuals/parts/human/male/_dummy/arm_right/side_right_idle.png" id="4_a0p07"]
+[ext_resource type="Texture2D" uid="uid://bug3c0amdidpm" path="res://assets/visuals/parts/human/male/_dummy/arm_right/front_walk.png" id="5_205v4"]
+[ext_resource type="Texture2D" uid="uid://ysb1qstgdv6h" path="res://assets/visuals/parts/human/male/_dummy/arm_right/back_walk.png" id="6_qf4kr"]
+[ext_resource type="Texture2D" uid="uid://cym21hq6qdjip" path="res://assets/visuals/parts/human/male/_dummy/arm_right/side_right_walk.png" id="7_sfbiw"]
+
+[resource]
+script = ExtResource("1_m3m53")
+part_id = &"arm_right"
+textures = {
+&"back": ExtResource("3_ndjma"),
+&"front": ExtResource("2_tceh1"),
+&"side_right": ExtResource("4_a0p07")
+}
+walk_textures = {
+&"back": ExtResource("6_qf4kr"),
+&"front": ExtResource("5_205v4"),
+&"side_right": ExtResource("7_sfbiw")
+}
+offset = Vector2(13, -2)
+z_index = 1

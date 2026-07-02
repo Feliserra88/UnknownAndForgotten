@@ -11,7 +11,7 @@ extends Resource
 @export_group("Walk")
 ## Walk strip textures keyed by orientation (horizontal strip, [member walk_hframes] columns).
 @export var walk_textures: Dictionary = {}
-@export var walk_hframes: int = 5
+@export var walk_hframes: int = 8
 @export var walk_fps: float = 8.0
 @export_group("Placeholder")
 @export var placeholder_color: Color = Color(0.8, 0.7, 0.6)
