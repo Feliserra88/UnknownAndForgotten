@@ -3,6 +3,7 @@ extends Control
 ## Item editor workspace: left properties, center browse list, right actions and filters.
 
 const _ROW := preload("res://addons/uf_item_editor/item_list_row.gd")
+const _ITEM_FILTER_LIST := preload("res://addons/uf_item_editor/item_filter_list.gd")
 const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
 const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
 const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
@@ -47,11 +48,10 @@ var _status_label: Label
 var _save_btn: Button
 var _action_buttons: Array[Dictionary] = []
 var _locale_labels: Array[Dictionary] = []
-var _tag_filter_flow: _TAG_FLOW
 var _tag_palette_flow: _TAG_FLOW
 var _tag_assign_zone: _TAG_ZONE
 var _details_box: VBoxContainer
-var _list_box: VBoxContainer
+var _item_filter_list: _ITEM_FILTER_LIST
 var _preview_icon: TextureRect
 var _preview_summary: _PREVIEW_SUMMARY
 var _cols: HBoxContainer
@@ -119,11 +119,11 @@ func _bootstrap_data() -> void:
 
 func _refresh_tag_pickers(reset_filters: bool = false) -> void:
 	var cat := _current_category_id()
-	if _tag_filter_flow != null:
+	if _item_filter_list != null:
 		if reset_filters:
-			_tag_filter_flow.configure(_TAG_CHIP.Mode.FILTER, _items, cat)
+			_item_filter_list.set_tag_category(cat)
 		else:
-			_tag_filter_flow.refresh(cat)
+			_item_filter_list.refresh_tag_picker()
 	if _tag_palette_flow != null:
 		if reset_filters:
 			_tag_palette_flow.configure(_TAG_CHIP.Mode.PALETTE, _items, cat)
@@ -333,18 +333,12 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	list_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list_pane.custom_minimum_size = Vector2(0, _CENTER_LIST_MIN)
 	_center_split.add_child(list_pane)
-	var list_body := _mount_section(list_pane, "item_editor.block.selectable_items", true)
-	var scroll := ScrollContainer.new()
-	scroll.name = "BrowseListScroll"
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	list_body.add_child(scroll)
-	_list_box = VBoxContainer.new()
-	_list_box.add_theme_constant_override("separation", 6)
-	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_list_box)
+	_item_filter_list = _ITEM_FILTER_LIST.new()
+	_item_filter_list.setup(_items, &"", _CENTER_LIST_MIN)
+	_item_filter_list.filter_changed.connect(_on_item_list_filter_changed)
+	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list_pane.add_child(_item_filter_list)
 	return column
 
 func _build_right_column(parent: HBoxContainer) -> Control:
@@ -395,14 +389,6 @@ func _build_right_column(parent: HBoxContainer) -> Control:
 	_state_option.item_selected.connect(_on_art_strip_state_changed)
 	_modifier_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_modifier"))
 	_modifier_option.item_selected.connect(_on_preview_modifier_changed)
-	_section_gap(box)
-	var tag_filter_wrap := _BLOCK.create("item_editor.block.tag_filter")
-	_register_block_title(tag_filter_wrap)
-	box.add_child(tag_filter_wrap.block)
-	_tag_filter_flow = _TAG_FLOW.new()
-	_tag_filter_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_tag_filter_flow.filter_changed.connect(_on_tag_filter_changed)
-	tag_filter_wrap.body.add_child(_tag_filter_flow)
 	return column
 
 func _rebuild_details_form() -> void:
@@ -619,42 +605,57 @@ func _active_selection_key() -> String:
 	return _draft_selection_key()
 
 func _update_list_selection() -> void:
+	if _item_filter_list == null:
+		return
 	var active := _active_selection_key()
-	for child in _list_box.get_children():
-		if child is _ROW:
-			var row: _ROW = child
-			row.set_selected(_row_selection_key(row.get_meta_data()) == active and not active.is_empty())
+	_item_filter_list.update_row_selection(func(meta: Dictionary) -> bool:
+		return _row_selection_key(meta) == active and not active.is_empty()
+	)
+
+func _configure_item_filter_list() -> void:
+	if _item_filter_list == null:
+		return
+	if _browse_mode == &"art":
+		_item_filter_list.set_list_populator(_populate_art_list_rows)
+		_item_filter_list.configure_query({
+			"empty_message": _T("item_editor.list.no_art"),
+			"row_builder": Callable(),
+		})
+	else:
+		_item_filter_list.set_list_populator(Callable())
+		_item_filter_list.configure_query({
+			"category_id": _current_category_id(),
+			"exclude_placeholders": false,
+			"empty_message": _T("item_editor.list.no_items"),
+			"row_builder": _build_item_editor_row,
+		})
 
 func _rebuild_list() -> void:
-	if _list_box == null:
+	if _item_filter_list == null:
 		return
-	_clear_list_box()
-	var tag_filter: Array[StringName] = []
-	if _tag_filter_flow != null:
-		tag_filter = _tag_filter_flow.get_active_filter_tags()
-	if _browse_mode == &"art":
-		_append_sprite_rows(tag_filter)
-	else:
-		_append_item_rows(tag_filter)
+	_configure_item_filter_list()
+	_item_filter_list.refresh()
 	_update_list_selection()
 
-func _clear_list_box() -> void:
-	for child in _list_box.get_children():
-		_list_box.remove_child(child)
-		child.free()
+func _on_item_list_filter_changed(_active_tags: Array[StringName]) -> void:
+	_update_list_selection()
 
-func _on_tag_filter_changed(_active_tags: Array[StringName]) -> void:
-	call_deferred("_rebuild_list")
+func _build_item_editor_row(item: ItemDef) -> Control:
+	var row := _ROW.new()
+	row.custom_minimum_size = Vector2(0, 80)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row_data := _items.resolve_list_row(item, _preview_modifier_ids, _modifier)
+	row.setup(row_data, false)
+	row.row_selected.connect(_on_row_selected)
+	return row
 
-func _append_sprite_rows(active_tags: Array[StringName]) -> void:
+func _populate_art_list_rows(active_tags: Array[StringName]) -> Array[Control]:
+	var rows: Array[Control] = []
 	var family := _current_family_filter()
 	var entries := _items.list_sprite_templates(_current_category_id(), family)
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return String(a.get("label", "")) < String(b.get("label", ""))
 	)
-	if entries.is_empty():
-		_list_box.add_child(_body_label(_T("item_editor.list.no_art")))
-		return
 	for entry in entries:
 		if not active_tags.is_empty():
 			var entry_tags := _items.infer_template_tags(entry)
@@ -669,35 +670,16 @@ func _append_sprite_rows(active_tags: Array[StringName]) -> void:
 		var row := _ROW.new()
 		row.custom_minimum_size = Vector2(0, 64)
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_list_box.add_child(row)
 		row.setup(row_data, true)
 		row.row_selected.connect(_on_row_selected)
+		rows.append(row)
+	return rows
 
 func _preview_state_tiers() -> Array[ItemStateTierDef]:
 	var cat := _items.load_category(_current_category_id())
 	if cat != null and not cat.default_state_tiers.is_empty():
 		return cat.default_state_tiers
 	return _items.default_weapon_state_tiers()
-
-func _append_item_rows(active_tags: Array[StringName]) -> void:
-	var filter := {"category_id": _current_category_id()}
-	if not active_tags.is_empty():
-		filter["tags_any"] = active_tags
-	var defs := _items.list_defs(filter)
-	defs.sort_custom(func(a: ItemDef, b: ItemDef) -> bool:
-		return String(a.id) < String(b.id)
-	)
-	if defs.is_empty():
-		_list_box.add_child(_body_label(_T("item_editor.list.no_items")))
-		return
-	for def in defs:
-		var row_data := _items.resolve_list_row(def, _preview_modifier_ids, _modifier)
-		var row := _ROW.new()
-		row.custom_minimum_size = Vector2(0, 80)
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_list_box.add_child(row)
-		row.setup(row_data, false)
-		row.row_selected.connect(_on_row_selected)
 
 func _on_row_selected(meta: Dictionary) -> void:
 	_selected_meta = meta
@@ -1100,10 +1082,11 @@ func _refresh_localized_ui() -> void:
 		_populate_categories()
 		_populate_art_strip_states()
 		_populate_item_modifiers()
-		if _tag_filter_flow != null:
-			_tag_filter_flow.refresh(_current_category_id())
 		if _tag_palette_flow != null:
 			_tag_palette_flow.refresh(_current_category_id())
+		if _item_filter_list != null:
+			_configure_item_filter_list()
+			_item_filter_list.refresh_tag_picker()
 		if _tag_assign_zone != null and _draft != null:
 			_tag_assign_zone.set_tags(_draft.tags)
 		elif _tag_assign_zone != null:

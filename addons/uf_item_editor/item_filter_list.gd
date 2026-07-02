@@ -21,6 +21,7 @@ var _archetype_tags: Array = []
 var _exclude_placeholders: bool = true
 var _equippable_only: bool = false
 var _row_builder: Callable = Callable()
+var _list_populator: Callable = Callable()
 var _empty_message: String = ""
 
 func _init() -> void:
@@ -49,22 +50,30 @@ func _init() -> void:
 	header.add_theme_font_size_override("font_size", 13)
 	header.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
 	header.custom_minimum_size = Vector2(0, 18)
+	header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	inner.add_child(header)
 
 	_tag_flow = _TAG_FLOW.new()
+	_tag_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tag_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_flow.filter_changed.connect(_on_tag_filter_changed)
 	inner.add_child(_tag_flow)
 
 	_scroll = ScrollContainer.new()
+	_scroll.name = "ItemListScroll"
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll.size_flags_stretch_ratio = 1.0
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_scroll.clip_contents = true
 	inner.add_child(_scroll)
 
 	_list_box = VBoxContainer.new()
+	_list_box.name = "ItemListBox"
 	_list_box.add_theme_constant_override("separation", 6)
 	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_scroll.add_child(_list_box)
 
 ## Binds [param items] and configures the tag chip palette ([param tag_category_id] empty = all tags).
@@ -86,6 +95,20 @@ func configure_query(options: Dictionary) -> void:
 func set_archetype_tags(tags: Array) -> void:
 	_archetype_tags = tags
 
+func set_list_populator(callable: Callable) -> void:
+	_list_populator = callable
+
+func set_tag_category(category_id: StringName) -> void:
+	_tag_category_id = category_id
+	if _items != null and _tag_flow != null:
+		_tag_flow.configure(_TAG_CHIP.Mode.FILTER, _items, category_id)
+
+func update_row_selection(is_selected: Callable) -> void:
+	for child in _list_box.get_children():
+		if child.has_method("set_selected") and child.has_method("get_meta_data"):
+			var meta: Dictionary = child.get_meta_data()
+			child.set_selected(is_selected.call(meta))
+
 func get_scroll() -> ScrollContainer:
 	return _scroll
 
@@ -95,6 +118,18 @@ func count_matching() -> int:
 func refresh() -> void:
 	_clear_list()
 	if _items == null:
+		return
+	if _list_populator.is_valid():
+		var tag_filter := _tag_flow.get_active_filter_tags() if _tag_flow != null else []
+		var rows: Array = _list_populator.call(tag_filter)
+		if rows.is_empty():
+			_add_empty_row()
+		else:
+			for row in rows:
+				if row is Control:
+					var ctrl := row as Control
+					ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					_list_box.add_child(ctrl)
 		return
 	var defs := _query_defs()
 	if defs.is_empty():
@@ -107,6 +142,7 @@ func refresh() -> void:
 		if row != null:
 			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			_list_box.add_child(row)
+	_sync_scroll_area()
 
 func refresh_tag_picker() -> void:
 	if _tag_flow != null and _items != null:

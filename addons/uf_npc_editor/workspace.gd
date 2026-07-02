@@ -267,9 +267,6 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(center)
 
-	center.add_child(_tracked_section_label("npc_editor.preview"))
-	center.add_child(HSeparator.new())
-
 	_preview_view = _NPC_PREVIEW.new()
 	_preview_view.set_translate_fn(_T)
 	_preview_view.orientation_changed.connect(_on_preview_orientation_changed)

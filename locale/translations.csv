@@ -69,6 +69,7 @@ faction.chaos.name,Chaos,Caos
 faction.undead.name,Undead,No muertos
 modifier.dummy.name,Dummy trait,Rasgo dummy
 npc_editor.title,NPC Editor,Editor de PNJ
+npc_editor.block.npc_viewer,NPC viewer,Visor NPC
 npc_editor.details,Details,Detalles
 npc_editor.preview,Preview,Vista previa
 npc_editor.preview.rotate_left,Rotate view left,Girar vista a la izquierda

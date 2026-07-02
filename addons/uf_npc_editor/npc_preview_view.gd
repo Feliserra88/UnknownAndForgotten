@@ -1,11 +1,12 @@
 @tool
-extends VBoxContainer
-## Reusable NPC rig preview: SubViewport canvas + rotate-left/right + walk/stop toggle.
+extends PanelContainer
+## Reusable NPC rig preview block: titled panel, viewport canvas, rotate + walk/stop controls.
 
 signal orientation_changed(orientation: StringName)
 signal moving_changed(moving: bool)
 
-const _LAYOUT := preload("res://addons/uf_npc_editor/editor_layout.gd")
+const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
+const _TITLE_KEY := "npc_editor.block.npc_viewer"
 
 const VIEWPORT_SIZE := Vector2i(320, 320)
 const PREVIEW_SCALE := 3.0
@@ -14,6 +15,7 @@ const BTN_H := 26
 const ROTATE_BTN_W := 36
 const WALK_BTN_W := 88
 
+var _header_label: Label
 var _viewport: SubViewport
 var _camera: Camera2D
 var _appearance: NpcAppearanceController
@@ -28,18 +30,40 @@ var _moving: bool = false
 func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	add_theme_constant_override("separation", 6)
+	add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
 
-	var frame := Panel.new()
-	frame.custom_minimum_size = Vector2(240, 240)
-	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	add_child(frame)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	add_child(margin)
+
+	var inner := VBoxContainer.new()
+	inner.add_theme_constant_override("separation", 6)
+	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	margin.add_child(inner)
+
+	_header_label = Label.new()
+	_header_label.add_theme_font_size_override("font_size", 13)
+	_header_label.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
+	_header_label.custom_minimum_size = Vector2(0, 18)
+	inner.add_child(_header_label)
+
+	var preview_frame := PanelContainer.new()
+	preview_frame.custom_minimum_size = Vector2(240, 240)
+	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	preview_frame.add_theme_stylebox_override("panel", _BLOCK.make_preview_style())
+	inner.add_child(preview_frame)
 
 	var preview_svc := SubViewportContainer.new()
 	preview_svc.stretch = true
 	preview_svc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	frame.add_child(preview_svc)
+	preview_frame.add_child(preview_svc)
 
 	_viewport = SubViewport.new()
 	_viewport.size = VIEWPORT_SIZE
@@ -58,7 +82,7 @@ func _init() -> void:
 	controls.alignment = BoxContainer.ALIGNMENT_CENTER
 	controls.add_theme_constant_override("separation", 6)
 	controls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(controls)
+	inner.add_child(controls)
 
 	_rotate_left_btn = Button.new()
 	_rotate_left_btn.custom_minimum_size = Vector2(ROTATE_BTN_W, BTN_H)
@@ -187,6 +211,8 @@ func _center_rig() -> void:
 
 func _refresh_control_labels() -> void:
 	var tr := _tr
+	if _header_label != null:
+		_header_label.text = tr.call(_TITLE_KEY)
 	_rotate_left_btn.text = "←"
 	_rotate_right_btn.text = "→"
 	_rotate_left_btn.tooltip_text = tr.call("npc_editor.preview.rotate_left")
