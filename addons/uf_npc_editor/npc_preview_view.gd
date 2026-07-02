@@ -6,6 +6,7 @@ signal orientation_changed(orientation: StringName)
 signal moving_changed(moving: bool)
 
 const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
+const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
 const _TITLE_KEY := "npc_editor.block.npc_viewer"
 
 const VIEWPORT_SIZE := Vector2i(320, 320)
@@ -22,7 +23,7 @@ var _appearance: NpcAppearanceController
 var _rotate_left_btn: Button
 var _rotate_right_btn: Button
 var _walk_btn: Button
-var _translate_fn: Callable = Callable()
+var _built: bool = false
 
 var _orientation: StringName = &"front"
 var _moving: bool = false
@@ -30,6 +31,15 @@ var _moving: bool = false
 func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
+func _ready() -> void:
+	_ensure_built()
+	_refresh_control_labels()
+
+func _ensure_built() -> void:
+	if _built:
+		return
+	_built = true
 	add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
 
 	var margin := MarginContainer.new()
@@ -48,9 +58,7 @@ func _init() -> void:
 	margin.add_child(inner)
 
 	_header_label = Label.new()
-	_header_label.add_theme_font_size_override("font_size", 13)
-	_header_label.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
-	_header_label.custom_minimum_size = Vector2(0, 18)
+	_BLOCK.style_block_header(_header_label)
 	inner.add_child(_header_label)
 
 	var preview_frame := PanelContainer.new()
@@ -103,12 +111,6 @@ func _init() -> void:
 	_walk_btn.toggled.connect(_on_walk_toggled)
 	controls.add_child(_walk_btn)
 
-	_refresh_control_labels()
-
-func set_translate_fn(fn: Callable) -> void:
-	_translate_fn = fn
-	_refresh_control_labels()
-
 func get_orientation() -> StringName:
 	return _orientation
 
@@ -120,6 +122,7 @@ func get_appearance() -> NpcAppearanceController:
 
 ## Rebuilds the rig from [param archetype] and applies [param orientation] (resets walk to idle).
 func rebuild(archetype: NpcArchetype, orientation: StringName = &"front") -> void:
+	_ensure_built()
 	_orientation = orientation
 	_set_moving(false, false)
 	_clear_rig()
@@ -138,6 +141,7 @@ func sync_equipment(
 	equipment: EquipmentModule,
 	items: ItemsModule,
 ) -> void:
+	_ensure_built()
 	if _appearance == null or instance == null:
 		return
 	for slot in instance.equipment.occupied_slots():
@@ -155,6 +159,10 @@ func sync_equipment(
 			_appearance.clear_equipment(slot)
 
 func refresh_localized_controls() -> void:
+	if not is_inside_tree():
+		call_deferred("refresh_localized_controls")
+		return
+	_ensure_built()
 	_refresh_control_labels()
 
 func _on_rotate_left() -> void:
@@ -194,6 +202,8 @@ func _clear_rig() -> void:
 	if _appearance != null and is_instance_valid(_appearance):
 		_appearance.queue_free()
 	_appearance = null
+	if _viewport == null:
+		return
 	for child in _viewport.get_children():
 		if child != _camera:
 			child.queue_free()
@@ -210,25 +220,22 @@ func _center_rig() -> void:
 		_camera.reset_smoothing()
 
 func _refresh_control_labels() -> void:
-	var tr := _tr
-	if _header_label != null:
-		_header_label.text = tr.call(_TITLE_KEY)
+	if not _built or _header_label == null:
+		return
+	_I18N.ensure_loaded()
+	_header_label.text = _I18N.translate_key(_TITLE_KEY)
 	_rotate_left_btn.text = "←"
 	_rotate_right_btn.text = "→"
-	_rotate_left_btn.tooltip_text = tr.call("npc_editor.preview.rotate_left")
-	_rotate_right_btn.tooltip_text = tr.call("npc_editor.preview.rotate_right")
+	_rotate_left_btn.tooltip_text = _I18N.translate_key("npc_editor.preview.rotate_left")
+	_rotate_right_btn.tooltip_text = _I18N.translate_key("npc_editor.preview.rotate_right")
 	_refresh_walk_label()
 
 func _refresh_walk_label() -> void:
-	var tr := _tr
+	if not _built or _walk_btn == null:
+		return
 	if _moving:
-		_walk_btn.text = tr.call("npc_editor.preview.stop")
-		_walk_btn.tooltip_text = tr.call("npc_editor.preview.stop_hint")
+		_walk_btn.text = _I18N.translate_key("npc_editor.preview.stop")
+		_walk_btn.tooltip_text = _I18N.translate_key("npc_editor.preview.stop_hint")
 	else:
-		_walk_btn.text = tr.call("npc_editor.preview.walk")
-		_walk_btn.tooltip_text = tr.call("npc_editor.preview.walk_hint")
-
-func _tr(key: String) -> String:
-	if _translate_fn.is_valid():
-		return String(_translate_fn.call(key))
-	return key
+		_walk_btn.text = _I18N.translate_key("npc_editor.preview.walk")
+		_walk_btn.tooltip_text = _I18N.translate_key("npc_editor.preview.walk_hint")

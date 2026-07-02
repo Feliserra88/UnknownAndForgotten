@@ -9,7 +9,6 @@ func setup_compatible(row_data: Dictionary) -> void:
 	_item_id = row_data.get("id", &"")
 	setup(row_data, false)
 	tooltip_text = String(_item_id)
-	_pass_mouse_to_root(self)
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	if String(_item_id).is_empty():
@@ -19,9 +18,3 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.text = _I18N.translate_key(key) if not key.is_empty() else String(_item_id)
 	set_drag_preview(preview)
 	return {"type": UfEquipmentSlot.PAYLOAD_TYPE, "item_id": _item_id}
-
-func _pass_mouse_to_root(node: Node) -> void:
-	if node is Control and node != self:
-		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS
-	for child in node.get_children():
-		_pass_mouse_to_root(child)

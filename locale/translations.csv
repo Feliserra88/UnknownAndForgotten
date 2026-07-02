@@ -166,7 +166,7 @@ item_editor.filter.all,(all),(todos)
 item_editor.filter.none,(none),(ninguno)
 item_editor.block.definition,Item definition,Definición del item
 item_editor.block.properties,Core properties,Propiedades base
-item_editor.block.tags,Tags,Etiquetas
+item_editor.block.tags,Tags,Tags
 item_editor.block.tiers,State and quality tiers,Tiers de estado y calidad
 item_editor.block.state_tiers,State tiers,Tiers de estado
 item_editor.block.quality_tiers,Quality tiers,Tiers de calidad

@@ -335,7 +335,9 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	_center_split.add_child(list_pane)
 	_item_filter_list = _ITEM_FILTER_LIST.new()
 	_item_filter_list.setup(_items, &"", _CENTER_LIST_MIN)
+	_item_filter_list.set_selection_key_fn(_row_selection_key)
 	_item_filter_list.filter_changed.connect(_on_item_list_filter_changed)
+	_item_filter_list.item_selected.connect(_on_row_selected)
 	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list_pane.add_child(_item_filter_list)
@@ -415,9 +417,8 @@ func _rebuild_details_form() -> void:
 	_def_quality_option = _add_option_field_to(props_wrap.body, _T("item_editor.field.quality"))
 	_def_quality_option.item_selected.connect(_on_def_quality_changed)
 	_section_gap(_details_box)
-	var tags_wrap := _BLOCK.create("item_editor.block.tags")
-	_register_block_title(tags_wrap)
-	_details_box.add_child(tags_wrap.block)
+	var tags_wrap := _BLOCK.create_bordered_panel("item_editor.block.tags")
+	_details_box.add_child(tags_wrap.panel)
 	_tag_palette_flow = _TAG_FLOW.new()
 	_tag_palette_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_palette_flow.palette_tag_selected.connect(_on_palette_tag_selected)
@@ -607,10 +608,7 @@ func _active_selection_key() -> String:
 func _update_list_selection() -> void:
 	if _item_filter_list == null:
 		return
-	var active := _active_selection_key()
-	_item_filter_list.update_row_selection(func(meta: Dictionary) -> bool:
-		return _row_selection_key(meta) == active and not active.is_empty()
-	)
+	_item_filter_list.set_selection_key(_active_selection_key())
 
 func _configure_item_filter_list() -> void:
 	if _item_filter_list == null:
@@ -646,7 +644,6 @@ func _build_item_editor_row(item: ItemDef) -> Control:
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row_data := _items.resolve_list_row(item, _preview_modifier_ids, _modifier)
 	row.setup(row_data, false)
-	row.row_selected.connect(_on_row_selected)
 	return row
 
 func _populate_art_list_rows(active_tags: Array[StringName]) -> Array[Control]:
@@ -671,7 +668,6 @@ func _populate_art_list_rows(active_tags: Array[StringName]) -> Array[Control]:
 		row.custom_minimum_size = Vector2(0, 64)
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.setup(row_data, true)
-		row.row_selected.connect(_on_row_selected)
 		rows.append(row)
 	return rows
 
@@ -684,7 +680,6 @@ func _preview_state_tiers() -> Array[ItemStateTierDef]:
 func _on_row_selected(meta: Dictionary) -> void:
 	_selected_meta = meta
 	_selected_list_key = _row_selection_key(meta)
-	_update_list_selection()
 	_refresh_preview_panel()
 
 func _on_category_changed(_idx: int) -> void:
@@ -1111,3 +1106,5 @@ func _refresh_localized_strings() -> void:
 				(node as CheckBox).text = text
 		elif node is Label:
 			(node as Label).text = text
+	if _item_filter_list != null:
+		_item_filter_list.refresh_localized_controls()

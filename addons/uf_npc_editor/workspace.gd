@@ -268,13 +268,14 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	parent.add_child(center)
 
 	_preview_view = _NPC_PREVIEW.new()
-	_preview_view.set_translate_fn(_T)
 	_preview_view.orientation_changed.connect(_on_preview_orientation_changed)
 	_preview_view.moving_changed.connect(_on_preview_moving_changed)
 	center.add_child(_preview_view)
 
 	_item_filter_list = _ITEM_FILTER_LIST.new()
+	_item_filter_list.set_title_key("npc_editor.compatible_items")
 	_item_filter_list.setup(_items, &"", _ITEMS_PANEL_MIN_H)
+	_item_filter_list.set_selection_key_fn(_compatible_item_selection_key)
 	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.add_child(_item_filter_list)
@@ -452,6 +453,14 @@ func _rebuild_items() -> void:
 	_item_filter_list.set_archetype_tags(tags)
 	_item_filter_list.refresh_tag_picker()
 	_item_filter_list.refresh()
+	_update_compatible_list_selection()
+
+func _compatible_item_selection_key(meta: Dictionary) -> String:
+	return "item:%s" % String(meta.get("id", ""))
+
+func _update_compatible_list_selection() -> void:
+	if _item_filter_list != null:
+		_item_filter_list.set_selection_key(_item_filter_list.get_selection_key())
 
 func _build_compatible_item_row(item: ItemDef) -> Control:
 	var entry := _ITEM.new()
@@ -627,8 +636,6 @@ func _refresh_localized_ui() -> void:
 			_rebuild_items()
 			_rebuild_details()
 			_refresh_attribute_total()
-	if _preview_view != null:
-		_preview_view.refresh_localized_controls()
 	_localizing = false
 
 func _refresh_localized_strings() -> void:
@@ -642,6 +649,10 @@ func _refresh_localized_strings() -> void:
 			continue
 		if node is Label:
 			(node as Label).text = _T(spec.key)
+	if _preview_view != null:
+		_preview_view.refresh_localized_controls()
+	if _item_filter_list != null:
+		_item_filter_list.refresh_localized_controls()
 
 func _toolbar_option() -> OptionButton:
 	var opt := OptionButton.new()

@@ -1,28 +1,31 @@
 @tool
 extends VBoxContainer
-## Grid of tag chips for list filtering (toggle) or palette (drag source).
+## Flow of tag chips for list filtering (toggle) or palette (drag source).
 
 signal filter_changed(active_tags: Array[StringName])
 signal palette_tag_selected(tag_id: StringName)
 
 const _CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
-const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
 const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
 const _FILTER_BTN_H := 22
-const _FILTER_FLOW_SEP := 4
+const _FLOW_SEP := 4
 
 var _mode: int = _CHIP.Mode.FILTER
 var _items: ItemsModule
-var _container: Container
+var _flow: FlowContainer
 var _active: Dictionary = {}
 
 func _init() -> void:
 	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_set_container_for_mode(_mode)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_flow = FlowContainer.new()
+	_flow.add_theme_constant_override("h_separation", _FLOW_SEP)
+	_flow.add_theme_constant_override("v_separation", _FLOW_SEP)
+	_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	add_child(_flow)
 
 func configure(mode: int, items: ItemsModule, category_id: StringName) -> void:
-	if _mode != mode:
-		_set_container_for_mode(mode)
 	_mode = mode
 	_items = items
 	_active.clear()
@@ -42,7 +45,7 @@ func get_active_filter_tags() -> Array[StringName]:
 
 func clear_filter() -> void:
 	_active.clear()
-	for child in _container.get_children():
+	for child in _flow.get_children():
 		if child is Button:
 			var btn := child as Button
 			btn.button_pressed = false
@@ -50,22 +53,8 @@ func clear_filter() -> void:
 		elif child is _CHIP:
 			(child as _CHIP).set_filter_active(false)
 
-func _set_container_for_mode(mode: int) -> void:
-	if _container != null:
-		remove_child(_container)
-		_container.queue_free()
-	if mode == _CHIP.Mode.FILTER:
-		var flow := FlowContainer.new()
-		flow.add_theme_constant_override("h_separation", _FILTER_FLOW_SEP)
-		flow.add_theme_constant_override("v_separation", _FILTER_FLOW_SEP)
-		flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_container = flow
-	else:
-		_container = _BLOCK.create_button_grid()
-	add_child(_container)
-
 func _rebuild(defs: Array[ItemTagDef]) -> void:
-	for child in _container.get_children():
+	for child in _flow.get_children():
 		child.queue_free()
 	for def in defs:
 		if def == null:
@@ -73,11 +62,47 @@ func _rebuild(defs: Array[ItemTagDef]) -> void:
 		if _mode == _CHIP.Mode.FILTER:
 			_add_filter_button(def)
 		else:
-			var chip := _CHIP.new()
-			chip.setup(def.id, _tag_label(def), _CHIP.Mode.PALETTE, def.chip_color)
-			chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			chip.activated.connect(_on_palette_chip.bind(def.id))
-			_container.add_child(chip)
+			_add_palette_button(def)
+	_sync_layout()
+
+func _add_palette_button(def: ItemTagDef) -> void:
+	var btn := Button.new()
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.text = _tag_label(def)
+	btn.custom_minimum_size = Vector2(0, _FILTER_BTN_H)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.set_meta("chip_color", def.chip_color)
+	btn.set_meta("tag_id", def.id)
+	_apply_filter_button_style(btn, def.chip_color, false)
+	btn.pressed.connect(_on_palette_chip.bind(def.id))
+	_flow.add_child(btn)
+
+func _sync_layout() -> void:
+	if _flow == null:
+		return
+	_flow.queue_sort()
+	call_deferred("_deferred_sync_layout")
+
+func _deferred_sync_layout() -> void:
+	if _flow == null or not is_instance_valid(_flow):
+		return
+	await get_tree().process_frame
+	if _flow == null or not is_instance_valid(_flow):
+		return
+	var child_count := _flow.get_child_count()
+	if child_count == 0:
+		custom_minimum_size = Vector2(0, 0)
+		_flow.custom_minimum_size = Vector2.ZERO
+		queue_sort()
+		return
+	var flow_min := _flow.get_combined_minimum_size()
+	var min_h := maxi(int(flow_min.y), _FILTER_BTN_H)
+	if min_h < _FILTER_BTN_H:
+		min_h = _FILTER_BTN_H * maxi(1, int(ceil(float(child_count) / 5.0)))
+	custom_minimum_size = Vector2(0, min_h)
+	_flow.custom_minimum_size = Vector2(0, min_h)
+	queue_sort()
 
 func _add_filter_button(def: ItemTagDef) -> void:
 	var key := String(def.id)
@@ -93,7 +118,7 @@ func _add_filter_button(def: ItemTagDef) -> void:
 	btn.set_meta("tag_id", def.id)
 	_apply_filter_button_style(btn, def.chip_color, btn.button_pressed)
 	btn.toggled.connect(_on_filter_button_toggled.bind(def.id, btn))
-	_container.add_child(btn)
+	_flow.add_child(btn)
 
 func _on_filter_button_toggled(pressed: bool, tag_id: StringName, btn: Button) -> void:
 	var key := String(tag_id)

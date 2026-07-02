@@ -3,6 +3,7 @@ extends PanelContainer
 ## Tag-filter block + scrollable item list for editor tools (NPC editor, item browser, …).
 
 signal filter_changed(active_tags: Array[StringName])
+signal item_selected(meta: Dictionary)
 
 const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
 const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
@@ -11,9 +12,13 @@ const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
 const _TITLE_KEY := "item_editor.block.items"
 
 var _items: ItemsModule
+var _header_label: Label
+var _title_key: String = _TITLE_KEY
 var _tag_flow: _TAG_FLOW
 var _scroll: ScrollContainer
 var _list_box: VBoxContainer
+var _built: bool = false
+var _pending_setup: Dictionary = {}
 
 var _tag_category_id: StringName = &""
 var _filter_category_id: StringName = &""
@@ -23,10 +28,21 @@ var _equippable_only: bool = false
 var _row_builder: Callable = Callable()
 var _list_populator: Callable = Callable()
 var _empty_message: String = ""
+var _selected_key: String = ""
+var _selection_key_fn: Callable = Callable()
 
 func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+func _ready() -> void:
+	_ensure_built()
+	_refresh_header_label()
+
+func _ensure_built() -> void:
+	if _built:
+		return
+	_built = true
 	add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
 
 	var margin := MarginContainer.new()
@@ -36,7 +52,6 @@ func _init() -> void:
 	margin.add_theme_constant_override("margin_bottom", 8)
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.clip_contents = true
 	add_child(margin)
 
 	var inner := VBoxContainer.new()
@@ -45,14 +60,9 @@ func _init() -> void:
 	inner.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(inner)
 
-	_I18N.ensure_loaded()
-	var header := Label.new()
-	header.text = _I18N.translate_key(_TITLE_KEY)
-	header.add_theme_font_size_override("font_size", 13)
-	header.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
-	header.custom_minimum_size = Vector2(0, 18)
-	header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	inner.add_child(header)
+	_header_label = Label.new()
+	_BLOCK.style_block_header(_header_label)
+	inner.add_child(_header_label)
 
 	_tag_flow = _TAG_FLOW.new()
 	_tag_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -77,12 +87,27 @@ func _init() -> void:
 	_list_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_scroll.add_child(_list_box)
 
+	if not _pending_setup.is_empty():
+		_apply_setup(_pending_setup)
+
 ## Binds [param items] and configures the tag chip palette ([param tag_category_id] empty = all tags).
 func setup(items: ItemsModule, tag_category_id: StringName = &"", list_min_height: int = 160) -> void:
-	_items = items
-	_tag_category_id = tag_category_id
-	_scroll.custom_minimum_size = Vector2(0, list_min_height)
-	_tag_flow.configure(_TAG_CHIP.Mode.FILTER, items, tag_category_id)
+	_pending_setup = {
+		"items": items,
+		"tag_category_id": tag_category_id,
+		"list_min_height": list_min_height,
+	}
+	if _built:
+		_apply_setup(_pending_setup)
+
+func _apply_setup(options: Dictionary) -> void:
+	_items = options.get("items") as ItemsModule
+	_tag_category_id = options.get("tag_category_id", &"")
+	var list_min_height: int = int(options.get("list_min_height", 160))
+	if _scroll != null:
+		_scroll.custom_minimum_size = Vector2(0, list_min_height)
+	if _tag_flow != null and _items != null:
+		_tag_flow.configure(_TAG_CHIP.Mode.FILTER, _items, _tag_category_id)
 
 ## Sets list query options: [code]archetype_tags[/code], [code]category_id[/code], [code]row_builder[/code], …
 func configure_query(options: Dictionary) -> void:
@@ -92,6 +117,23 @@ func configure_query(options: Dictionary) -> void:
 	_equippable_only = options.get("equippable_only", false)
 	_row_builder = options.get("row_builder", Callable())
 	_empty_message = options.get("empty_message", "")
+
+func set_title_key(key: String) -> void:
+	_title_key = key
+	_refresh_header_label()
+
+func refresh_localized_controls() -> void:
+	if not is_inside_tree():
+		call_deferred("refresh_localized_controls")
+		return
+	_ensure_built()
+	_refresh_header_label()
+
+func _refresh_header_label() -> void:
+	if _header_label == null:
+		return
+	_I18N.ensure_loaded()
+	_header_label.text = _I18N.translate_key(_title_key)
 
 func set_archetype_tags(tags: Array) -> void:
 	_archetype_tags = tags
@@ -104,19 +146,37 @@ func set_tag_category(category_id: StringName) -> void:
 	if _items != null and _tag_flow != null:
 		_tag_flow.configure(_TAG_CHIP.Mode.FILTER, _items, category_id)
 
+func set_selection_key_fn(callable: Callable) -> void:
+	_selection_key_fn = callable
+
+func get_selection_key() -> String:
+	return _selected_key
+
+func set_selection_key(key: String) -> void:
+	_selected_key = key
+	_apply_row_selection()
+
+func clear_selection() -> void:
+	set_selection_key("")
+
 func update_row_selection(is_selected: Callable) -> void:
+	if _list_box == null:
+		return
 	for child in _list_box.get_children():
 		if child.has_method("set_selected") and child.has_method("get_meta_data"):
 			var meta: Dictionary = child.get_meta_data()
 			child.set_selected(is_selected.call(meta))
 
 func get_scroll() -> ScrollContainer:
+	_ensure_built()
 	return _scroll
 
 func count_matching() -> int:
+	_ensure_built()
 	return _query_defs().size()
 
 func refresh() -> void:
+	_ensure_built()
 	_clear_list()
 	if _items == null:
 		return
@@ -128,25 +188,53 @@ func refresh() -> void:
 		else:
 			for row in rows:
 				if row is Control:
-					var ctrl := row as Control
-					ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					_list_box.add_child(ctrl)
-		_sync_scroll_area()
+					_add_list_row(row as Control)
+		_finish_refresh()
 		return
 	var defs := _query_defs()
 	if defs.is_empty():
 		_add_empty_row()
+		_finish_refresh()
 		return
 	if not _row_builder.is_valid():
+		_finish_refresh()
 		return
 	for def in defs:
 		var row: Control = _row_builder.call(def) as Control
 		if row != null:
-			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			_list_box.add_child(row)
+			_add_list_row(row)
+	_finish_refresh()
+
+func _add_list_row(row: Control) -> void:
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list_box.add_child(row)
+	_wire_row(row)
+
+func _wire_row(row: Control) -> void:
+	if row.has_signal("row_selected") and not row.row_selected.is_connected(_on_row_selected):
+		row.row_selected.connect(_on_row_selected)
+
+func _on_row_selected(meta: Dictionary) -> void:
+	_selected_key = _meta_selection_key(meta)
+	_apply_row_selection()
+	item_selected.emit(meta)
+
+func _meta_selection_key(meta: Dictionary) -> String:
+	if _selection_key_fn.is_valid():
+		return String(_selection_key_fn.call(meta))
+	return String(meta.get("id", ""))
+
+func _apply_row_selection() -> void:
+	update_row_selection(func(meta: Dictionary) -> bool:
+		return _meta_selection_key(meta) == _selected_key and not _selected_key.is_empty()
+	)
+
+func _finish_refresh() -> void:
 	_sync_scroll_area()
+	_apply_row_selection()
 
 func refresh_tag_picker() -> void:
+	_ensure_built()
 	if _tag_flow != null and _items != null:
 		_tag_flow.refresh(_tag_category_id)
 
@@ -171,6 +259,8 @@ func _query_defs() -> Array[ItemDef]:
 	return out
 
 func _clear_list() -> void:
+	if _list_box == null:
+		return
 	for child in _list_box.get_children():
 		_list_box.remove_child(child)
 		child.free()

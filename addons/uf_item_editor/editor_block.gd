@@ -19,9 +19,7 @@ static func create(title_key: String, expand_vertical: bool = false) -> Dictiona
 	if not title_key.is_empty():
 		header = Label.new()
 		header.text = title
-		header.add_theme_font_size_override("font_size", 13)
-		header.add_theme_color_override("font_color", _HEADER_COLOR)
-		header.custom_minimum_size = Vector2(0, 18)
+		style_block_header(header)
 		section.add_child(header)
 		section.add_child(HSeparator.new())
 	var body := VBoxContainer.new()
@@ -30,6 +28,13 @@ static func create(title_key: String, expand_vertical: bool = false) -> Dictiona
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL if expand_vertical else Control.SIZE_SHRINK_BEGIN
 	section.add_child(body)
 	return {"block": section, "body": body, "header": header, "title_key": title_key}
+
+static func style_block_header(label: Label) -> void:
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", _HEADER_COLOR)
+	label.custom_minimum_size = Vector2(0, 18)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 static func make_panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -69,3 +74,30 @@ static func make_preview_style() -> StyleBoxFlat:
 	style.content_margin_top = 0
 	style.content_margin_bottom = 0
 	return style
+
+static func create_bordered_panel(title_key: String) -> Dictionary:
+	_I18N.ensure_loaded()
+	var title := _I18N.translate_key(title_key) if not title_key.is_empty() else ""
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	panel.add_theme_stylebox_override("panel", make_panel_style())
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	panel.add_child(margin)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 6)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	margin.add_child(body)
+	if not title_key.is_empty():
+		var header := Label.new()
+		header.text = title
+		style_block_header(header)
+		body.add_child(header)
+	return {"panel": panel, "body": body, "title_key": title_key}

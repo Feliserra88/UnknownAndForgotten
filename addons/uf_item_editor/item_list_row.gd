@@ -109,10 +109,18 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 			info.add_child(_muted_label("mods: %s" % ", ".join(_string_names(mods))))
 	if not gui_input.is_connected(_on_gui_input):
 		gui_input.connect(_on_gui_input)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	_pass_clicks_to_row_root(self)
 	_apply_selection_style()
 
 func get_meta_data() -> Dictionary:
 	return _meta
+
+func _pass_clicks_to_row_root(node: Node) -> void:
+	for child in node.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+		_pass_clicks_to_row_root(child)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

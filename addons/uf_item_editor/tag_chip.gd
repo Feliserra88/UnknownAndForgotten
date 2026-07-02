@@ -3,6 +3,10 @@ extends PanelContainer
 ## Rounded tag pill for filter toggle, palette drag source, or assigned tag display.
 
 const PAYLOAD_TYPE := &"item_tag"
+const _COMPACT_H := 22
+const _COMPACT_PAD_H := 6
+const _COMPACT_PAD_V := 2
+const _COMPACT_RADIUS := 10
 
 signal activated(tag_id: StringName)
 signal remove_requested(tag_id: StringName)
@@ -26,22 +30,33 @@ func setup(tag_id: StringName, label: String, mode: Mode, chip_color: Color = Co
 	_base_color = chip_color
 	_label_text = label
 	tooltip_text = _tooltip_for_mode()
-	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for child in get_children():
 		child.queue_free()
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 5)
-	margin.add_theme_constant_override("margin_bottom", 5)
+	margin.add_theme_constant_override("margin_left", _COMPACT_PAD_H)
+	margin.add_theme_constant_override("margin_right", _COMPACT_PAD_H)
+	margin.add_theme_constant_override("margin_top", _COMPACT_PAD_V)
+	margin.add_theme_constant_override("margin_bottom", _COMPACT_PAD_V)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(margin)
 	_label = Label.new()
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(_label)
-	custom_minimum_size = Vector2(0, 28)
+	custom_minimum_size = Vector2(0, _COMPACT_H)
 	_update_label_appearance()
 	_apply_style()
+	call_deferred("_sync_chip_size")
+
+func _sync_chip_size() -> void:
+	if _label == null:
+		return
+	_label.reset_size()
+	var text_w := int(_label.get_minimum_size().x)
+	if text_w < 1:
+		text_w = int(_label.get_combined_minimum_size().x)
+	custom_minimum_size = Vector2(maxi(text_w + _COMPACT_PAD_H * 2, 24), _COMPACT_H)
 
 func get_tag_id() -> StringName:
 	return _tag_id
@@ -81,12 +96,14 @@ func _update_label_appearance() -> void:
 				_label.add_theme_font_size_override("font_size", 12)
 		Mode.ASSIGNED:
 			_label.add_theme_color_override("font_color", Color(0.9, 0.93, 0.97))
+			_label.add_theme_font_size_override("font_size", 12)
 		Mode.PALETTE:
 			_label.add_theme_color_override("font_color", Color(0.78, 0.84, 0.92))
+			_label.add_theme_font_size_override("font_size", 11)
 
 func _apply_style() -> void:
 	var style := StyleBoxFlat.new()
-	style.set_corner_radius_all(14)
+	style.set_corner_radius_all(_COMPACT_RADIUS if _mode != Mode.FILTER else 14)
 	style.content_margin_left = 0
 	style.content_margin_right = 0
 	style.content_margin_top = 0
