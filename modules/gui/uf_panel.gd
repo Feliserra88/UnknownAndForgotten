@@ -63,26 +63,54 @@ func _ensure_structure() -> void:
 	if layout == null:
 		layout = VBoxContainer.new()
 		layout.name = "Layout"
-		add_child(layout)
+		layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_add_structural_child(self, layout)
 	if layout.get_node_or_null("Header") == null:
 		var header := HBoxContainer.new()
 		header.name = "Header"
 		header.mouse_filter = Control.MOUSE_FILTER_STOP
 		header.custom_minimum_size = Vector2(0, 22)
+		header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var title := Label.new()
 		title.name = "Title"
 		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		header.add_child(title)
-		layout.add_child(header)
+		_add_structural_child(layout, header)
 		layout.move_child(header, 0)
 	if layout.get_node_or_null("ContentSlot") == null:
 		var content := VBoxContainer.new()
 		content.name = "ContentSlot"
 		content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		layout.add_child(content)
+		_add_structural_child(layout, content)
+	_sync_structure_owners()
 	_refresh_title()
+
+## Adds [param child] under [param parent] and assigns scene [owner] in the editor so nodes appear
+## in the Scene dock and persist when the panel scene is saved.
+func _add_structural_child(parent: Node, child: Node) -> void:
+	parent.add_child(child)
+	_assign_editor_owner_tree(child)
+
+func _sync_structure_owners() -> void:
+	var layout := get_node_or_null("Layout")
+	if layout != null:
+		_assign_editor_owner_tree(layout)
+
+func _assign_editor_owner_tree(node: Node) -> void:
+	if not Engine.is_editor_hint():
+		return
+	var root := get_tree().edited_scene_root
+	if root == null or node == null:
+		return
+	var pending: Array[Node] = [node]
+	while not pending.is_empty():
+		var current: Node = pending.pop_back()
+		current.owner = root
+		for child in current.get_children():
+			pending.append(child)
 
 func _header() -> Control:
 	return get_node_or_null("Layout/Header") as Control

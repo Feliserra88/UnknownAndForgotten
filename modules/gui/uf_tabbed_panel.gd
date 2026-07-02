@@ -13,7 +13,7 @@ func _ensure_structure() -> void:
 		tabs.name = "Tabs"
 		tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		content.add_child(tabs)
+		_add_structural_child(content, tabs)
 
 ## Adds [param control] as a new tab titled with localization [param title_key].
 func add_tab(title_key: String, control: Control) -> void:

@@ -30,7 +30,7 @@ func _ensure_structure() -> void:
 		accept.name = "AcceptButton"
 		footer.add_child(cancel)
 		footer.add_child(accept)
-		layout.add_child(footer)
+		_add_structural_child(layout, footer)
 	_refresh_footer()
 
 func _ready() -> void:

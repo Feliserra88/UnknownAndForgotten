@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeDef" format=3 uid="uid://e23k5othviv1"]
+[gd_resource type="Resource" script_class="BiomeDef" format=3 uid="uid://wma7xq1wbpa1"]
 
 [ext_resource type="Script" uid="uid://dd5aiud6fvqga" path="res://modules/world_gen/biome_def.gd" id="1_dnibk"]
 [ext_resource type="Script" uid="uid://b8jpfh61sldho" path="res://modules/world/terrain_region_def.gd" id="2_5qtdw"]

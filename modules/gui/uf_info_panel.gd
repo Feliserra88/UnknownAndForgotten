@@ -12,7 +12,7 @@ func _ensure_structure() -> void:
 		var close := Button.new()
 		close.name = "CloseButton"
 		close.text = "X"
-		header.add_child(close)
+		_add_structural_child(header, close)
 
 func _ready() -> void:
 	super._ready()

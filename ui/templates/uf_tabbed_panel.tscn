@@ -1,9 +1,34 @@
 [gd_scene format=3 uid="uid://mkig2h803pge"]
 
-[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
 [ext_resource type="Script" uid="uid://g3fmg7qjqagv" path="res://modules/gui/uf_tabbed_panel.gd" id="2_tabbed"]
 
 [node name="UfTabbedPanel" type="PanelContainer" unique_id=904791934]
 custom_minimum_size = Vector2(280, 200)
 theme = ExtResource("1_theme")
 script = ExtResource("2_tabbed")
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1541749413]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Header" type="HBoxContainer" parent="Layout" unique_id=28612836]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+
+[node name="Title" type="Label" parent="Layout/Header" unique_id=913172377]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=12508306]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Tabs" type="TabContainer" parent="Layout/ContentSlot" unique_id=829396869]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://craw7bgla8411"]
+
+[ext_resource type="PackedScene" uid="uid://bfjegus0sscb7" path="res://ui/templates/uf_panel.tscn" id="1_5q2ia"]
+
+[node name="UfPanel" unique_id=2146928545 instance=ExtResource("1_5q2ia")]
+propagate_maximum_size = false
+offset_left = -1.0
+offset_top = -3.0
+offset_right = 485.0
+offset_bottom = 200.0

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="NpcSpriteAnimDef" format=3 uid="uid://d3urrffhk4jb6"]
+[gd_resource type="Resource" script_class="NpcSpriteAnimDef" format=3 uid="uid://sn8wo23wfdwa"]
 
 [ext_resource type="Script" uid="uid://dfr63m67gml1h" path="res://modules/appearance/npc_sprite_anim_def.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://dhmdj6txtr5x4" path="res://assets/visuals/characters/human/male/HumanMaleIdle.png" id="2_idle"]

@@ -1,9 +1,33 @@
 [gd_scene format=3 uid="uid://3jjcdb3cjsje"]
 
-[ext_resource type="Theme" uid="uid://c67papfyegsvm" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
 [ext_resource type="Script" uid="uid://ox2gg36aq3w4" path="res://modules/gui/uf_info_panel.gd" id="2_info"]
 
 [node name="UfInfoPanel" type="PanelContainer" unique_id=1638953657]
 custom_minimum_size = Vector2(280, 200)
 theme = ExtResource("1_theme")
 script = ExtResource("2_info")
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=412749258]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Header" type="HBoxContainer" parent="Layout" unique_id=433626200]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+
+[node name="Title" type="Label" parent="Layout/Header" unique_id=332780533]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="Layout/Header" unique_id=636629171]
+layout_mode = 2
+text = "X"
+
+[node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=812468093]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
