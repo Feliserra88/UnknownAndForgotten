@@ -13,6 +13,7 @@ const TEMPLATES_DIR := "res://ui/templates"
 ## Maps a panel kind to the script that implements it.
 const _PANEL_SCRIPTS := {
 	&"panel": "res://modules/gui/uf_panel.gd",
+	&"ingame": "res://modules/gui/uf_panel_ingame.gd",
 	&"info": "res://modules/gui/uf_info_panel.gd",
 	&"dialog": "res://modules/gui/uf_dialog_panel.gd",
 	&"tabbed": "res://modules/gui/uf_tabbed_panel.gd",
@@ -22,6 +23,7 @@ const _PANEL_SCRIPTS := {
 ## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
 const PANEL_SCENES := {
 	&"panel": "res://ui/templates/uf_panel.tscn",
+	&"ingame": "res://ui/templates/uf_panel_ingame.tscn",
 	&"info": "res://ui/templates/uf_info_panel.tscn",
 	&"dialog": "res://ui/templates/uf_dialog_panel.tscn",
 	&"tabbed": "res://ui/templates/uf_tabbed_panel.tscn",
@@ -38,6 +40,7 @@ const WIDGET_SCENES := {
 	"equipment_slot": "res://ui/widgets/uf_equipment_slot.tscn",
 	"progress_bar": "res://ui/widgets/uf_progress_bar.tscn",
 	"separator": "res://ui/widgets/uf_separator.tscn",
+	"tab": "res://ui/widgets/uf_tab.tscn",
 }
 
 ## Returns the panel kinds accepted by [method create_panel].

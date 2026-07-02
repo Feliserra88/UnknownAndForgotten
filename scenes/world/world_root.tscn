@@ -3,8 +3,8 @@
 [ext_resource type="Script" uid="uid://cmkgpixcxucyh" path="res://modules/world/world.gd" id="1_world"]
 [ext_resource type="Script" uid="uid://dk1kpl8qdsasm" path="res://modules/camera/camera.gd" id="2_camera"]
 [ext_resource type="Script" uid="uid://70d8rhh21pjf" path="res://scenes/world/world_demo.gd" id="3_demo"]
-[ext_resource type="Script" uid="uid://cn3g47byoik44" path="res://scenes/ui/version_label.gd" id="4_version"]
-[ext_resource type="Script" uid="uid://bsjkms47nahue" path="res://scenes/ui/world_hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://cn3g47byoik44" path="res://scenes/world/version_label.gd" id="4_version"]
+[ext_resource type="Script" uid="uid://bsjkms47nahue" path="res://scenes/world/world_hud.gd" id="5_hud"]
 
 [sub_resource type="Image" id="Image_lfwnu"]
 data = {

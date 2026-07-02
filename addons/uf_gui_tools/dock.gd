@@ -4,7 +4,7 @@ extends VBoxContainer
 
 const _PaletteScript := preload("res://addons/uf_gui_tools/widget_palette.gd")
 
-const _KINDS: Array[StringName] = [&"panel", &"info", &"dialog", &"tabbed"]
+const _KINDS: Array[StringName] = [&"panel", &"ingame", &"info", &"dialog", &"tabbed"]
 const _WIDGET_IDS: Array[String] = [
 	"label",
 	"button",
@@ -15,6 +15,7 @@ const _WIDGET_IDS: Array[String] = [
 	"equipment_slot",
 	"progress_bar",
 	"separator",
+	"tab",
 ]
 
 var _plugin: EditorPlugin

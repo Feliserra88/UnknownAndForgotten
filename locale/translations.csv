@@ -38,7 +38,12 @@ gui.inventory.title,Inventory,Inventario
 gui.inspection.title,Inspection,InspecciÃ³n
 gui.sample.label,Sample Label,Etiqueta de ejemplo
 gui.sample.button,Sample Button,BotÃ³n de ejemplo
+gui.header.close,Close,Cerrar
+gui.header.minimize,Minimize,Minimizar
+gui.header.drag,Drag,Mover
 gui.sample.toggle,Sample Toggle,Interruptor de ejemplo
+gui.tab.placeholder.one,Tab One,PestaÃ±a 1
+gui.tab.placeholder.two,Tab Two,PestaÃ±a 2
 gui.placeholder.list_item,List item,Elemento de lista
 faction.dummy.name,Dummy faction,FacciÃ³n dummy
 modifier.dummy.name,Dummy trait,Rasgo dummy

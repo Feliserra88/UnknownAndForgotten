@@ -7,7 +7,7 @@ const _DEFAULT_INVENTORY := "res://ui/panels/uf_inventory.tscn"
 @export var inventory_panel_path: String = _DEFAULT_INVENTORY
 
 var _gui: GuiModule
-var _inventory: UfPanel
+var _inventory: UfPanelIngame
 
 func _ready() -> void:
 	if Engine.is_editor_hint():

@@ -1,7 +1,7 @@
 @tool
 @icon("res://ui/templates/icons/inspection.svg")
 class_name UfInspectionPanel
-extends UfInfoPanel
+extends UfPanelIngame
 ## Reusable NPC inspection panel (see docs/GAME_DESIGN.md section 10.6): a background silhouette with
 ## anchored square slots, built from an InspectionLayoutDef. Used both in-game (inspect an NPC) and by
 ## the uf_npc_editor. Presentational only; it relays slot signals and never touches domain modules.

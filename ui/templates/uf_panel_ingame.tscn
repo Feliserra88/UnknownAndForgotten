@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://1ro8v8hbpg1g"]
+
+[ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://cni5iv444af7u" path="res://modules/gui/uf_panel_ingame.gd" id="2_ingame"]
+[ext_resource type="Texture2D" uid="uid://ci5xo6ba54ckv" path="res://assets/ui/icons/art/icon_minus.png" id="3_swfox"]
+[ext_resource type="Texture2D" uid="uid://b44y6yhdyfhdg" path="res://assets/ui/icons/art/icon_menu.png" id="4_wfj5t"]
+[ext_resource type="Texture2D" uid="uid://dqtye7gq8uagc" path="res://assets/ui/icons/art/icon_close.png" id="5_108km"]
+
+[node name="UfPanelIngame" type="PanelContainer" unique_id=1509646719]
+custom_minimum_size = Vector2(280, 200)
+offset_right = 497.0
+offset_bottom = 607.0
+theme = ExtResource("1_theme")
+script = ExtResource("2_ingame")
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1804362020]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Header" type="Control" parent="Layout" unique_id=1699614358]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="Layout/Header" unique_id=1612274018]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Chrome" type="HBoxContainer" parent="Layout/Header" unique_id=1287497840]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -70.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = 24.0
+grow_horizontal = 0
+mouse_filter = 0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="MinimizeButton" type="Button" parent="Layout/Header/Chrome" unique_id=753462612]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.minimize"
+focus_mode = 0
+icon = ExtResource("3_swfox")
+flat = true
+
+[node name="DragHandle" type="Button" parent="Layout/Header/Chrome" unique_id=439244327]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.drag"
+focus_mode = 0
+icon = ExtResource("4_wfj5t")
+flat = true
+
+[node name="CloseButton" type="Button" parent="Layout/Header/Chrome" unique_id=2073613714]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.close"
+focus_mode = 0
+icon = ExtResource("5_108km")
+flat = true
+
+[node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=1022281880]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

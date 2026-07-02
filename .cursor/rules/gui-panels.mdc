@@ -10,7 +10,7 @@ Ver `docs/GAME_DESIGN.md` §10. Basado en controles Godot (`Control`, contenedor
 
 ## Reglas
 
-- Toda ventana/panel de juego → **`UfPanel`** o subclase (`UfTabbedPanel`, `UfDialogPanel`, `UfInfoPanel`).
+- Toda ventana/panel de juego → **`UfPanel`** o subclase; ventanas HUD con barra de título → **`UfPanelIngame`** o **`UfInspectionPanel`**.
 - **Movible** solo vía asa/barra de arrastre (`DragHandle` + `gui_input`); no arrastrar desde contenido interactivo.
 - Especializaciones **no** reimplementan drag ni chrome común del padre.
 - Widgets atómicos en `res://ui/widgets/` (`UfButton`, `UfGridContainer`, `UfList`, `UfLayoutRegion`…); sin lógica de dominio.
@@ -22,11 +22,13 @@ Ver `docs/GAME_DESIGN.md` §10. Basado en controles Godot (`Control`, contenedor
 ## Jerarquía
 
 ```
-UfPanel (base, movible)
-├── UfTabbedPanel
-├── UfInfoPanel (+ cerrar)
+UfPanel (shell vacío: Layout + ContentSlot)
+├── UfPanelIngame (+ header: título + minimizar / arrastrar / cerrar)
+│   └── UfInspectionPanel
+├── UfTabbedPanel (+ TabContainer de UfTab)
+├── UfInfoPanel
 ├── UfDialogPanel (+ accept / cancel)
-└── UfInventoryPanel, UfStatusPanel, … (dominio)
+└── paneles de juego en ui/panels/ (composición)
 ```
 
 ## Prohibido

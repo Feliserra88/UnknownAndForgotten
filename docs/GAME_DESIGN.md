@@ -572,7 +572,7 @@ Para inspeccionar o equipar un NPC (en juego o en `uf_npc_editor`), el arquetipo
 | Pieza | Tipo | Rol |
 |-------|------|-----|
 | `InspectionLayoutDef` | `Resource` (`.tres`) | `background_texture`, `background_size`, `slots[]` con `{ slot_id, rect }` donde `rect` es **normalizado** 0..1 sobre el fondo |
-| `UfInspectionPanel` | `UfInfoPanel` (módulo `gui`) | Construye fondo + una `UfEquipmentSlot` por entrada del layout; **solo presentación** (señales `item_dropped`, `item_removed`, `slot_activated`) |
+| `UfInspectionPanel` | `UfPanelIngame` (módulo `gui`) | Construye fondo + una `UfEquipmentSlot` por entrada del layout; **solo presentación** (señales `item_dropped`, `item_removed`, `slot_activated`) |
 | `UfEquipmentSlot` | `Panel` (widget `gui`) | Celda cuadrada con icono; drag-and-drop con payload opaco (`uf_equipment_item`); sin tipos de dominio |
 
 Flujo editor / runtime:
@@ -936,7 +936,8 @@ Contenedores anidados para layouts complejos (patrón recomendado por Godot para
 res://ui/
 ├── theme/                    # Theme global
 ├── templates/                # Escenas base reutilizables (plantillas)
-│   ├── uf_panel.tscn         # Padre: movible + chrome mínimo
+│   ├── uf_panel.tscn         # Shell vacío: Layout + ContentSlot
+│   ├── uf_panel_ingame.tscn  # Panel de juego: header + chrome
 │   ├── uf_tabbed_panel.tscn
 │   ├── uf_dialog_panel.tscn  # Aceptar / Cancelar
 │   ├── uf_info_panel.tscn    # Informativo + cerrar
@@ -959,11 +960,14 @@ Scripts de módulo en `res://modules/gui/` (fachada pública) con implementació
 
 ### 10.4 Clase base `UfPanel`
 
-`class_name UfPanel extends PanelContainer` (o `Control` raíz con `PanelContainer` hijo).
+`class_name UfPanel extends PanelContainer` — shell vacío: solo `Layout` + `ContentSlot` (sin barra de título).
 
-Responsabilidades **solo** del padre:
+Para ventanas de juego con título centrado y botones de chrome (minimizar, arrastrar, cerrar), usar **`UfPanelIngame`** (`uf_panel_ingame.tscn`), que extiende `UfPanel`.
 
-- **Asa de arrastre** (`DragHandle`): `TextureButton` o zona en esquina; `gui_input` con botón pulsado → actualizar `position` del panel.
+Responsabilidades de **`UfPanelIngame`** (no de `UfPanel`):
+
+- **Asa de arrastre** (`DragHandle`): botón en la barra de chrome; también se puede arrastrar desde el título centrado.
+- **Chrome del header** (`Chrome`): botones comunes a la derecha (minimizar, arrastrar, cerrar); visibilidad vía exports en `UfPanel`.
 - Contenedor de **contenido** (`ContentSlot`) donde hijos especializados insertan UI.
 - Título opcional (`title_key` → `tr()`).
 - Señales: `panel_closed`, `panel_moved`, `panel_focused`.
@@ -991,11 +995,12 @@ func _on_drag_handle_input(event: InputEvent) -> void:
 
 | Clase / escena | Extiende | Añade |
 |----------------|----------|-------|
-| `UfTabbedPanel` | `UfPanel` | `TabContainer`; pestañas con `title_key` por tab |
-| `UfInfoPanel` | `UfPanel` | Botón **cerrar**; emite `panel_closed` |
-| `UfInspectionPanel` | `UfInfoPanel` | Silueta + slots de equipo desde `InspectionLayoutDef`; señales drag-drop (§5.5.5) |
-| `UfDialogPanel` | `UfPanel` | Botones **accept** / **cancel** + señales `confirmed`, `cancelled` |
-| `UfInventoryPanel` | `UfPanel` o `UfTabbedPanel` | Componer `UfGridContainer` + lógica vía módulo `equipment` |
+| `UfPanelIngame` | `UfPanel` | Header con título (`title_key`) + chrome (minimizar, arrastrar, cerrar) |
+| `UfTabbedPanel` | `UfPanel` | `TabContainer` a pantalla completa; hijos [class UfTab] |
+| `UfInfoPanel` | `UfPanel` | Shell informativo sin chrome de ventana |
+| `UfDialogPanel` | `UfPanel` | Botones **accept** / **cancel** en footer + señales `confirmed`, `cancelled` |
+| `UfInspectionPanel` | `UfPanelIngame` | Silueta + slots de equipo desde `InspectionLayoutDef`; señales drag-drop (§5.5.5) |
+| `UfInventoryPanel` | `UfPanelIngame` o `UfTabbedPanel` | Componer `UfGridContainer` + lógica vía módulo `equipment` |
 | `UfStatusPanel` | `UfPanel` | Vitals, efectos; datos desde módulo `status` |
 | `UfSkillsPanel` / `UfSpellsPanel` | `UfPanel` | Dominio combate/magia (futuro) |
 
@@ -1019,6 +1024,7 @@ Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 | `UfSeparator` | `HSeparator` / `VSeparator` | Divisores |
 | `UfLayoutRegion` | `Control` | Zona de layout libre (anclas) dentro de un `ContentSlot` en flujo |
 | `UfEquipmentSlot` | `Panel` | Celda de slot de equipo (icono + drag-drop); usada por `UfInspectionPanel` |
+| `UfTab` | `MarginContainer` | Una pestaña de `UfTabbedPanel`; `title_key` + `Content` para widgets hijos |
 
 Cada widget: escena `.tscn` + script mínimo; expone API pequeña (`set_items()`, `set_label_key()`, etc.).
 

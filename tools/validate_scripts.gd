@@ -26,6 +26,7 @@ const _PATHS := [
 	"res://modules/world/world.gd",
 	"res://modules/gui/gui.gd",
 	"res://modules/gui/uf_panel.gd",
+	"res://modules/gui/uf_panel_ingame.gd",
 	"res://modules/gui/uf_info_panel.gd",
 	"res://modules/gui/uf_dialog_panel.gd",
 	"res://modules/gui/uf_tabbed_panel.gd",
@@ -36,6 +37,7 @@ const _PATHS := [
 	"res://modules/gui/widgets/uf_grid_container.gd",
 	"res://modules/gui/widgets/uf_layout_region.gd",
 	"res://modules/gui/widgets/uf_equipment_slot.gd",
+	"res://modules/gui/widgets/uf_tab.gd",
 	"res://addons/uf_gui_tools/plugin.gd",
 	"res://addons/uf_gui_tools/dock.gd",
 	"res://addons/uf_gui_tools/palette_item.gd",
@@ -43,7 +45,7 @@ const _PATHS := [
 	"res://addons/uf_npc_editor/plugin.gd",
 	"res://addons/uf_npc_editor/workspace.gd",
 	"res://addons/uf_npc_editor/compatible_item.gd",
-	"res://scenes/ui/world_hud.gd",
+	"res://scenes/world/world_hud.gd",
 ]
 
 func _initialize() -> void:
