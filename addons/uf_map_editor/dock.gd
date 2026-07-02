@@ -67,7 +67,6 @@ func _build() -> void:
 	var map_grid := _grid()
 	_grid_button(map_grid, "Refresh list", _on_refresh_maps_pressed)
 	_grid_button(map_grid, "New map", _on_new_map_pressed)
-	_grid_button(map_grid, "Open selected", _on_open_selected_pressed)
 	_grid_button(map_grid, "Open file…", _on_open_file_pressed)
 	_grid_button(map_grid, "Save map", _on_save_current_pressed)
 	_grid_button(map_grid, "Save as…", _on_save_as_pressed)
@@ -214,7 +213,7 @@ func _on_new_map_pressed() -> void:
 func _on_open_selected_pressed() -> void:
 	var path := _selected_map_path()
 	if path.is_empty():
-		set_status("Select a map in the list, or use Open file…")
+		set_status("Double-click a map in the list, or use Open file…")
 		return
 	_plugin_call(&"open_map", [path])
 
