@@ -1011,9 +1011,11 @@ Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 | Widget | Base Godot | Uso |
 |--------|------------|-----|
 | `UfButton` | `Button` | Acciones; texto vía `label_key` |
+| `UfCheckButton` | `CheckButton` | Switch / toggle localizado para opciones binarias |
 | `UfGridContainer` | `GridContainer` + celdas custom | Inventario, tiles de habilidad |
 | `UfList` | `ItemList` o `VBoxContainer` en `ScrollContainer` | Listas de items, hechizos, log |
 | `UfLabel` | `Label` | Texto localizado |
+| `UfProgressBar` | `ProgressBar` | Barras reutilizables para vitals, carga o progreso |
 | `UfSeparator` | `HSeparator` / `VSeparator` | Divisores |
 | `UfLayoutRegion` | `Control` | Zona de layout libre (anclas) dentro de un `ContentSlot` en flujo |
 | `UfEquipmentSlot` | `Panel` | Celda de slot de equipo (icono + drag-drop); usada por `UfInspectionPanel` |

@@ -31,10 +31,13 @@ const PANEL_SCENES := {
 const WIDGET_SCENES := {
 	"label": "res://ui/widgets/uf_label.tscn",
 	"button": "res://ui/widgets/uf_button.tscn",
+	"check_button": "res://ui/widgets/uf_check_button.tscn",
 	"list": "res://ui/widgets/uf_list.tscn",
 	"grid": "res://ui/widgets/uf_grid_container.tscn",
 	"layout_region": "res://ui/widgets/uf_layout_region.tscn",
 	"equipment_slot": "res://ui/widgets/uf_equipment_slot.tscn",
+	"progress_bar": "res://ui/widgets/uf_progress_bar.tscn",
+	"separator": "res://ui/widgets/uf_separator.tscn",
 }
 
 ## Returns the panel kinds accepted by [method create_panel].
