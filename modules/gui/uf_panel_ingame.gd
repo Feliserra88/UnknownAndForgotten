@@ -8,6 +8,7 @@ extends UfPanel
 const _ICON_CLOSE := preload("res://assets/ui/icons/art/icon_close.png")
 const _ICON_MINIMIZE := preload("res://assets/ui/icons/art/icon_minus.png")
 const _ICON_DRAG := preload("res://assets/ui/icons/art/icon_menu.png")
+const _HEADER_VARIATION := &"UfPanelHeader"
 const _CHROME_BUTTON_SIZE := Vector2(20, 20)
 const _HEADER_HEIGHT := 26
 const _CHROME_WIDTH := 70
@@ -62,9 +63,10 @@ func _ensure_structure() -> void:
 	_apply_chrome_visibility()
 
 func _ensure_header(layout: VBoxContainer) -> void:
-	var header := layout.get_node_or_null("Header") as Control
-	if header != null and header.get_node_or_null("Chrome") != null:
-		return
+	var header := layout.get_node_or_null("Header")
+	if header is PanelContainer and header.theme_type_variation == _HEADER_VARIATION:
+		if header.get_node_or_null("Body/Chrome") != null:
+			return
 	if header != null:
 		layout.remove_child(header)
 		header.free()
@@ -72,12 +74,18 @@ func _ensure_header(layout: VBoxContainer) -> void:
 	_add_structural_child(layout, header)
 	layout.move_child(header, 0)
 
-func _build_header() -> Control:
-	var header := Control.new()
+func _build_header() -> PanelContainer:
+	var header := PanelContainer.new()
 	header.name = "Header"
+	header.theme_type_variation = _HEADER_VARIATION
 	header.mouse_filter = Control.MOUSE_FILTER_STOP
 	header.custom_minimum_size = Vector2(0, _HEADER_HEIGHT)
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var body := Control.new()
+	body.name = "Body"
+	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	header.add_child(body)
 
 	var title := Label.new()
 	title.name = "Title"
@@ -85,7 +93,7 @@ func _build_header() -> Control:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	header.add_child(title)
+	body.add_child(title)
 
 	var chrome := HBoxContainer.new()
 	chrome.name = "Chrome"
@@ -102,7 +110,7 @@ func _build_header() -> Control:
 	chrome.add_child(_make_chrome_button("MinimizeButton", _ICON_MINIMIZE, "gui.header.minimize"))
 	chrome.add_child(_make_chrome_button("DragHandle", _ICON_DRAG, "gui.header.drag"))
 	chrome.add_child(_make_chrome_button("CloseButton", _ICON_CLOSE, "gui.header.close"))
-	header.add_child(chrome)
+	body.add_child(chrome)
 	return header
 
 func _make_chrome_button(button_name: String, icon_tex: Texture2D, tooltip_key: String) -> Button:
@@ -143,16 +151,16 @@ func _apply_chrome_visibility() -> void:
 		close.visible = show_close_button
 
 func _title_label() -> Label:
-	return get_node_or_null("Layout/Header/Title") as Label
+	return get_node_or_null("Layout/Header/Body/Title") as Label
 
 func _close_button() -> Button:
-	return get_node_or_null("Layout/Header/Chrome/CloseButton") as Button
+	return get_node_or_null("Layout/Header/Body/Chrome/CloseButton") as Button
 
 func _minimize_button() -> Button:
-	return get_node_or_null("Layout/Header/Chrome/MinimizeButton") as Button
+	return get_node_or_null("Layout/Header/Body/Chrome/MinimizeButton") as Button
 
 func _drag_handle() -> Button:
-	return get_node_or_null("Layout/Header/Chrome/DragHandle") as Button
+	return get_node_or_null("Layout/Header/Body/Chrome/DragHandle") as Button
 
 func _refresh_title() -> void:
 	var label := _title_label()

@@ -10,12 +10,14 @@ offset_top = 35.0
 offset_right = 456.0
 offset_bottom = 547.0
 theme = ExtResource("1_theme")
+accessibility_region = true
 script = ExtResource("2_panel")
 
 [node name="Layout" type="VBoxContainer" parent="." unique_id=1959106368]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+accessibility_region = true
 
 [node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=1005066857]
 layout_mode = 2

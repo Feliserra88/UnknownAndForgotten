@@ -3,47 +3,44 @@
 [ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
 [ext_resource type="Script" uid="uid://b2xm6nsmcrsgl" path="res://modules/gui/uf_dialog_panel.gd" id="2_dialog"]
 
-[node name="UfDialogPanel" type="PanelContainer"]
+[node name="UfDialogPanel" type="PanelContainer" unique_id=2059241992]
 custom_minimum_size = Vector2(280, 200)
+offset_right = 611.0
+offset_bottom = 540.0
 theme = ExtResource("1_theme")
 script = ExtResource("2_dialog")
 
-[node name="Layout" type="VBoxContainer" parent="."]
+[node name="Layout" type="VBoxContainer" parent="." unique_id=773691299]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ContentSlot" type="VBoxContainer" parent="Layout"]
+[node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=505230813]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Footer" type="Control" parent="Layout"]
+[node name="Footer" type="PanelContainer" parent="Layout" unique_id=1809388359]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"UfPanelFooter"
 
-[node name="Chrome" type="HBoxContainer" parent="Layout/Footer"]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 4.0
-offset_right = -8.0
-offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Chrome" type="HBoxContainer" parent="Layout/Footer" unique_id=1211701864]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
+accessibility_region = true
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="Layout/Footer/Chrome"]
+[node name="CancelButton" type="Button" parent="Layout/Footer/Chrome" unique_id=1653541702]
 custom_minimum_size = Vector2(96, 28)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 4
 text = "gui.action.cancel"
 
-[node name="AcceptButton" type="Button" parent="Layout/Footer/Chrome"]
+[node name="AcceptButton" type="Button" parent="Layout/Footer/Chrome" unique_id=1913094214]
 custom_minimum_size = Vector2(96, 28)
 layout_mode = 2
 size_flags_horizontal = 8

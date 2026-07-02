@@ -20,13 +20,18 @@ title_key = "gui.inspection.title"
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+accessibility_region = true
 
-[node name="Header" type="Control" parent="Layout" unique_id=611478045]
+[node name="Header" type="PanelContainer" parent="Layout" unique_id=965099813]
 custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"UfPanelHeader"
 
-[node name="Title" type="Label" parent="Layout/Header" unique_id=2103444336]
+[node name="Body" type="Control" parent="Layout/Header" unique_id=70936621]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Header/Body" unique_id=638902017]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -35,7 +40,7 @@ text = "gui.inspection.title"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Chrome" type="HBoxContainer" parent="Layout/Header" unique_id=1707775470]
+[node name="Chrome" type="HBoxContainer" parent="Layout/Header/Body" unique_id=1684753575]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -48,7 +53,7 @@ mouse_filter = 0
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="MinimizeButton" type="Button" parent="Layout/Header/Chrome" unique_id=1989824337]
+[node name="MinimizeButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=173838654]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.minimize"
@@ -56,7 +61,7 @@ focus_mode = 0
 icon = ExtResource("3_uhwyk")
 flat = true
 
-[node name="DragHandle" type="Button" parent="Layout/Header/Chrome" unique_id=1321988813]
+[node name="DragHandle" type="Button" parent="Layout/Header/Body/Chrome" unique_id=231247608]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.drag"
@@ -64,7 +69,7 @@ focus_mode = 0
 icon = ExtResource("4_i4id2")
 flat = true
 
-[node name="CloseButton" type="Button" parent="Layout/Header/Chrome" unique_id=1314286506]
+[node name="CloseButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=176416099]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.close"

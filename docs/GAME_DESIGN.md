@@ -1067,7 +1067,7 @@ El panel se suscribe a datos del módulo `equipment` / `NpcInstanceData` vía AP
 - Toda ventana de juego es un **`UfPanel`** o subclase.
 - Arrastre solo desde **asa/barra** definida, no desde todo el panel (evita conflictos con clics en contenido).
 - Nuevos paneles (mapa, diálogo NPC, crafteo…) → extender base o componer widgets existentes.
-- Estilos centralizados en **`Theme`** (`res://ui/theme/uf_theme.tres`); marco nine-patch en `ui/theme/art/panel_frame.png` vía **`StyleBoxTexture`** (`texture_margin_*`); evitar StyleBox duplicados por escena.
+- Estilos centralizados en **`Theme`** (`res://ui/theme/uf_theme.tres`); marco nine-patch en `ui/theme/art/panel_frame.png` vía **`StyleBoxTexture`** (`texture_margin_*`). Barras de **header** y **footer** usan variaciones `UfPanelHeader` / `UfPanelFooter` con placeholders en `ui/theme/styles/panel_header_placeholder.tres` y `panel_footer_placeholder.tres` (rectángulo negro ~55% opacidad; **no** reutilizan el sprite del marco). Sustituibles por tiras PNG sin tocar scripts.
 - Identificadores en **inglés**; textos en `res://locale/`.
 
 ### 10.9 Herramientas de editor para GUI

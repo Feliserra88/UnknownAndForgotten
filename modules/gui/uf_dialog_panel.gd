@@ -9,10 +9,10 @@ extends UfPanel
 signal confirmed
 signal cancelled
 
+const _FOOTER_VARIATION := &"UfPanelFooter"
 const _FOOTER_HEIGHT := 36
 const _DEFAULT_BUTTON_SIZE := Vector2(96, 28)
 const _CHROME_SEPARATION := 8
-const _FOOTER_INSET := 8
 
 @export var accept_key: String = "gui.action.accept":
 	set(value):
@@ -72,9 +72,10 @@ func _remove_stray_header(layout: VBoxContainer) -> void:
 		header.free()
 
 func _ensure_footer(layout: VBoxContainer) -> void:
-	var footer := layout.get_node_or_null("Footer") as Control
-	if footer != null and footer.get_node_or_null("Chrome") != null:
-		return
+	var footer := layout.get_node_or_null("Footer")
+	if footer is PanelContainer and footer.theme_type_variation == _FOOTER_VARIATION:
+		if footer.get_node_or_null("Chrome") != null:
+			return
 	var cancel := _find_legacy_button(layout, "CancelButton")
 	var accept := _find_legacy_button(layout, "AcceptButton")
 	if footer != null:
@@ -97,11 +98,15 @@ func _find_legacy_button(layout: VBoxContainer, button_name: String) -> Button:
 	var footer := layout.get_node_or_null("Footer")
 	if footer == null:
 		return null
+	var button := footer.get_node_or_null("Chrome/%s" % button_name) as Button
+	if button != null:
+		return button
 	return footer.get_node_or_null(button_name) as Button
 
-func _build_footer() -> Control:
-	var footer := Control.new()
+func _build_footer() -> PanelContainer:
+	var footer := PanelContainer.new()
 	footer.name = "Footer"
+	footer.theme_type_variation = _FOOTER_VARIATION
 	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	footer.custom_minimum_size = Vector2(0, _FOOTER_HEIGHT)
 	footer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -109,12 +114,9 @@ func _build_footer() -> Control:
 	var chrome := HBoxContainer.new()
 	chrome.name = "Chrome"
 	chrome.alignment = BoxContainer.ALIGNMENT_END
+	chrome.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chrome.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	chrome.add_theme_constant_override("separation", _CHROME_SEPARATION)
-	chrome.set_anchors_preset(Control.PRESET_FULL_RECT)
-	chrome.offset_left = _FOOTER_INSET
-	chrome.offset_top = 4
-	chrome.offset_right = -_FOOTER_INSET
-	chrome.offset_bottom = -4
 	footer.add_child(chrome)
 	return footer
 

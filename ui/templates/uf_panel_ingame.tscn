@@ -11,19 +11,25 @@ custom_minimum_size = Vector2(280, 200)
 offset_right = 497.0
 offset_bottom = 607.0
 theme = ExtResource("1_theme")
+accessibility_region = true
 script = ExtResource("2_ingame")
 
 [node name="Layout" type="VBoxContainer" parent="." unique_id=1804362020]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+accessibility_region = true
 
-[node name="Header" type="Control" parent="Layout" unique_id=1699614358]
+[node name="Header" type="PanelContainer" parent="Layout" unique_id=1156998898]
 custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"UfPanelHeader"
 
-[node name="Title" type="Label" parent="Layout/Header" unique_id=1612274018]
+[node name="Body" type="Control" parent="Layout/Header" unique_id=503964933]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Header/Body" unique_id=251428798]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -31,7 +37,7 @@ mouse_filter = 0
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Chrome" type="HBoxContainer" parent="Layout/Header" unique_id=1287497840]
+[node name="Chrome" type="HBoxContainer" parent="Layout/Header/Body" unique_id=1713058300]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -44,7 +50,7 @@ mouse_filter = 0
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="MinimizeButton" type="Button" parent="Layout/Header/Chrome" unique_id=753462612]
+[node name="MinimizeButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=412718379]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.minimize"
@@ -52,7 +58,7 @@ focus_mode = 0
 icon = ExtResource("3_swfox")
 flat = true
 
-[node name="DragHandle" type="Button" parent="Layout/Header/Chrome" unique_id=439244327]
+[node name="DragHandle" type="Button" parent="Layout/Header/Body/Chrome" unique_id=1677118786]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.drag"
@@ -60,7 +66,7 @@ focus_mode = 0
 icon = ExtResource("4_wfj5t")
 flat = true
 
-[node name="CloseButton" type="Button" parent="Layout/Header/Chrome" unique_id=2073613714]
+[node name="CloseButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=1875339334]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.close"

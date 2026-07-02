@@ -40,6 +40,7 @@ offset_bottom = 24.0
 grow_horizontal = 0
 mouse_filter = 0
 theme_override_constants/separation = 2
+accessibility_region = true
 alignment = 1
 
 [node name="MinimizeButton" type="Button" parent="Layout/Header/Chrome" unique_id=692564676]

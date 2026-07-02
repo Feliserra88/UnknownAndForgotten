@@ -42,6 +42,7 @@ UfPanel (shell vacío: Layout + ContentSlot)
 
 Godot usa **9-slice / nine-patch**: **un** PNG con esquinas, laterales y centro. En el `Theme` → **`StyleBoxTexture`** con `texture_margin_*` (igual que `NinePatchRect`).
 
-- Asset: `res://ui/theme/art/panel_frame.png` (reemplaza placeholder `panel_frame.svg`).
+- Asset: `res://ui/theme/art/panel_frame.png` (marco exterior del panel).
+- Variaciones de tema en `uf_theme.tres`: `UfPanelHeader` / `UfPanelFooter` → placeholders en `ui/theme/styles/panel_*_placeholder.tres` (rectángulo negro semitransparente; sustituir por arte final).
 - Márgenes: medir grosor del borde (`texture_margin_*`). Paneles grandes: `axis_stretch_*` = `TILE` o `TILE_FIT` para repetir el centro en vez de estirarlo (`uf_theme.tres`).
 - Generación PixelLab: `create_ui_asset` (ver `pixellab-art.mdc` §UI).
