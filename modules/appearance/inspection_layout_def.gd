@@ -1,20 +1,17 @@
 @tool
 class_name InspectionLayoutDef
 extends Resource
-## Layout for an NPC inspection panel: a background silhouette plus normalized rectangles where
-## equipment slot squares are placed (see docs/GAME_DESIGN.md section 5.5). Consumed by the GUI
-## UfInspectionPanel so the same panel serves any archetype (humanoid, beast, ...). Data only;
-## no GUI logic. Saveable as a .tres asset under res://assets/visuals/parts/.
+## Links an NPC archetype to its artist-authored equipment panel scene (see docs/GAME_DESIGN.md §5.5.5).
+## Runtime loads [member panel_path] only; optional fields below are authoring reference, not fallbacks.
 
-## Background image drawn behind the slot squares (e.g. a humanoid silhouette).
+## Background silhouette reference for artists (not used at runtime).
 @export var background_texture: Texture2D
-## Panel size hint in pixels for the background area.
+## Panel size hint in pixels for the background area (authoring reference).
 @export var background_size: Vector2 = Vector2(240, 300)
-## Optional artist-tuned panel scene under res://ui/panels/inspection/.
-## When set, GuiModule instantiates this scene instead of build_from_layout().
+## Required artist panel under res://ui/panels/equipment/. GuiModule instantiates this scene.
 @export_file("*.tscn") var panel_path: String = ""
-## Slot placements: each entry is { "slot_id": StringName, "rect": Rect2 (normalized 0..1) }.
-## Rect is expressed as a fraction of the background so it scales with the panel.
+## Slot placements for authoring: { "slot_id": StringName, "rect": Rect2 (normalized 0..1) }.
+## Not used at runtime; slots live in the panel [code].tscn[/code].
 @export var slots: Array[Dictionary] = []
 
 ## Returns the normalized Rect2 for [param slot_id], or a zero rect when absent.

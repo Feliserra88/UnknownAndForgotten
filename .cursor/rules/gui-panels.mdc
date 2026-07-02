@@ -37,6 +37,15 @@ Los **defaults del script** son solo *fallback* (nodos creados por código o esc
 - Inspector → «Revertir» vuelve al default del **script**, no al del template; para resetear al template, revertir en escena heredada o copiar del template.
 - Grids (loot/inventario): columnas y tamaño de celda viven en la escena (`GridContainer.columns`, slots); los `@export` del panel solo aplican si el grid se genera por código.
 
+## Fallbacks de assets
+
+**No inventar fallbacks silenciosos.** Si falta un asset autorizado (panel, textura, escena referenciada):
+
+1. **`Log.err`** con módulo y causa (ruta, id).
+2. **Placeholder visible** que deje claro el fallo (marco de error, texto localizado); nunca sustituir con UI generada “aproximada” sin avisar.
+
+Norma detallada en `docs/GAME_DESIGN.md` §5.5.5 (paneles de inspección/equipo). Los `@export` del script y nodos mínimos de template siguen siendo solo fallback de **estructura vacía**, no de contenido artístico.
+
 
 ```
 UfPanel (shell vacío: Layout + ContentSlot)

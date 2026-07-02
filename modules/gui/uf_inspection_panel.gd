@@ -2,11 +2,13 @@
 @icon("res://ui/templates/icons/panel_ingame_inspection.svg")
 class_name UfInspectionPanel
 extends UfPanelIngame
-## Reusable NPC inspection panel (see docs/GAME_DESIGN.md section 10.6): a background silhouette with
-## anchored square slots, built from an InspectionLayoutDef. Used both in-game (inspect an NPC) and by
-## the uf_npc_editor. Presentational only; it relays slot signals and never touches domain modules.
+## Reusable NPC inspection panel (see docs/GAME_DESIGN.md section 5.5.5): artist-authored scene under
+## [code]ui/panels/equipment/[/code] with [UfEquipmentSlot] nodes. Used in-game and by uf_npc_editor.
+## Presentational only; it relays slot signals and never touches domain modules.
 
-const _SlotScript := preload("res://modules/gui/widgets/uf_equipment_slot.gd")
+const _LabelScript := preload("res://modules/gui/widgets/uf_label.gd")
+const _PLACEHOLDER_MIN_SIZE := Vector2(240, 300)
+const _PLACEHOLDER_DETAIL_COLOR := Color(1, 0.45, 0.45)
 ## Maps legacy uf_gui_tools slot node names to equipment slot_id when the saved scene omits slot_id.
 const _LEGACY_SLOT_NODE_MAP := {
 	&"UfEquipmentHead": &"head",
@@ -22,40 +24,51 @@ signal item_removed(slot_id: StringName)
 signal slot_activated(slot_id: StringName)
 
 var _slots: Dictionary = {}
-var _region: UfLayoutRegion
 
-## Rebuilds the panel from [param layout]: background TextureRect + one square slot per layout entry.
-func build_from_layout(layout: InspectionLayoutDef) -> void:
+## Shows an obvious placeholder when the artist panel asset is missing (GAME_DESIGN §5.5.5).
+func show_asset_missing_placeholder(failed_path: String = "") -> void:
 	_slots.clear()
 	var content := get_content_slot()
-	if content == null or layout == null:
+	if content == null:
 		return
 	for child in content.get_children():
 		child.queue_free()
-	_region = UfLayoutRegion.new()
-	_region.name = "InspectionArea"
-	var region_size := layout.background_size
-	if region_size.x < 16.0 or region_size.y < 16.0:
-		region_size = Vector2(240, 300)
-	_region.region_min_size = region_size
-	content.add_child(_region)
 
-	var background := TextureRect.new()
-	background.name = "Background"
-	background.texture = layout.background_texture
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	background.modulate = Color(1, 1, 1, 0.5)
-	background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_region.add_child(background)
+	var region := UfLayoutRegion.new()
+	region.name = "MissingPanelPlaceholder"
+	region.region_min_size = _PLACEHOLDER_MIN_SIZE
+	content.add_child(region)
 
-	for entry in layout.slots:
-		var slot_id := StringName(entry.get("slot_id", &""))
-		var rect: Rect2 = entry.get("rect", Rect2())
-		if rect.size == Vector2.ZERO:
-			continue
-		_add_slot(slot_id, rect)
+	var frame := Panel.new()
+	frame.name = "PlaceholderFrame"
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.05, 0.05, 0.92)
+	style.border_color = Color(1, 0.2, 0.2)
+	style.set_border_width_all(2)
+	style.set_content_margin_all(12)
+	frame.add_theme_stylebox_override("panel", style)
+	region.add_child(frame)
+
+	var body := VBoxContainer.new()
+	body.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame.add_child(body)
+
+	var label := _LabelScript.new() as UfLabel
+	label.name = "MissingPanelLabel"
+	label.label_key = "gui.inspection.missing_panel"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_child(label)
+
+	if not failed_path.is_empty():
+		var path_label := Label.new()
+		path_label.name = "MissingPanelPath"
+		path_label.text = failed_path
+		path_label.modulate = _PLACEHOLDER_DETAIL_COLOR
+		path_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		path_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.add_child(path_label)
 
 ## Indexes UfEquipmentSlot nodes from a saved panel scene and wires slot_id + signals.
 ## Call after instantiating a scene from InspectionLayoutDef.panel_path.
@@ -109,18 +122,6 @@ func clear_slot(slot_id: StringName) -> void:
 ## Returns the slot ids currently built by this panel.
 func slot_ids() -> Array:
 	return _slots.keys()
-
-func _add_slot(slot_id: StringName, rect: Rect2) -> void:
-	var slot := _SlotScript.new() as UfEquipmentSlot
-	slot.slot_id = slot_id
-	slot.name = "Slot_%s" % slot_id
-	var center_norm := UfLayoutRegion.norm_rect_center_offset(rect)
-	UfLayoutRegion.apply_center_anchored_slot(slot, center_norm)
-	_region.add_child(slot)
-	_slots[slot_id] = slot
-	slot.item_dropped.connect(_on_slot_item_dropped)
-	slot.item_removed.connect(_on_slot_item_removed)
-	slot.slot_activated.connect(_on_slot_activated)
 
 func _on_slot_item_dropped(slot_id: StringName, payload: Dictionary) -> void:
 	item_dropped.emit(slot_id, payload)

@@ -532,10 +532,7 @@ func _rebuild_inspection() -> void:
 	_inspection_panel.show_drag_handle = false
 	_inspection_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inspection_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	if not layout.panel_path.is_empty():
-		_inspection_panel.custom_minimum_size = Vector2(260, 360)
-	else:
-		_inspection_panel.custom_minimum_size = Vector2(240, 300)
+	_inspection_panel.custom_minimum_size = Vector2(260, 360)
 	_inspection_holder.add_child(_inspection_panel)
 	if not _inspection_panel.item_dropped.is_connected(_on_item_dropped):
 		_inspection_panel.item_dropped.connect(_on_item_dropped)

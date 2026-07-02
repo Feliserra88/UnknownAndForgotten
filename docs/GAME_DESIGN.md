@@ -454,7 +454,7 @@ Cada `NpcArchetype` (`class_name NpcArchetype extends Resource`):
 - `base_vitals: VitalsTemplate`
 - `body_part_map: BodyPartMap` — slots **anatómicos** del rig (cabeza, brazos…)
 - `equipment_slot_map: EquipmentSlotMap` — slots de **objeto** equipable (§7.1); distinto de `body_part_map`
-- `inspection_layout: InspectionLayoutDef` — silueta + posiciones de slots para `UfInspectionPanel` (§5.5.5)
+- `inspection_layout: InspectionLayoutDef` — enlace `panel_path` al panel de equipo del artista (§5.5.5)
 - `tags: Array[StringName]` — p. ej. `humanoid`; compatibilidad de items y agrupación
 - `default_factions: Array[StringName]` — ids de facción por defecto (resueltos vía `FactionModule`)
 - `default_traits: Array[StringName]` — ids de rasgo (legacy; preferir `default_modifiers` con `kind = TRAIT`)
@@ -585,26 +585,32 @@ Para inspeccionar o equipar un NPC (en juego o en `uf_npc_editor`), el arquetipo
 
 | Pieza | Tipo | Rol |
 |-------|------|-----|
-| `InspectionLayoutDef` | `Resource` (`.tres`) | `background_texture`, `background_size`, `slots[]` con `{ slot_id, rect }` donde `rect` es **normalizado** 0..1 sobre el fondo |
-| `UfInspectionPanel` | `UfPanelIngame` (módulo `gui`) | Construye fondo + una `UfEquipmentSlot` por entrada del layout; **solo presentación** (señales `item_dropped`, `item_removed`, `slot_activated`) |
+| `InspectionLayoutDef` | `Resource` (`.tres`) | Enlaza `panel_path` al panel del artista; `background_texture`, `background_size` y `slots[]` son **referencia de autoría** (no se usan en runtime) |
+| `UfInspectionPanel` | `UfPanelIngame` (módulo `gui`) | Escena en `ui/panels/equipment/` con `UfEquipmentSlot` colocadas a mano; **solo presentación** (señales `item_dropped`, `item_removed`, `slot_activated`) |
 | `UfEquipmentSlot` | `Panel` (widget `gui`) | Celda cuadrada con icono; drag-and-drop con payload opaco (`uf_equipment_item`); sin tipos de dominio |
 
 Flujo editor / runtime:
 
 1. `archetype.resolve_inspection_layout()` → `InspectionLayoutDef` (referenciado en el `.tres` del arquetipo del catálogo).
-2. Si `layout.panel_path` apunta a un `.tscn` en `ui/panels/equipment/`, `GuiModule` **instancia ese panel** y enlaza `slot_id` (`bind_scene_slots`). Si no, `build_from_layout(layout)` (fallback procedural).
-3. `GuiModule.create_inspection_panel_for_archetype(archetype)` orquesta el paso anterior.
-4. Al soltar un item, el **consumidor** (editor o módulo `equipment`) actualiza `EquipmentState` y llama `NpcAppearanceController.set_equipment_texture(part_id, tex)`.
+2. `GuiModule.create_inspection_panel_for_archetype(archetype)` **instancia** el `.tscn` de `layout.panel_path` y enlaza `slot_id` (`bind_scene_slots`).
+3. Al soltar un item, el **consumidor** (editor o módulo `equipment`) actualiza `EquipmentState` y llama `NpcAppearanceController.set_equipment_texture(part_id, tex)`.
 
-**Fuente de verdad:** el arquetipo referencia un `InspectionLayoutDef` en `assets/visuals/parts/`. Ese layout declara `panel_path` (panel del artista) y, opcionalmente, `slots[]` como fallback procedural.
+**Fuente de verdad:** el arquetipo → `InspectionLayoutDef` → `panel_path` → escena del artista en `ui/panels/equipment/`. Una sola referencia por capa; **sin copias** en el editor ni en módulos de dominio.
+
+**Regla — sin fallbacks procedurales:** si falta el layout, `panel_path` está vacío o el `.tscn` no carga, `GuiModule` **no** reconstruye la UI desde datos (`slots[]`, silueta, etc.). Debe:
+
+1. Emitir traza **`Log.err`** (`[GUI] err …`) con la causa (layout nulo, ruta vacía, asset ausente).
+2. Mostrar un **placeholder visible** (marco rojo + texto localizado `gui.inspection.missing_panel` + ruta en consola/log), de modo que el fallo sea obvio en pantalla y en log.
+
+Los únicos fallbacks admitidos en el proyecto son placeholders que **gritan** el error; nunca sustitutos silenciosos “por si acaso”. Ver también `gui-panels.mdc` («Fallbacks de assets»).
 
 | Arquetipo (catálogo) | Layout | Panel (`panel_path`) |
 |----------------------|--------|----------------------|
 | `humanoid` | `humanoid_inspection_layout.tres` | `ui/panels/equipment/uf_inspection_humanoid.tscn` |
 | `quadruped_animal` | `quadruped_inspection_layout.tres` | `ui/panels/equipment/uf_inspection_quadruped.tscn` |
 | `beast` | `beast_inspection_layout.tres` | `ui/panels/equipment/uf_inspection_beast.tscn` |
-| `horror` | `horror_inspection_layout.tres` | (pendiente) |
-| `winged_horror` | `winged_horror_inspection_layout.tres` | (pendiente) |
+| `horror` | `horror_inspection_layout.tres` | (pendiente — placeholder hasta panel de artista) |
+| `winged_horror` | `winged_horror_inspection_layout.tres` | (pendiente — placeholder hasta panel de artista) |
 
 Assets de ejemplo: `assets/visuals/parts/humanoid_inspection_layout.tres`. El módulo `gui` **no** importa `ItemDef` ni `FactionDef`; el módulo `npc` **no** importa escenas de `ui/`.
 
@@ -1055,7 +1061,7 @@ func _on_drag_handle_input(event: InputEvent) -> void:
 | `UfTabbedPanel` | `UfPanel` | Sustituye `ContentSlot` del padre por `TabContainer`; cada [class UfTab] tiene su `ContentSlot` |
 | `UfInfoPanel` | `UfPanel` | Shell informativo sin chrome de ventana |
 | `UfDialogPanel` | `UfPanel` | `ContentSlot` + footer `Chrome` (Aceptar/Cancelar, tamaño fijo alineados a la derecha) + señales `confirmed`, `cancelled` |
-| `UfInspectionPanel` | `UfPanelIngame` | Silueta + slots de equipo desde `InspectionLayoutDef`; señales drag-drop (§5.5.5) |
+| `UfInspectionPanel` | `UfPanelIngame` | Panel de equipo desde escena del artista; señales drag-drop (§5.5.5) |
 | `UfLootPanel` | `UfPanelIngame` | Rejilla `LootGrid` 4×4 (tunable) de `UfItemSlot`; move/swap interno + señales drag-drop |
 | `UfInventoryPanel` | `UfPanelIngame` o `UfTabbedPanel` | Componer `UfGridContainer` + lógica vía módulo `equipment` |
 | `UfStatusPanel` | `UfPanelIngame` | Barras de vitals (`VitalsList` + `UfProgressBar`); datos vía [method UfStatusPanel.set_vitals] |

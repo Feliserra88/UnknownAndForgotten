@@ -69,7 +69,7 @@ func create_panel(kind: StringName = &"panel", title_key: String = "") -> UfPane
 	return panel
 
 ## Creates an inspection panel for [param archetype] using its resolved layout. Returns null when the
-## archetype has no inspection layout. Used by uf_npc_editor and in-game NPC inspection.
+## archetype is null. On missing panel asset, logs an error and returns a visible placeholder.
 func create_inspection_panel_for_archetype(
 	archetype: NpcArchetype,
 	title_key: String = "gui.inspection.title",
@@ -78,23 +78,35 @@ func create_inspection_panel_for_archetype(
 		return null
 	return create_inspection_panel(archetype.resolve_inspection_layout(), title_key)
 
-## Creates an inspection panel built from [param layout] with the shared theme applied. Returns null
-## when the panel asset is missing. Used by uf_npc_editor and in-game NPC inspection.
+## Creates an inspection panel from [param layout] by instantiating [member InspectionLayoutDef.panel_path].
+## On missing layout or panel asset, logs an error and returns a visible placeholder (see GAME_DESIGN §5.5.5).
 func create_inspection_panel(layout: InspectionLayoutDef, title_key: String = "gui.inspection.title") -> UfInspectionPanel:
-	if layout != null and not layout.panel_path.is_empty():
-		var scene_panel := load_panel(layout.panel_path) as UfInspectionPanel
-		if scene_panel != null:
-			if not title_key.is_empty():
-				scene_panel.set_title_key(title_key)
-			apply_theme(scene_panel)
-			scene_panel.bind_scene_slots()
-			return scene_panel
+	if layout == null:
+		Log.err(_LOG, "create_inspection_panel: layout is null")
+		return _create_inspection_missing_placeholder(title_key, "")
+	var panel_path := layout.panel_path.strip_edges()
+	if panel_path.is_empty():
+		Log.err(_LOG, "create_inspection_panel: panel_path is empty")
+		return _create_inspection_missing_placeholder(title_key, panel_path)
+	if not ResourceLoader.exists(panel_path):
+		Log.err(_LOG, "create_inspection_panel: missing panel %s" % panel_path)
+		return _create_inspection_missing_placeholder(title_key, panel_path)
+	var scene_panel := load_panel(panel_path) as UfInspectionPanel
+	if scene_panel == null:
+		Log.err(_LOG, "create_inspection_panel: failed to instantiate %s" % panel_path)
+		return _create_inspection_missing_placeholder(title_key, panel_path)
+	if not title_key.is_empty():
+		scene_panel.set_title_key(title_key)
+	apply_theme(scene_panel)
+	scene_panel.bind_scene_slots()
+	return scene_panel
+
+func _create_inspection_missing_placeholder(title_key: String, failed_path: String) -> UfInspectionPanel:
 	var panel := create_panel(&"inspection", title_key) as UfInspectionPanel
 	if panel == null:
 		return null
 	panel._ensure_structure()
-	if layout != null:
-		panel.build_from_layout(layout)
+	panel.show_asset_missing_placeholder(failed_path)
 	return panel
 
 ## Returns the PackedScene path for a widget id used by uf_gui_tools ("label", "button", …).
