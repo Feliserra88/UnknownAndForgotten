@@ -37,6 +37,7 @@ const DEFAULT_FIXED_SIZE := Vector2(40, 40)
 
 var _layout_apply_depth: int = 0
 var _suppress_layout_request: bool = false
+var _editor_sync_scheduled: bool = false
 
 const _EDITOR_LAYOUT_PROPS: Array[StringName] = [
 	&"position",
@@ -47,22 +48,43 @@ const _EDITOR_LAYOUT_PROPS: Array[StringName] = [
 	&"size",
 ]
 
-func _set(property: StringName, value: Variant) -> bool:
+func _get_layout_region() -> UfLayoutRegion:
+	var node: Node = self
+	while node != null:
+		if node is UfLayoutRegion:
+			return node as UfLayoutRegion
+		node = node.get_parent()
+	return null
+
+func _set(property: StringName, _value: Variant) -> bool:
 	if Engine.is_editor_hint() and property in _EDITOR_LAYOUT_PROPS:
-		call_deferred("_sync_layout_from_editor_if_allowed")
+		_queue_editor_layout_sync(&"_set", property)
 	return false
 
-func _sync_layout_from_editor_if_allowed() -> void:
-	if _is_layout_applying():
+func _queue_editor_layout_sync(_source: StringName, _detail: StringName = &"") -> void:
+	var region := _get_layout_region()
+	if region != null:
+		region.mark_editor_slot_user_edit(self)
+	if _editor_sync_scheduled:
 		return
-	var region := get_parent() as UfLayoutRegion
+	_editor_sync_scheduled = true
+	call_deferred("_run_deferred_editor_sync")
+
+func _run_deferred_editor_sync() -> void:
+	_editor_sync_scheduled = false
+	_sync_layout_from_editor_if_allowed()
+
+func flush_pending_editor_sync() -> void:
+	_sync_layout_from_editor()
+
+func _sync_layout_from_editor_if_allowed() -> void:
+	var region := _get_layout_region()
+	if _is_layout_applying():
+		if region != null:
+			region.register_pending_slot_sync(self)
+		return
 	if region != null and region.should_suppress_editor_sync():
-		#region agent log
-		AgentDebugLog.write("R1", "uf_equipment_slot.gd:_sync", "sync blocked during layout cascade", {
-			"name": name,
-			"property": "deferred",
-		})
-		#endregion
+		region.register_pending_slot_sync(self)
 		return
 	_sync_layout_from_editor()
 
@@ -70,38 +92,38 @@ func _enter_tree() -> void:
 	if Engine.is_editor_hint():
 		if not resized.is_connected(_on_editor_layout_changed):
 			resized.connect(_on_editor_layout_changed)
-		#region agent log
-		AgentDebugLog.write("H3", "uf_equipment_slot.gd:_enter_tree", "slot loaded from scene", {
-			"name": name,
-			"norm": [layout_center_norm.x, layout_center_norm.y],
-			"position": [position.x, position.y],
-			"offsets": [offset_left, offset_top, offset_right, offset_bottom],
-			"anchored": layout_center_anchored,
-		})
-		#endregion
 		call_deferred("_editor_ensure_anchored_from_scene")
+
+func enable_center_anchor_from_scene_norm() -> void:
+	if layout_center_anchored:
+		return
+	_suppress_layout_request = true
+	layout_center_anchored = true
+	_suppress_layout_request = false
 
 func _editor_ensure_anchored_from_scene() -> void:
 	if not Engine.is_editor_hint() or _is_layout_applying():
 		return
-	var region := get_parent() as UfLayoutRegion
+	var region := _get_layout_region()
 	if region == null:
 		return
-	if layout_center_anchored and not layout_center_norm.is_zero_approx():
+	if not layout_center_norm.is_zero_approx():
+		enable_center_anchor_from_scene_norm()
+		return
+	if layout_center_anchored:
 		return
 	var width := offset_right - offset_left
 	var height := offset_bottom - offset_top
 	if width < 8.0 or height < 8.0:
 		return
-	if not layout_center_anchored:
-		layout_center_anchored = true
+	layout_center_anchored = true
 	_sync_layout_from_editor()
 
 func _notification(what: int) -> void:
 	if not Engine.is_editor_hint():
 		return
-	if what == NOTIFICATION_TRANSFORM_CHANGED:
-		call_deferred("_sync_layout_from_editor_if_allowed")
+	if what == NOTIFICATION_TRANSFORM_CHANGED and not _is_layout_applying():
+		_queue_editor_layout_sync(&"transform_changed")
 
 func begin_layout_apply() -> void:
 	_layout_apply_depth += 1
@@ -113,13 +135,15 @@ func _is_layout_applying() -> bool:
 	return _layout_apply_depth > 0
 
 func _on_editor_layout_changed() -> void:
-	call_deferred("_sync_layout_from_editor_if_allowed")
+	if not _is_layout_applying():
+		_queue_editor_layout_sync(&"resized")
 
 func _sync_layout_from_editor() -> void:
 	if not Engine.is_editor_hint() or _is_layout_applying():
 		return
-	var region := get_parent() as UfLayoutRegion
+	var region := _get_layout_region()
 	if region != null and region.should_suppress_editor_sync():
+		region.register_pending_slot_sync(self)
 		return
 	if not layout_center_anchored:
 		return
@@ -133,32 +157,24 @@ func _sync_layout_from_editor() -> void:
 	if slot_size.x < 8.0 or slot_size.y < 8.0:
 		slot_size = layout_fixed_size
 		rect.size = slot_size
+	var slot_parent := get_parent() as Control
+	var center := rect.position + slot_size * 0.5
+	if slot_parent != null and slot_parent != region:
+		center += slot_parent.position
 	if not slot_size.is_equal_approx(layout_fixed_size):
 		_set_layout_fixed_size_silent(slot_size)
-	var center := rect.position + slot_size * 0.5
 	var norm := UfLayoutRegion.pixel_center_to_norm(center, region_size)
-	#region agent log
-	AgentDebugLog.write("H1", "uf_equipment_slot.gd:_sync_layout_from_editor", "sync norm from editor rect", {
-		"runId": "resize-fix",
-		"name": name,
-		"region_size": [region_size.x, region_size.y],
-		"region_actual_size": [region.size.x, region.size.y],
-		"ref_size": [region.layout_reference_size.x, region.layout_reference_size.y],
-		"rect_pos": [rect.position.x, rect.position.y],
-		"center": [center.x, center.y],
-		"old_norm": [layout_center_norm.x, layout_center_norm.y],
-		"new_norm": [norm.x, norm.y],
-		"will_update": not layout_center_norm.is_equal_approx(norm),
-	})
-	#endregion
 	if layout_center_norm.is_equal_approx(norm):
+		region.unregister_pending_slot_sync(self)
 		return
 	_set_layout_center_norm_silent(norm)
+	region.unregister_pending_slot_sync(self)
 
 func _set_layout_center_norm_silent(value: Vector2) -> void:
 	_suppress_layout_request = true
 	layout_center_norm = value
 	_suppress_layout_request = false
+	notify_property_list_changed()
 	_mark_editor_scene_dirty()
 
 func _set_layout_fixed_size_silent(value: Vector2) -> void:
@@ -177,6 +193,6 @@ func get_payload_type() -> StringName:
 func _request_parent_layout() -> void:
 	if _suppress_layout_request or _is_layout_applying():
 		return
-	var parent := get_parent()
-	if parent is UfLayoutRegion:
-		parent._layout_center_anchored_children()
+	var region := _get_layout_region()
+	if region != null:
+		region._layout_center_anchored_children()

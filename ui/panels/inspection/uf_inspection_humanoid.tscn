@@ -8,45 +8,57 @@
 offset_right = 398.0
 offset_bottom = 520.0
 
-[node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
+[node name="UfEquipmentLegL" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=981317227 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 175.0
+offset_right = 200.0
+offset_bottom = 215.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.08252427, 0.15)
+
+[node name="UfEquipmentLegR" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=2124956090 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 113.0
+offset_top = 178.0
+offset_right = 153.0
+offset_bottom = 218.0
+layout_center_anchored = true
+layout_center_norm = Vector2(-0.06957929, 0.16)
+
+[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=894582718 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 139.0
+offset_top = 51.0
+offset_right = 179.0
+offset_bottom = 91.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.014563107, -0.26333332)
+
+[node name="UfEquipmentArmR" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=104910558 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 89.0
+offset_top = 109.0
+offset_right = 129.0
+offset_bottom = 149.0
+layout_center_anchored = true
+layout_center_norm = Vector2(-0.14724919, -0.07)
+
+[node name="UfEquipmentArmL" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=261583111 instance=ExtResource("3_60eld")]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 106.0
+offset_right = 220.0
+offset_bottom = 146.0
+layout_center_anchored = true
+layout_center_norm = Vector2(0.14724919, -0.08)
+
+[node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=861024505]
 texture = ExtResource("2_60eld")
 
-[node name="UfEquipmentLegL" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="0" unique_id=981317227 instance=ExtResource("3_60eld")]
-top_level = true
-layout_mode = 0
-offset_left = 228.0
-offset_top = 200.0
-offset_right = 268.0
-offset_bottom = 240.0
-
-[node name="UfEquipmentLegR" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="1" unique_id=2124956090 instance=ExtResource("3_60eld")]
-top_level = true
-layout_mode = 0
-offset_left = 206.0
-offset_top = 268.0
-offset_right = 246.0
-offset_bottom = 308.0
-
-[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="2" unique_id=894582718 instance=ExtResource("3_60eld")]
-top_level = true
-layout_mode = 0
-offset_left = 158.0
-offset_top = 273.0
-offset_right = 198.0
-offset_bottom = 313.0
-
-[node name="UfEquipmentArmR" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="3" unique_id=104910558 instance=ExtResource("3_60eld")]
-top_level = true
-layout_mode = 0
-offset_left = 137.0
-offset_top = 202.0
-offset_right = 177.0
-offset_bottom = 242.0
-
-[node name="UfEquipmentArmL" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="4" unique_id=261583111 instance=ExtResource("3_60eld")]
-top_level = true
-layout_mode = 0
-offset_left = 181.0
-offset_top = 135.0
-offset_right = 221.0
-offset_bottom = 175.0
+[node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=981317227]
+offset_left = 134.5
+offset_top = 97.0
+offset_right = 174.5
+offset_bottom = 137.0
+layout_center_norm = Vector2(0, -0.11)

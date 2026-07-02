@@ -173,8 +173,14 @@ func _apply_cutout_base(slot: Dictionary, view: StringName, flip_h: bool) -> voi
 		var anim := _cutout_anim_name(tex_key, visual != null and visual.get_walk_texture(tex_key) != null)
 		if not anim_sprite.sprite_frames.has_animation(anim):
 			anim = &"idle_front"
-		if anim_sprite.animation != anim:
-			anim_sprite.play(anim)
+		anim_sprite.animation = anim
+		var is_walk := _is_moving and String(anim).begins_with("walk_")
+		if is_walk:
+			if not anim_sprite.is_playing() or anim_sprite.animation != anim:
+				anim_sprite.play(anim)
+		else:
+			anim_sprite.set_frame_and_progress(0, 0.0)
+			anim_sprite.stop()
 	elif base is Sprite2D:
 		var sprite := base as Sprite2D
 		sprite.visible = not hide_base

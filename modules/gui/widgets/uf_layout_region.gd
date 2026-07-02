@@ -34,9 +34,23 @@ const _MIN_AXIS := 16.0
 
 var _layout_pending: bool = false
 var _suppress_child_sync: bool = false
+var _pending_sync_slots: Dictionary = {}
 
 func should_suppress_editor_sync() -> bool:
 	return _suppress_child_sync
+
+func register_pending_slot_sync(slot: UfEquipmentSlot) -> void:
+	if slot == null:
+		return
+	_pending_sync_slots[slot.get_instance_id()] = slot
+
+func unregister_pending_slot_sync(slot: UfEquipmentSlot) -> void:
+	if slot == null:
+		return
+	_pending_sync_slots.erase(slot.get_instance_id())
+
+func mark_editor_slot_user_edit(slot: UfEquipmentSlot) -> void:
+	register_pending_slot_sync(slot)
 
 func resolved_reference_size() -> Vector2:
 	if size.x >= _MIN_AXIS and size.y >= _MIN_AXIS:
@@ -55,8 +69,7 @@ func _enter_tree() -> void:
 	_request_layout()
 
 func _ready() -> void:
-	if not Engine.is_editor_hint():
-		_request_layout()
+	_request_layout()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
@@ -87,13 +100,40 @@ func _request_layout_after_resize_settle() -> void:
 	call_deferred("_release_child_sync_suppress")
 
 func _release_child_sync_suppress() -> void:
-	call_deferred(func() -> void:
-		_suppress_child_sync = false
-	)
+	call_deferred("_release_child_sync_suppress_deferred")
+
+func _release_child_sync_suppress_deferred() -> void:
+	_suppress_child_sync = false
+	if Engine.is_editor_hint() and not _pending_sync_slots.is_empty():
+		var pending: Array = _pending_sync_slots.values()
+		_pending_sync_slots.clear()
+		for slot in pending:
+			if is_instance_valid(slot) and slot is UfEquipmentSlot:
+				(slot as UfEquipmentSlot).flush_pending_editor_sync()
 
 func _on_child_entered_tree(node: Node) -> void:
-	if node is UfEquipmentSlot and (node as UfEquipmentSlot).layout_center_anchored:
+	if Engine.is_editor_hint():
+		return
+	if node is UfEquipmentSlot or _contains_equipment_slot(node):
 		_request_layout()
+
+func _contains_equipment_slot(node: Node) -> bool:
+	if node is UfEquipmentSlot:
+		return true
+	for child in node.get_children():
+		if _contains_equipment_slot(child):
+			return true
+	return false
+
+func _for_each_equipment_slot(callback: Callable) -> void:
+	var stack: Array[Node] = [self]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			if child is UfEquipmentSlot:
+				callback.call(child)
+			elif child.get_child_count() > 0:
+				stack.append(child)
 
 func _request_layout() -> void:
 	if _layout_pending:
@@ -104,25 +144,9 @@ func _request_layout() -> void:
 func _deferred_layout_center_anchored_children() -> void:
 	_layout_pending = false
 	if not is_inside_tree() or size.x < 1.0 or size.y < 1.0:
-		#region agent log
-		AgentDebugLog.write("H2", "uf_layout_region.gd:_deferred_layout", "layout skipped (invalid size)", {
-			"size": [size.x, size.y],
-			"editor": Engine.is_editor_hint(),
-		})
-		#endregion
 		return
 	_suppress_child_sync = true
-	#region agent log
-	AgentDebugLog.write("H2", "uf_layout_region.gd:_deferred_layout", "layout pass start", {
-		"runId": "resize-fix",
-		"size": [size.x, size.y],
-		"ref_size": [layout_reference_size.x, layout_reference_size.y],
-		"resolved_ref": [resolved_reference_size().x, resolved_reference_size().y],
-		"editor": Engine.is_editor_hint(),
-	})
-	#endregion
-	for child in get_children():
-		_layout_center_anchored_child(child)
+	_for_each_equipment_slot(_layout_center_anchored_child)
 	call_deferred("_release_child_sync_suppress")
 
 func _layout_center_anchored_children() -> void:
@@ -133,30 +157,27 @@ func _layout_center_anchored_child(child: Node) -> void:
 		return
 	var slot := child as UfEquipmentSlot
 	if not slot.layout_center_anchored:
-		_bootstrap_slot_center_anchor(slot)
+		if slot.layout_center_norm.is_zero_approx():
+			_bootstrap_slot_center_anchor(slot)
+		else:
+			slot.enable_center_anchor_from_scene_norm()
 	if not slot.layout_center_anchored:
 		return
+	if Engine.is_editor_hint() and _pending_sync_slots.has(slot.get_instance_id()):
+		return
 	slot.begin_layout_apply()
+	slot.top_level = false
 	var half := slot.layout_fixed_size * 0.5
 	var region_center := size * 0.5
 	var offset := Vector2(
 		slot.layout_center_norm.x * size.x,
 		slot.layout_center_norm.y * size.y,
 	)
-	var new_pos := region_center + offset - half
-	#region agent log
-	AgentDebugLog.write("H1", "uf_layout_region.gd:_layout_child", "apply layout position", {
-		"runId": "resize-fix",
-		"slot": slot.name,
-		"norm": [slot.layout_center_norm.x, slot.layout_center_norm.y],
-		"region_size": [size.x, size.y],
-		"ref_size": [layout_reference_size.x, layout_reference_size.y],
-		"offset": [offset.x, offset.y],
-		"new_pos": [new_pos.x, new_pos.y],
-		"prev_pos": [slot.position.x, slot.position.y],
-		"prev_offsets": [slot.offset_left, slot.offset_top, slot.offset_right, slot.offset_bottom],
-	})
-	#endregion
+	var region_pos := region_center + offset - half
+	var new_pos := region_pos
+	var slot_parent := slot.get_parent() as Control
+	if slot_parent != null and slot_parent != self:
+		new_pos = region_pos - slot_parent.position
 	slot.layout_mode = 0
 	slot.set_anchors_preset(Control.PRESET_TOP_LEFT, false)
 	slot.anchor_left = 0.0

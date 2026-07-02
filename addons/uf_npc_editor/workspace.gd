@@ -14,6 +14,7 @@ const _STARTER_EQUIPMENT: Array = [
 ]
 const _ATTR_NAMES: Array[String] = ["strength", "agility", "willpower", "vitality", "perception", "charisma"]
 const _ORIENTATIONS: Array[StringName] = [&"front", &"back", &"side_left", &"side_right"]
+const _PREVIEW_SCALE := 3.0
 const _MARGIN := 8
 const _PANEL_SEP := 6
 const _FIELD_SEP := 6
@@ -50,6 +51,7 @@ var _details_box: VBoxContainer
 var _attr_total_label: Label
 var _preview_host: Control
 var _preview_viewport: SubViewport
+var _preview_camera: Camera2D
 var _appearance: NpcAppearanceController
 var _inspection_holder: VBoxContainer
 var _inspection_panel: UfInspectionPanel
@@ -311,7 +313,13 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	_preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_preview_viewport.handle_input_locally = false
 	_preview_viewport.disable_3d = true
+	_preview_viewport.transparent_bg = true
+	_preview_viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	preview_svc.add_child(_preview_viewport)
+
+	_preview_camera = Camera2D.new()
+	_preview_camera.name = "PreviewCamera"
+	_preview_viewport.add_child(_preview_camera)
 
 	var orient := HBoxContainer.new()
 	orient.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -466,7 +474,10 @@ func _sync_faction_picker() -> void:
 func _rebuild_preview() -> void:
 	if _preview_viewport == null:
 		return
+	_sync_preview_viewport_size()
 	for child in _preview_viewport.get_children():
+		if child == _preview_camera:
+			continue
 		child.free()
 	_appearance = NpcAppearanceController.new()
 	_preview_viewport.add_child(_appearance)
@@ -482,7 +493,12 @@ func _center_preview_rig() -> void:
 	if _preview_viewport == null or _appearance == null:
 		return
 	var vp := Vector2(_preview_viewport.size)
-	_appearance.position = Vector2(vp.x * 0.5, vp.y * 0.68)
+	var anchor := Vector2(vp.x * 0.5, vp.y * 0.62)
+	_appearance.position = anchor
+	_appearance.scale = Vector2(_PREVIEW_SCALE, _PREVIEW_SCALE)
+	if _preview_camera != null:
+		_preview_camera.position = anchor
+		_preview_camera.reset_smoothing()
 
 func _reapply_equipment_visuals() -> void:
 	if _appearance == null or _instance == null:
