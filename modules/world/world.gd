@@ -11,6 +11,10 @@ const _WangPainter := preload("res://modules/world/_private/wang_terrain_painter
 const _PlaceholderTileSet := preload("res://modules/world/_private/placeholder_tileset.gd")
 ## Default path for editor-painted tile data (under gitignored `res://local/`).
 const EDITOR_SESSION_MAP_PATH := "res://local/world/maps/editor_session.tscn"
+## Dedicated editor viewport scene for uf_map_editor (not the runtime world_root shell).
+const MAP_EDITOR_WORKSPACE_PATH := "res://scenes/world/map_editor_workspace.tscn"
+const LOCAL_MAPS_DIR := "res://local/world/maps"
+const ASSETS_MAPS_DIR := "res://assets/world/maps"
 
 enum Layer { GROUND, TERRAIN, OBJECTS, STRUCTURES }
 
@@ -791,3 +795,67 @@ static func build_modifier_overlay_pack(modifiers: Array, tile_size: Vector2i) -
 ## Syncs source_id/atlas_coords on tile defs to match an existing cached TileSet layout.
 static func assign_tile_mapping(tile_defs: Array, tileset: TileSet) -> void:
 	_PlaceholderTileSet.assign_tile_mapping(tile_defs, tileset)
+
+## Normalizes a map id for filenames under local/ or assets/world/maps/.
+static func sanitize_map_id(map_id: String) -> String:
+	var s := map_id.strip_edges().to_lower()
+	var out := ""
+	for i in s.length():
+		var c: String = s[i]
+		if (c >= "a" and c <= "z") or (c >= "0" and c <= "9") or c == "_":
+			out += c
+	return out if not out.is_empty() else "untitled"
+
+## Baked map scene path in [member LOCAL_MAPS_DIR] for [param map_id].
+static func map_path_in_local(map_id: String) -> String:
+	return "%s/%s.tscn" % [LOCAL_MAPS_DIR, sanitize_map_id(map_id)]
+
+## Baked map scene path in [member ASSETS_MAPS_DIR] for [param map_id].
+static func map_path_in_assets(map_id: String) -> String:
+	return "%s/%s.tscn" % [ASSETS_MAPS_DIR, sanitize_map_id(map_id)]
+
+## Lists baked `.tscn` maps under [member LOCAL_MAPS_DIR] and [member ASSETS_MAPS_DIR].
+static func list_baked_map_paths() -> PackedStringArray:
+	var out: PackedStringArray = []
+	_collect_baked_map_tscn(LOCAL_MAPS_DIR, out)
+	_collect_baked_map_tscn(ASSETS_MAPS_DIR, out)
+	out.sort()
+	return out
+
+static func _collect_baked_map_tscn(dir_path: String, out: PackedStringArray) -> void:
+	if not DirAccess.dir_exists_absolute(dir_path):
+		return
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		if not dir.current_is_dir() and entry.ends_with(".tscn"):
+			out.append("%s/%s" % [dir_path, entry])
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+## Copies a baked map scene and its optional height resource to [param dest_path].
+static func duplicate_baked_map(source_path: String, dest_path: String) -> Error:
+	if source_path.is_empty() or dest_path.is_empty():
+		return ERR_INVALID_PARAMETER
+	if not ResourceLoader.exists(source_path):
+		return ERR_FILE_NOT_FOUND
+	if source_path == dest_path:
+		return ERR_ALREADY_EXISTS
+	DirAccess.make_dir_recursive_absolute(dest_path.get_base_dir())
+	var err := DirAccess.copy_absolute(
+		ProjectSettings.globalize_path(source_path),
+		ProjectSettings.globalize_path(dest_path),
+	)
+	if err != OK:
+		return err
+	var src_height := "%s_height.tres" % source_path.get_basename()
+	var dst_height := "%s_height.tres" % dest_path.get_basename()
+	if ResourceLoader.exists(src_height):
+		err = DirAccess.copy_absolute(
+			ProjectSettings.globalize_path(src_height),
+			ProjectSettings.globalize_path(dst_height),
+		)
+	return err

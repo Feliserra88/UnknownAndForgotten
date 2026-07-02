@@ -3,10 +3,13 @@ extends VBoxContainer
 ## Dock UI for the map editor. Calls plugin methods via callv (EditorPlugin has no custom API type).
 
 const _LAYER_NAMES := ["Ground", "Terrain", "Objects", "Structures"]
+const _GRID_COLUMNS := 2
 
 var _plugin: EditorPlugin
+var _content: VBoxContainer
 var _tile_ids: Array[StringName] = []
 var _structure_piece_ids: Array[StringName] = []
+var _map_paths: Array[String] = []
 var _width: SpinBox
 var _height: SpinBox
 var _seed: SpinBox
@@ -18,74 +21,165 @@ var _layer: OptionButton
 var _mode: OptionButton
 var _preset_path: LineEdit
 var _map_name: LineEdit
+var _map_list: ItemList
+var _open_dialog: EditorFileDialog
+var _save_dialog: EditorFileDialog
 var _status: Label
 
 func setup(plugin: EditorPlugin) -> void:
 	_plugin = plugin
 	_build()
+	call_deferred("refresh_map_browser")
 
 func _build() -> void:
-	add_theme_constant_override("separation", 4)
+	add_theme_constant_override("separation", 0)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "Scroll"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	add_child(scroll)
+
+	_content = VBoxContainer.new()
+	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_content.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_content.add_theme_constant_override("separation", 6)
+	scroll.add_child(_content)
+
 	_title("UF Map Editor")
 	var hint := Label.new()
-	hint.text = "Open world_root.tscn, then Generate or Prepare. Tile data is kept in res://local/ (not git); use Save session map."
+	hint.text = "New/Open map opens map_editor_workspace.tscn automatically. Baked tiles live under res://local/world/maps/ (gitignored) or res://assets/world/maps/."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(hint)
+	_add(hint)
 
+	_separator()
+	_title("Maps")
+	_map_name = _line("editor_session")
+	_map_list = ItemList.new()
+	_map_list.custom_minimum_size = Vector2(0, 88)
+	_map_list.item_activated.connect(_on_map_activated)
+	_add(_map_list)
+
+	var map_grid := _grid()
+	_grid_button(map_grid, "Refresh list", _on_refresh_maps_pressed)
+	_grid_button(map_grid, "New map", _on_new_map_pressed)
+	_grid_button(map_grid, "Open selected", _on_open_selected_pressed)
+	_grid_button(map_grid, "Open file…", _on_open_file_pressed)
+	_grid_button(map_grid, "Save map", _on_save_current_pressed)
+	_grid_button(map_grid, "Save as…", _on_save_as_pressed)
+	_grid_button(map_grid, "Duplicate", _on_duplicate_pressed)
+	_add(map_grid)
+
+	_open_dialog = EditorFileDialog.new()
+	_open_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
+	_open_dialog.access = EditorFileDialog.ACCESS_RESOURCES
+	_open_dialog.add_filter("*.tscn", "Baked map scene")
+	_open_dialog.file_selected.connect(_on_open_dialog_selected)
+	add_child(_open_dialog)
+	_save_dialog = EditorFileDialog.new()
+	_save_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
+	_save_dialog.access = EditorFileDialog.ACCESS_RESOURCES
+	_save_dialog.add_filter("*.tscn", "Baked map scene")
+	_save_dialog.file_selected.connect(_on_save_dialog_selected)
+	add_child(_save_dialog)
+
+	_separator()
 	_title("Area / seed")
-	_width = _spin("Width", 4, 256, 28)
-	_height = _spin("Height", 4, 256, 28)
-	_seed = _spin("Seed", 0, 999999, 1337)
-	_water = _spin("Water bodies (-1 = biome)", -1, 32, -1)
-	_path = _spin("Paths (-1 = biome)", -1, 16, -1)
+	var area_grid := _grid()
+	_width = _grid_spin(area_grid, "Width", 4, 256, 28)
+	_height = _grid_spin(area_grid, "Height", 4, 256, 28)
+	_seed = _grid_spin(area_grid, "Seed", 0, 999999, 1337)
+	_water = _grid_spin(area_grid, "Water (-1=biome)", -1, 32, -1)
+	_path = _grid_spin(area_grid, "Paths (-1=biome)", -1, 16, -1)
+	_add(area_grid)
 
-	_button("Prepare flat grass", _on_prepare_pressed)
-	_button("Generate field map", _on_generate_pressed)
+	var gen_grid := _grid()
+	_grid_button(gen_grid, "Prepare grass", _on_prepare_pressed)
+	_grid_button(gen_grid, "Generate map", _on_generate_pressed)
+	_add(gen_grid)
 
 	_separator()
 	_title("Manual painting")
-	_tile = _options("Tile", [])
+	_tile = _make_option([])
 	_tile.item_selected.connect(_on_tile_selected)
-	refresh_tile_options()
-	_button("Refresh tile catalog / visuals", _on_refresh_tiles_pressed)
-	_layer = _options("Layer", _LAYER_NAMES)
+	_layer = _make_option(_LAYER_NAMES)
 	_layer.item_selected.connect(_on_layer_selected)
-	_structure_piece = _options("Structure piece", [])
+	_structure_piece = _make_option([])
 	_structure_piece.item_selected.connect(_on_structure_piece_selected)
-	refresh_structure_options()
-	_mode = _options("Mode", ["Paint tile", "Edit height (wheel / +/-)", "Place structure piece"])
+	_mode = _make_option(["Paint tile", "Edit height (wheel / +/-)", "Place structure"])
 	_mode.item_selected.connect(_on_mode_selected)
+	refresh_tile_options()
+	refresh_structure_options()
+
+	var paint_grid := _grid()
+	_grid_field(paint_grid, "Tile", _tile)
+	_grid_field(paint_grid, "Layer", _layer)
+	_grid_field(paint_grid, "Structure", _structure_piece)
+	_grid_field(paint_grid, "Mode", _mode)
+	_add(paint_grid)
+
+	var paint_actions := _grid()
+	_grid_button(paint_actions, "Refresh tiles", _on_refresh_tiles_pressed)
+	_add(paint_actions)
+
 	var paint := CheckButton.new()
-	paint.text = "Paint enabled (select WorldRoot in scene tree)"
+	paint.text = "Paint enabled"
 	paint.toggled.connect(_on_paint_toggled)
-	add_child(paint)
+	_add(paint)
 	var height_overlay := CheckButton.new()
-	height_overlay.text = "Show height overlay (blue=up, red=down, z label)"
+	height_overlay.text = "Height overlay (blue=up, red=down)"
 	height_overlay.button_pressed = true
 	height_overlay.toggled.connect(_on_height_overlay_toggled)
-	add_child(height_overlay)
+	_add(height_overlay)
 	var height_hint := Label.new()
-	height_hint.text = "Edit height: enable Paint, pick Edit height mode, hover a tile, wheel or +/- keys. Overlay tints each cell and shows z."
+	height_hint.text = "Edit height: enable Paint, Edit height mode, wheel or +/- on a tile."
 	height_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(height_hint)
+	_add(height_hint)
 	var structure_hint := Label.new()
-	structure_hint.text = "Place structure: enable Paint, pick Place structure mode, choose a piece. Left click places; right click removes. Floors still use Paint tile on Ground."
+	structure_hint.text = "Place structure: Place structure mode, L=place, R=erase. Floors use Paint tile on Ground."
 	structure_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(structure_hint)
+	_add(structure_hint)
 
 	_separator()
-	_title("Presets / session save")
+	_title("Presets")
 	_preset_path = _line("res://assets/world/presets/field_default.tres")
-	_button("Save preset", _on_save_preset_pressed)
-	_button("Load preset", _on_load_preset)
-	_map_name = _line("editor_session")
-	_button("Save session map", _on_save_map_pressed)
+	var preset_grid := _grid()
+	_grid_button(preset_grid, "Save preset", _on_save_preset_pressed)
+	_grid_button(preset_grid, "Load preset", _on_load_preset)
+	_add(preset_grid)
 
 	_separator()
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.custom_minimum_size = Vector2(0, 48)
-	add_child(_status)
+	_status.custom_minimum_size = Vector2(0, 40)
+	_add(_status)
+
+func refresh_map_browser() -> void:
+	if _map_list == null:
+		return
+	var paths: Variant = _plugin_call(&"list_maps")
+	if paths == null:
+		return
+	_map_paths.clear()
+	_map_list.clear()
+	for path in paths:
+		var map_path := String(path)
+		_map_paths.append(map_path)
+		var label := map_path.get_file().get_basename()
+		if map_path.begins_with(WorldModule.ASSETS_MAPS_DIR):
+			label = "[assets] %s" % label
+		else:
+			label = "[local] %s" % label
+		_map_list.add_item(label)
+	var current: String = String(_plugin_call(&"get_current_map_path"))
+	if not current.is_empty():
+		var idx := _map_paths.find(current)
+		if idx >= 0:
+			_map_list.select(idx)
 
 func _plugin_call(method: StringName, args: Array = []) -> Variant:
 	if _plugin == null:
@@ -99,6 +193,62 @@ func _plugin_call(method: StringName, args: Array = []) -> Variant:
 func _plugin_set(prop: StringName, value: Variant) -> void:
 	if _plugin != null:
 		_plugin.set(prop, value)
+
+func _selected_map_path() -> String:
+	if _map_list == null:
+		return ""
+	var selected := _map_list.get_selected_items()
+	if selected.is_empty():
+		return ""
+	var idx: int = selected[0]
+	if idx < 0 or idx >= _map_paths.size():
+		return ""
+	return _map_paths[idx]
+
+func _on_refresh_maps_pressed() -> void:
+	refresh_map_browser()
+
+func _on_new_map_pressed() -> void:
+	_plugin_call(&"new_map", [_map_name.text, _region()])
+
+func _on_open_selected_pressed() -> void:
+	var path := _selected_map_path()
+	if path.is_empty():
+		set_status("Select a map in the list, or use Open file…")
+		return
+	_plugin_call(&"open_map", [path])
+
+func _on_map_activated(_index: int) -> void:
+	_on_open_selected_pressed()
+
+func _on_open_file_pressed() -> void:
+	if _open_dialog == null:
+		return
+	_open_dialog.current_dir = WorldModule.LOCAL_MAPS_DIR
+	_open_dialog.popup_centered_ratio(0.55)
+
+func _on_open_dialog_selected(path: String) -> void:
+	_plugin_call(&"open_map", [path])
+
+func _on_save_current_pressed() -> void:
+	_plugin_call(&"save_current_map")
+
+func _on_save_as_pressed() -> void:
+	if _save_dialog == null:
+		return
+	_save_dialog.current_dir = WorldModule.LOCAL_MAPS_DIR
+	_save_dialog.current_file = "%s.tscn" % WorldModule.sanitize_map_id(_map_name.text)
+	_save_dialog.popup_centered_ratio(0.55)
+
+func _on_save_dialog_selected(path: String) -> void:
+	_plugin_call(&"save_map_as", [path])
+
+func _on_duplicate_pressed() -> void:
+	var source := _selected_map_path()
+	if source.is_empty():
+		set_status("Select a map to duplicate.")
+		return
+	_plugin_call(&"duplicate_map", [source, _map_name.text])
 
 func _on_prepare_pressed() -> void:
 	_plugin_call(&"prepare_field_map", [_region()])
@@ -215,50 +365,59 @@ func _on_load_preset() -> void:
 func _region() -> Rect2i:
 	return Rect2i(0, 0, int(_width.value), int(_height.value))
 
-func _title(text: String) -> void:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
-	add_child(label)
+func _add(node: Control) -> void:
+	_content.add_child(node)
 
-func _spin(label: String, lo: float, hi: float, value: float) -> SpinBox:
-	var row := HBoxContainer.new()
-	var name_label := Label.new()
-	name_label.text = label
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(name_label)
+func _grid() -> GridContainer:
+	var grid := GridContainer.new()
+	grid.columns = _GRID_COLUMNS
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	return grid
+
+func _grid_button(grid: GridContainer, text: String, action: Callable) -> void:
+	var button := Button.new()
+	button.text = text
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.pressed.connect(action)
+	grid.add_child(button)
+
+func _grid_field(grid: GridContainer, label_text: String, control: Control) -> void:
+	var label := Label.new()
+	label.text = label_text
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	grid.add_child(label)
+	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_child(control)
+
+func _grid_spin(grid: GridContainer, label_text: String, lo: float, hi: float, value: float) -> SpinBox:
 	var spin := SpinBox.new()
 	spin.min_value = lo
 	spin.max_value = hi
 	spin.value = value
-	row.add_child(spin)
-	add_child(row)
+	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_grid_field(grid, label_text, spin)
 	return spin
 
-func _options(label: String, items: Array) -> OptionButton:
-	var row := HBoxContainer.new()
-	var name_label := Label.new()
-	name_label.text = label
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(name_label)
+func _title(text: String) -> void:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	_add(label)
+
+func _make_option(items: Array) -> OptionButton:
 	var option := OptionButton.new()
+	option.clip_text = true
 	for item in items:
 		option.add_item(str(item))
-	row.add_child(option)
-	add_child(row)
 	return option
 
 func _line(value: String) -> LineEdit:
 	var line := LineEdit.new()
 	line.text = value
-	add_child(line)
+	line.placeholder_text = "Map id (filename without .tscn)"
+	_add(line)
 	return line
 
-func _button(text: String, action: Callable) -> void:
-	var button := Button.new()
-	button.text = text
-	button.pressed.connect(action)
-	add_child(button)
-
 func _separator() -> void:
-	add_child(HSeparator.new())
+	_add(HSeparator.new())

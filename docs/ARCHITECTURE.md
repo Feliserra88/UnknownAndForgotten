@@ -335,10 +335,10 @@ res://assets/data/         # Resources de juego (.tres)
 │   ├── equipment/         # EquipmentVisualDef
 │   └── injuries/          # InjuryVisualDef
 res://scenes/npc/          # npc_base.tscn, variantes por PackedScene
-res://scenes/world/        # world_root.tscn (shell: capas vacías + cámara); tiles en local/ o maps/
+res://scenes/world/        # world_root.tscn (runtime shell); map_editor_workspace.tscn (uf_map_editor)
 ```
 
-**Mapas y git:** `world_root.tscn` permanece pequeño en el repositorio. El editor carga `res://local/world/maps/editor_session.tscn` al abrir; **UF Map Editor** guarda ahí tras generar/pintar (`WorldModule.save_baked_map`). Mapas listos para compartir → copiar a `assets/world/maps/`.
+**Mapas y git:** `world_root.tscn` permanece pequeño en el repositorio (sin tiles baked). **UF Map Editor** abre `scenes/world/map_editor_workspace.tscn` como escena de trabajo propia (no depende de tener `world_root` abierto). Los mapas baked se guardan con `WorldModule.save_baked_map` en `res://local/world/maps/` (WIP, gitignored) o `res://assets/world/maps/` (compartibles). El dock lista ambos directorios, permite New/Open/Save as/Duplicate y carga cualquier `.tscn` baked.
 
 ---
 

@@ -1,7 +1,8 @@
 @tool
 extends EditorPlugin
 ## Map editor plugin: drives the world / world_gen public API to generate, paint and save field
-## maps. Procedural work runs on an off-tree scratch WorldModule; results are copied to the scene.
+## maps. Procedural work runs on an off-tree scratch WorldModule; results are copied to the
+## dedicated map_editor_workspace scene (independent of world_root).
 
 const _DockScript := preload("res://addons/uf_map_editor/dock.gd")
 const _HeightOverlay := preload("res://addons/uf_map_editor/height_overlay.gd")
@@ -12,7 +13,7 @@ enum Mode { PAINT_TILE, EDIT_HEIGHT, PLACE_STRUCTURE }
 
 var _dock: Control
 var _world_gen: WorldGenModule
-## Bound to edited scene TileMapLayers for paint/save/apply.
+## Bound to the map editor workspace TileMapLayers for paint/save/apply.
 var _map_session: WorldModule
 ## Off-tree target for procedural generation (editor does not watch these layers).
 var _scratch_world: WorldModule
@@ -24,6 +25,8 @@ var _structure_catalog: StructureCatalog
 var _field_tileset: TileSet
 var _field_modifier_pack: Dictionary
 var _session_tilesets_refreshed: bool = false
+var _current_map_path: String = ""
+var _pending_workspace_callback: Callable = Callable()
 
 var paint_enabled: bool = false
 var mode: int = Mode.PAINT_TILE
@@ -41,10 +44,15 @@ func _enter_tree() -> void:
 	_cache_field_tilesets()
 	_dock = _DockScript.new()
 	_dock.name = "UF Map"
+	_dock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_dock.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_dock.setup(self)
 	add_control_to_dock(DOCK_SLOT_RIGHT_UL, _dock)
+	get_editor_interface().scene_changed.connect(_on_editor_scene_changed)
 
 func _exit_tree() -> void:
+	if get_editor_interface().scene_changed.is_connected(_on_editor_scene_changed):
+		get_editor_interface().scene_changed.disconnect(_on_editor_scene_changed)
 	if _dock != null:
 		remove_control_from_docks(_dock)
 		_dock.free()
@@ -57,6 +65,155 @@ func _exit_tree() -> void:
 	_field_catalog = null
 	_field_tileset = null
 	_field_modifier_pack.clear()
+	_pending_workspace_callback = Callable()
+
+func _on_editor_scene_changed(_scene_root: Node) -> void:
+	if not _pending_workspace_callback.is_valid():
+		return
+	if not _is_workspace_root(get_editor_interface().get_edited_scene_root()):
+		return
+	var callback := _pending_workspace_callback
+	_pending_workspace_callback = Callable()
+	callback.call()
+
+func list_maps() -> PackedStringArray:
+	return WorldModule.list_baked_map_paths()
+
+func get_current_map_path() -> String:
+	return _current_map_path
+
+func new_map(map_id: String, region: Rect2i) -> void:
+	var path := WorldModule.map_path_in_local(map_id)
+	_run_with_workspace(func() -> void:
+		_current_map_path = path
+		_session_tilesets_refreshed = false
+		var world := _active_world()
+		if world == null:
+			return
+		_configure_world_for_region(world, region)
+		_set_scene_editor_baked_map(path)
+		var err := world.save_baked_map(path)
+		_sync_session_to_scene_root(world)
+		get_editor_interface().mark_scene_as_unsaved()
+		if err == OK:
+			set_dock_status("New map saved: %s" % path)
+		else:
+			set_dock_status("New map configured but save failed (%d)." % err)
+		_refresh_map_browser()
+	)
+
+func open_map(map_path: String) -> void:
+	if map_path.is_empty():
+		set_dock_status("Choose a map to open.")
+		return
+	if not ResourceLoader.exists(map_path):
+		set_dock_status("Map not found: %s" % map_path)
+		return
+	_run_with_workspace(func() -> void:
+		_current_map_path = map_path
+		_session_tilesets_refreshed = false
+		var world := _active_world()
+		if world == null:
+			return
+		if not world.load_baked_map(map_path):
+			set_dock_status("Failed to load map: %s" % map_path)
+			return
+		_set_scene_editor_baked_map(map_path)
+		_ensure_world_tilesets(world)
+		_sync_session_to_scene_root(world)
+		get_editor_interface().mark_scene_as_unsaved()
+		_queue_viewport_redraw()
+		set_dock_status("Opened map: %s" % map_path)
+		_refresh_map_browser()
+	)
+
+func save_current_map() -> void:
+	var world := _active_world()
+	if world == null:
+		return
+	if _current_map_path.is_empty():
+		set_dock_status("No map path — use Save map as or New map first.")
+		return
+	_save_map_to_path(world, _current_map_path)
+
+func save_map_as(map_path: String) -> void:
+	if map_path.is_empty():
+		set_dock_status("Enter a destination path.")
+		return
+	var world := _active_world()
+	if world == null:
+		return
+	_current_map_path = map_path
+	_set_scene_editor_baked_map(map_path)
+	_save_map_to_path(world, map_path)
+
+func save_map(map_name: String) -> void:
+	save_map_as(WorldModule.map_path_in_local(map_name))
+
+func duplicate_map(source_path: String, dest_map_id: String) -> void:
+	if source_path.is_empty():
+		set_dock_status("Select a source map to duplicate.")
+		return
+	var dest_path := WorldModule.map_path_in_local(dest_map_id)
+	var err := WorldModule.duplicate_baked_map(source_path, dest_path)
+	if err == OK:
+		set_dock_status("Duplicated to: %s" % dest_path)
+		_refresh_map_browser()
+	else:
+		set_dock_status("Duplicate failed (%d)." % err)
+
+func _save_map_to_path(world: WorldModule, map_path: String) -> void:
+	if world.height_field == null:
+		set_dock_status("Nothing to save: prepare or generate first.")
+		return
+	_sync_session_to_scene_root(world)
+	var err := world.save_baked_map(map_path)
+	if err == OK:
+		set_dock_status("Map saved: %s" % map_path)
+		_refresh_map_browser()
+	else:
+		set_dock_status("Map save failed (%d)." % err)
+
+func _run_with_workspace(callback: Callable) -> void:
+	if _is_workspace_root(get_editor_interface().get_edited_scene_root()):
+		callback.call()
+		return
+	if not ResourceLoader.exists(WorldModule.MAP_EDITOR_WORKSPACE_PATH):
+		set_dock_status("Missing workspace scene: %s" % WorldModule.MAP_EDITOR_WORKSPACE_PATH)
+		return
+	_pending_workspace_callback = callback
+	set_dock_status("Opening map editor workspace…")
+	get_editor_interface().open_scene_from_path(WorldModule.MAP_EDITOR_WORKSPACE_PATH)
+
+func _configure_world_for_region(world: WorldModule, region: Rect2i) -> void:
+	_cache_field_tilesets()
+	world.configure(
+		_field_catalog,
+		_field_modifiers,
+		region,
+		_field_tileset,
+		_field_modifier_pack,
+		_field_sprite_catalog,
+		_field_terrain_sets,
+		_structure_catalog,
+	)
+
+func _ensure_world_tilesets(world: WorldModule) -> void:
+	if _session_tilesets_refreshed and world.tile_catalog != null:
+		return
+	_cache_field_tilesets()
+	world.refresh_tilesets(_field_catalog, _field_modifiers, _field_tileset, _field_modifier_pack)
+	_sync_session_to_scene_root(world)
+	_session_tilesets_refreshed = true
+
+func _set_scene_editor_baked_map(map_path: String) -> void:
+	var root := get_editor_interface().get_edited_scene_root()
+	if root is WorldModule:
+		(root as WorldModule).editor_baked_map = map_path
+
+func _refresh_map_browser() -> void:
+	if _dock != null and _dock.has_method("refresh_map_browser"):
+		_dock.refresh_map_browser()
 
 func _cache_field_tilesets() -> void:
 	_field_catalog = _world_gen.build_field_catalog()
@@ -176,7 +333,7 @@ func get_structure_catalog() -> StructureCatalog:
 func refresh_field_tilesets() -> void:
 	var world := _bound_world_silent()
 	if world == null:
-		set_dock_status("Open world_root.tscn before refreshing tiles.")
+		set_dock_status("Open a map in the map editor workspace first.")
 		return
 	_cache_field_tilesets()
 	world.refresh_tilesets(_field_catalog, _field_modifiers, _field_tileset, _field_modifier_pack)
@@ -211,24 +368,26 @@ var _copy_step: int = -1
 const _COPY_LAYER_KEYS: Array[StringName] = [&"ground", &"terrain", &"objects", &"structures", &"modifiers", &"props", &"decor"]
 
 func _run_on_scratch(region: Rect2i, build_fn: Callable) -> void:
-	var world := _active_world()
-	if world == null or _scratch_world == null:
-		return
-	_cache_field_tilesets()
-	_scratch_world.configure(
-		_field_catalog,
-		_field_modifiers,
-		region,
-		_field_tileset,
-		_field_modifier_pack,
-		_field_sprite_catalog,
-		_field_terrain_sets,
-		_structure_catalog,
+	_run_with_workspace(func() -> void:
+		var world := _active_world()
+		if world == null or _scratch_world == null:
+			return
+		_cache_field_tilesets()
+		_scratch_world.configure(
+			_field_catalog,
+			_field_modifiers,
+			region,
+			_field_tileset,
+			_field_modifier_pack,
+			_field_sprite_catalog,
+			_field_terrain_sets,
+			_structure_catalog,
+		)
+		_pending_status = build_fn.call(_scratch_world)
+		_copy_target = world
+		_copy_step = -1
+		call_deferred("_copy_next_layer")
 	)
-	_pending_status = build_fn.call(_scratch_world)
-	_copy_target = world
-	_copy_step = -1
-	call_deferred("_copy_next_layer")
 
 func _copy_next_layer() -> void:
 	if _copy_target == null or _scratch_world == null:
@@ -248,10 +407,14 @@ func _copy_next_layer() -> void:
 
 func _finish_map_edit(world: WorldModule) -> void:
 	_sync_session_to_scene_root(world)
-	var save_err := world.save_baked_map(WorldModule.EDITOR_SESSION_MAP_PATH)
+	if _current_map_path.is_empty():
+		_current_map_path = WorldModule.EDITOR_SESSION_MAP_PATH
+	_set_scene_editor_baked_map(_current_map_path)
+	var save_err := world.save_baked_map(_current_map_path)
 	_queue_viewport_redraw()
+	_refresh_map_browser()
 	if not _pending_status.is_empty():
-		var suffix := "" if save_err == OK else " (session save failed: %d)" % save_err
+		var suffix := "" if save_err == OK else " (map save failed: %d)" % save_err
 		set_dock_status(_pending_status + suffix)
 
 func save_preset(path: String, region: Rect2i, gen_seed: int, water_count: int, path_count: int) -> void:
@@ -272,19 +435,6 @@ func load_preset(path: String) -> Resource:
 	set_dock_status("Preset loaded: %s" % path)
 	return load(path)
 
-func save_map(map_name: String) -> void:
-	var world := _active_world()
-	if world == null or world.height_field == null:
-		set_dock_status("Nothing to save: prepare or generate first.")
-		return
-	_sync_session_to_scene_root(world)
-	var map_path := "res://local/world/maps/%s.tscn" % map_name
-	var err := world.save_baked_map(map_path)
-	if err == OK:
-		set_dock_status("Session map saved: %s" % map_path)
-	else:
-		set_dock_status("Session map save failed (%d)." % err)
-
 func set_dock_status(text: String) -> void:
 	if _dock != null and _dock.has_method("set_status"):
 		_dock.set_status(text)
@@ -295,18 +445,21 @@ func _active_world() -> WorldModule:
 		return null
 	var root := get_editor_interface().get_edited_scene_root()
 	if root == null or not _is_world_node(root):
-		set_dock_status("Open scenes/world/world_root.tscn (WorldRoot must be the scene root).")
+		set_dock_status("Use New map or Open map — the plugin opens map_editor_workspace.tscn.")
+		return null
+	if not _is_workspace_root(root):
+		set_dock_status("UF Map Editor requires map_editor_workspace.tscn (not world_root).")
 		return null
 	_map_session.bind_edited_root(root as Node2D)
 	if _map_session.ground_layer == null or not is_instance_valid(_map_session.ground_layer):
-		set_dock_status("Scene root is missing Layers/Ground (open world_root.tscn).")
+		set_dock_status("Workspace is missing Layers/Ground.")
 		return null
 	_sync_scene_root_to_session(_map_session)
-	if not _session_tilesets_refreshed and _map_session.tile_catalog != null:
-		_cache_field_tilesets()
-		_map_session.refresh_tilesets(_field_catalog, _field_modifiers, _field_tileset, _field_modifier_pack)
-		_sync_session_to_scene_root(_map_session)
-		_session_tilesets_refreshed = true
+	if _current_map_path.is_empty() and root is WorldModule:
+		var baked := (root as WorldModule).editor_baked_map
+		if not baked.is_empty():
+			_current_map_path = baked
+	_ensure_world_tilesets(_map_session)
 	if _map_session.tile_catalog != null and _field_tileset != null:
 		WorldModule.assign_tile_mapping(_map_session.tile_catalog.tiles, _field_tileset)
 	_map_session.register_structure_catalog(_structure_catalog)
@@ -317,6 +470,11 @@ func _is_world_node(node: Node) -> bool:
 		return false
 	var script: Script = node.get_script()
 	return script != null and script.resource_path == _WORLD_SCRIPT_PATH
+
+func _is_workspace_root(node: Node) -> bool:
+	if node == null:
+		return false
+	return node.scene_file_path == WorldModule.MAP_EDITOR_WORKSPACE_PATH
 
 func _sync_session_to_scene_root(session: WorldModule) -> void:
 	var root := get_editor_interface().get_edited_scene_root()
@@ -405,17 +563,11 @@ func _apply_height_delta(world: WorldModule, cell: Vector2i, delta: int) -> void
 	_queue_viewport_redraw()
 	set_dock_status("Height at %s = %d (z). Use +/- keys if wheel zoom steals input." % [cell, world.height_field.get_height(cell)])
 
-func _should_draw_height_overlay() -> bool:
-	if not show_height_overlay:
-		return false
-	var world := _bound_world_silent()
-	return world != null and world.height_field != null
-
 func _bound_world_silent() -> WorldModule:
 	if _map_session == null:
 		return null
 	var root := get_editor_interface().get_edited_scene_root()
-	if root == null or not _is_world_node(root):
+	if root == null or not _is_world_node(root) or not _is_workspace_root(root):
 		return null
 	_map_session.bind_edited_root(root as Node2D)
 	if _map_session.ground_layer == null or not is_instance_valid(_map_session.ground_layer):

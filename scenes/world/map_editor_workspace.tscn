@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://dhoklx6mi164e"]
+
+[ext_resource type="Script" uid="uid://cmkgpixcxucyh" path="res://modules/world/world.gd" id="1_world"]
+[ext_resource type="Script" uid="uid://dk1kpl8qdsasm" path="res://modules/camera/camera.gd" id="2_camera"]
+
+[node name="MapEditorWorkspace" type="Node2D" unique_id=2053628999]
+script = ExtResource("1_world")
+editor_baked_map = ""
+
+[node name="Layers" type="Node2D" parent="." unique_id=1280848450]
+y_sort_enabled = true
+
+[node name="Ground" type="TileMapLayer" parent="Layers" unique_id=1265194099]
+y_sort_enabled = true
+
+[node name="Terrain" type="TileMapLayer" parent="Layers" unique_id=479269986]
+
+[node name="Objects" type="TileMapLayer" parent="Layers" unique_id=1877078722]
+
+[node name="Structures" type="TileMapLayer" parent="Layers" unique_id=858471475]
+
+[node name="Modifiers" type="TileMapLayer" parent="Layers" unique_id=440276982]
+y_sort_enabled = true
+
+[node name="Props" type="Node2D" parent="Layers" unique_id=582818134]
+y_sort_enabled = true
+
+[node name="Decor" type="Node2D" parent="Layers" unique_id=2114337624]
+y_sort_enabled = true
+
+[node name="Actors" type="Node2D" parent="Layers" unique_id=1010411623]
+y_sort_enabled = true
+
+[node name="CameraRig" type="Node2D" parent="." unique_id=748107468]
+script = ExtResource("2_camera")
+
+[node name="Camera2D" type="Camera2D" parent="CameraRig" unique_id=1202863481]
