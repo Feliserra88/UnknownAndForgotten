@@ -12,8 +12,8 @@ var _workspace: Control
 func _enter_tree() -> void:
 	_workspace = _WorkspaceScript.new()
 	_workspace.name = "UF NPC Editor"
-	_workspace.set_anchors_preset(Control.PRESET_FULL_RECT)
 	EditorInterface.get_editor_main_screen().add_child(_workspace)
+	_fit_workspace_to_main_screen()
 	_workspace.setup()
 	_workspace.hide()
 
@@ -35,4 +35,17 @@ func _make_visible(visible: bool) -> void:
 	if _workspace != null:
 		_workspace.visible = visible
 		if visible:
+			_fit_workspace_to_main_screen()
 			_workspace.call_deferred("ensure_ready")
+			_workspace.call_deferred("sync_layout")
+
+func _fit_workspace_to_main_screen() -> void:
+	if _workspace == null:
+		return
+	var main := _workspace.get_parent() as Control
+	if main == null:
+		return
+	_workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_workspace.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_workspace.size = main.size

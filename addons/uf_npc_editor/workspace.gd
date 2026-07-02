@@ -16,6 +16,11 @@ const _STARTER_EQUIPMENT: Array = [
 ]
 const _ATTR_NAMES: Array[String] = ["strength", "agility", "willpower", "vitality", "perception", "charisma"]
 const _ORIENTATIONS: Array[StringName] = [&"front", &"back", &"side_left", &"side_right"]
+const _MARGIN := 12
+const _PANEL_SEP := 10
+const _FIELD_SEP := 8
+const _SECTION_SEP := 14
+const _LABEL_WIDTH := 96
 
 var _npc: NpcModule
 var _gui: GuiModule
@@ -42,8 +47,11 @@ var _inspection_holder: VBoxContainer
 var _inspection_panel: UfInspectionPanel
 var _items_box: VBoxContainer
 var _cols: HSplitContainer
+var _center_right: HSplitContainer
 var _right_split: VSplitContainer
-var _splits_initialized: bool = false
+var _details_scroll: ScrollContainer
+var _inspection_scroll: ScrollContainer
+var _items_scroll: ScrollContainer
 
 func setup() -> void:
 	_npc = NpcModule.new()
@@ -64,8 +72,16 @@ func ensure_ready() -> void:
 		call_deferred("_rebuild_all")
 
 func sync_layout() -> void:
+	_fit_to_parent()
 	_sync_preview_viewport_size()
 	_finalize_layout()
+
+func _fit_to_parent() -> void:
+	var parent := get_parent() as Control
+	if parent == null or parent.size.y < 8:
+		return
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	size = parent.size
 
 func _bootstrap_data() -> void:
 	_populate_archetypes()
@@ -87,14 +103,21 @@ func _bootstrap_data() -> void:
 	call_deferred("_finalize_layout")
 
 func _finalize_layout() -> void:
-	if not _splits_initialized:
-		if _cols != null:
-			_cols.split_offset = 260
-		if _right_split != null and _right_split.size.y > 240:
-			_right_split.split_offset = int(_right_split.size.y * 0.55)
-		_splits_initialized = true
+	_apply_column_splits()
 	_sync_preview_viewport_size()
 	_center_preview_rig()
+
+func _apply_column_splits() -> void:
+	if _cols == null or _cols.size.x < 480:
+		return
+	var total_w := _cols.size.x
+	_cols.split_offset = clampi(int(total_w * 0.24), 220, int(total_w * 0.32))
+	if _center_right != null:
+		var sep := _cols.get_theme_constant("separation", "HSplitContainer")
+		var inner_w := maxi(total_w - _cols.split_offset - sep, 320)
+		_center_right.split_offset = clampi(int(inner_w * 0.58), 260, int(inner_w * 0.72))
+	if _right_split != null and _right_split.size.y > 280:
+		_right_split.split_offset = int(_right_split.size.y * 0.52)
 
 func _sync_preview_viewport_size() -> void:
 	if _preview_host == null or _preview_viewport == null:
@@ -105,17 +128,22 @@ func _sync_preview_viewport_size() -> void:
 	_preview_viewport.size = Vector2i(int(sz.x), int(sz.y))
 
 func _build_ui() -> void:
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_left", _MARGIN)
+	margin.add_theme_constant_override("margin_right", _MARGIN)
+	margin.add_theme_constant_override("margin_top", _MARGIN)
+	margin.add_theme_constant_override("margin_bottom", _MARGIN)
 	add_child(margin)
 
 	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", _PANEL_SEP)
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
@@ -129,34 +157,52 @@ func _build_ui() -> void:
 	_cols = cols
 
 	_build_left_column(cols)
-	_build_center_column(cols)
-	_build_right_column(cols)
+	_center_right = HSplitContainer.new()
+	_center_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_center_right.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cols.add_child(_center_right)
+	_build_center_column(_center_right)
+	_build_right_column(_center_right)
 
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status_label.custom_minimum_size = Vector2(0, 22)
 	_status_label.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
 	root.add_child(_status_label)
+	call_deferred("_bind_parent_resize")
+
+func _bind_parent_resize() -> void:
+	var parent := get_parent() as Control
+	if parent != null and not parent.resized.is_connected(_on_parent_resized):
+		parent.resized.connect(_on_parent_resized)
+
+func _on_parent_resized() -> void:
+	if is_visible_in_tree():
+		sync_layout()
 
 func _build_toolbar(parent: VBoxContainer) -> void:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(panel)
 	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 10)
-	parent.add_child(bar)
+	bar.add_theme_constant_override("separation", _FIELD_SEP)
+	panel.add_child(bar)
 
 	bar.add_child(_toolbar_label("Archetype"))
 	_archetype_option = _toolbar_option()
-	_archetype_option.custom_minimum_size = Vector2(180, 28)
+	_archetype_option.custom_minimum_size = Vector2(180, 30)
 	_archetype_option.item_selected.connect(_on_archetype_selected)
 	bar.add_child(_archetype_option)
 
 	bar.add_child(_toolbar_label("Faction"))
 	_faction_option = _toolbar_option()
-	_faction_option.custom_minimum_size = Vector2(150, 28)
+	_faction_option.custom_minimum_size = Vector2(150, 30)
 	_faction_option.item_selected.connect(_on_faction_selected)
 	bar.add_child(_faction_option)
 
 	bar.add_child(_toolbar_label("Modifier"))
 	_modifier_option = _toolbar_option()
-	_modifier_option.custom_minimum_size = Vector2(150, 28)
+	_modifier_option.custom_minimum_size = Vector2(150, 30)
 	_modifier_option.item_selected.connect(_on_modifier_selected)
 	bar.add_child(_modifier_option)
 
@@ -167,21 +213,26 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	var save := Button.new()
 	save.text = "Save (TODO)"
 	save.disabled = true
-	save.custom_minimum_size = Vector2(100, 28)
+	save.custom_minimum_size = Vector2(100, 30)
 	bar.add_child(save)
 
 func _build_left_column(parent: HSplitContainer) -> void:
 	var left := ScrollContainer.new()
-	left.custom_minimum_size = Vector2(240, 0)
+	left.custom_minimum_size = Vector2(220, 0)
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	parent.add_child(left)
+	_details_scroll = left
 	_details_box = VBoxContainer.new()
+	_details_box.add_theme_constant_override("separation", _FIELD_SEP)
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_child(_details_box)
 
 func _build_center_column(parent: HSplitContainer) -> void:
 	var center := VBoxContainer.new()
-	center.custom_minimum_size = Vector2(300, 0)
+	center.add_theme_constant_override("separation", _FIELD_SEP)
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(center)
@@ -189,7 +240,7 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	center.add_child(_section_label("Preview"))
 
 	var preview_frame := Panel.new()
-	preview_frame.custom_minimum_size = Vector2(200, 200)
+	preview_frame.custom_minimum_size = Vector2(240, 240)
 	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	preview_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.add_child(preview_frame)
@@ -209,40 +260,51 @@ func _build_center_column(parent: HSplitContainer) -> void:
 
 	var orient := HBoxContainer.new()
 	orient.alignment = BoxContainer.ALIGNMENT_CENTER
-	orient.add_theme_constant_override("separation", 4)
+	orient.add_theme_constant_override("separation", _FIELD_SEP)
 	center.add_child(orient)
 	for o in _ORIENTATIONS:
 		var b := Button.new()
 		b.text = String(o)
-		b.custom_minimum_size = Vector2(72, 28)
+		b.custom_minimum_size = Vector2(80, 30)
 		b.pressed.connect(_on_orientation_pressed.bind(o))
 		orient.add_child(b)
 
 func _build_right_column(parent: HSplitContainer) -> void:
 	var right := VSplitContainer.new()
-	right.custom_minimum_size = Vector2(280, 0)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(right)
 	_right_split = right
 
 	var inspection_scroll := ScrollContainer.new()
+	inspection_scroll.custom_minimum_size = Vector2(0, 0)
+	inspection_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inspection_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inspection_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inspection_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	right.add_child(inspection_scroll)
+	_inspection_scroll = inspection_scroll
 	_inspection_holder = VBoxContainer.new()
+	_inspection_holder.add_theme_constant_override("separation", _FIELD_SEP)
 	_inspection_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inspection_scroll.add_child(_inspection_holder)
 
 	var items_panel := VBoxContainer.new()
+	items_panel.add_theme_constant_override("separation", _FIELD_SEP)
 	items_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(items_panel)
 	items_panel.add_child(_section_label("Compatible items"))
 
 	var items_scroll := ScrollContainer.new()
+	items_scroll.custom_minimum_size = Vector2(0, 0)
 	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	items_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	items_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	items_panel.add_child(items_scroll)
+	_items_scroll = items_scroll
 	_items_box = VBoxContainer.new()
+	_items_box.add_theme_constant_override("separation", 6)
 	_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_scroll.add_child(_items_box)
 
@@ -319,6 +381,12 @@ func _rebuild_all() -> void:
 	_rebuild_inspection()
 	_rebuild_items()
 	_rebuild_details()
+	call_deferred("_refresh_scroll_areas")
+
+func _refresh_scroll_areas() -> void:
+	for scroll in [_details_scroll, _inspection_scroll, _items_scroll]:
+		if scroll != null:
+			scroll.update_minimum_size()
 
 func _count_compatible_items() -> int:
 	var tags := _archetype.resolve_tags()
@@ -393,7 +461,8 @@ func _rebuild_inspection() -> void:
 		_inspection_holder.add_child(_body_label("Failed to build inspection panel."))
 		return
 	_inspection_panel.draggable = false
-	_inspection_panel.custom_minimum_size = Vector2(240, 300)
+	_inspection_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inspection_panel.custom_minimum_size = Vector2(240, 0)
 	_inspection_holder.add_child(_inspection_panel)
 	if not _inspection_panel.item_dropped.is_connected(_on_item_dropped):
 		_inspection_panel.item_dropped.connect(_on_item_dropped)
@@ -427,7 +496,7 @@ func _rebuild_items() -> void:
 		return
 	for item in items:
 		var entry := _ITEM.new()
-		entry.custom_minimum_size = Vector2(0, 30)
+		entry.custom_minimum_size = Vector2(0, 36)
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_items_box.add_child(entry)
 		var label := tr(item.display_name_key) if not item.display_name_key.is_empty() else String(item.id)
@@ -442,21 +511,27 @@ func _rebuild_details() -> void:
 	_details_box.add_child(_section_label(_archetype.get_display_name()))
 	_details_box.add_child(_body_label("id: %s" % _archetype.id))
 	_details_box.add_child(_body_label("tags: %s" % ", ".join(_string_list(_archetype.resolve_tags()))))
+	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Base attributes"))
 	for attr in _ATTR_NAMES:
 		_details_box.add_child(_attribute_row(attr))
+	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Effective"))
 	_effective_label = Label.new()
 	_effective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details_box.add_child(_effective_label)
 	_refresh_effective()
+	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Vitals"))
 	_details_box.add_child(_body_label("health: %.0f  energy: %.0f" % [_instance.vitals.health, _instance.vitals.energy]))
+	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Factions"))
 	var factions := _string_list(_instance.faction_ids)
 	_details_box.add_child(_body_label(", ".join(factions) if not factions.is_empty() else "(none)"))
+	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Modifiers"))
 	_append_modifiers_by_kind()
+	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Equipped items"))
 	_append_equipped_item_stats()
 
@@ -490,14 +565,18 @@ func _append_modifiers_by_kind() -> void:
 
 func _attribute_row(attr_name: String) -> Control:
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", _FIELD_SEP)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var label := Label.new()
 	label.text = attr_name
-	label.custom_minimum_size = Vector2(88, 0)
+	label.custom_minimum_size = Vector2(_LABEL_WIDTH, 0)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(label)
 	var spin := SpinBox.new()
 	spin.min_value = 0
 	spin.max_value = 999
 	spin.step = 1
+	spin.custom_minimum_size = Vector2(0, 30)
 	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spin.value = int(_instance.attributes.get(attr_name))
 	spin.value_changed.connect(_on_attribute_changed.bind(attr_name))
@@ -598,7 +677,9 @@ func _toolbar_option() -> OptionButton:
 func _section_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
+	label.custom_minimum_size = Vector2(0, 24)
 	return label
 
 func _body_label(text: String) -> Label:
@@ -607,6 +688,11 @@ func _body_label(text: String) -> Label:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return label
+
+func _section_gap(parent: Control) -> void:
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, _SECTION_SEP)
+	parent.add_child(gap)
 
 func _set_status(text: String) -> void:
 	if _status_label != null:
