@@ -5,6 +5,9 @@ extends UfPanelIngame
 ## In-game loot panel: header chrome plus a draggable item grid (see docs/GAME_DESIGN.md section 10).
 ## Presentational only — relays slot signals and handles moves/swaps within the grid; domain modules
 ## wire loot rules via [signal item_dropped] / [method set_slot_item].
+##
+## Grid layout is authored in [code]ui/templates/uf_panel_ingame_loot.tscn[/code]. [member grid_columns],
+## [member grid_rows] and [member cell_size] are fallbacks when the grid is built from code.
 
 const _SlotScript := preload("res://modules/gui/widgets/uf_item_slot.gd")
 const _DEFAULT_COLUMNS := 4

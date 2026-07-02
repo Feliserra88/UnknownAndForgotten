@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dtaqf10yp4rbh" path="res://modules/gui/widgets/uf_layout_region.gd" id="1_region"]
 
 [node name="UfLayoutRegion" type="Control" unique_id=847991059]
-custom_minimum_size = Vector2(240, 160)
+custom_minimum_size = Vector2(16, 16)
 layout_mode = 3
 anchors_preset = 0
 size_flags_horizontal = 3

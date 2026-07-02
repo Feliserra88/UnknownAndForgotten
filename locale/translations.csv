@@ -192,6 +192,9 @@ item_editor.field.family,family,familia
 item_editor.field.preview_state,State,Estado
 item_editor.field.preview_quality,Quality,Calidad
 item_editor.field.preview_modifier,Modifier,Modificador
+item_editor.field.state,State,Estado
+item_editor.field.quality,Quality,Calidad
+item_editor.field.strip_state,Strip frame,Frame del strip
 item_editor.field.weapon_family,weapon_family,familia_arma
 item_editor.field.design_type,design_type,tipo_diseño
 item_editor.field.equip_slot,equip slot,ranura equipo

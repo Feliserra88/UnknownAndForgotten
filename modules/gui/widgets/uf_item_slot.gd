@@ -5,12 +5,13 @@ extends Panel
 ## section 10.6). Presentational only: icon + opaque drag payload; no domain types.
 ##
 ## Structure is authored in [code]uf_item_slot.tscn[/code] ([code]Icon[/code]). Do not add [code]Icon[/code]
-## overrides in parent scenes.
+## overrides in parent scenes. [member slot_id] is authored per slot in panel templates/scenes.
 
 signal item_dropped(slot_id: StringName, payload: Dictionary)
 signal item_removed(slot_id: StringName)
 signal slot_activated(slot_id: StringName)
 
+## Identity for this cell; default empty — set in loot/inventory/inspection [code].tscn[/code].
 @export var slot_id: StringName = &"":
 	set(value):
 		slot_id = value

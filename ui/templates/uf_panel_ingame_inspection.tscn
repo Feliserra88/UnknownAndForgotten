@@ -89,6 +89,7 @@ size_flags_vertical = 3
 custom_minimum_size = Vector2(240, 300)
 layout_mode = 2
 region_min_size = Vector2(240, 300)
+layout_reference_size = Vector2(240, 300)
 
 [node name="Silhouette" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=861024505]
 modulate = Color(1, 1, 1, 0.49019608)
@@ -102,16 +103,13 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=678117324 instance=ExtResource("8_se78u")]
+[node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" unique_id=981317227 instance=ExtResource("8_se78u")]
+top_level = true
 layout_mode = 0
-offset_left = 183.84
-offset_top = 129.0
-offset_right = 223.84
-offset_bottom = 169.0
-tooltip_text = "body"
-layout_center_anchored = true
-layout_center_norm = Vector2(0.15333335, -0.0033333334)
-slot_id = &"body"
+offset_left = 180.0
+offset_top = 215.0
+offset_right = 220.0
+offset_bottom = 255.0
 
 [node name="UfList" parent="Layout/ContentSlot" unique_id=880794120 instance=ExtResource("9_jblaq")]
 layout_mode = 2

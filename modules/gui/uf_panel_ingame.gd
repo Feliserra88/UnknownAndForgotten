@@ -4,6 +4,9 @@ class_name UfPanelIngame
 extends UfPanel
 ## In-game panel with centered localized title and header chrome (minimize, drag, close).
 ## Extends bare [class UfPanel]; use this template for HUD windows opened during play.
+##
+## [member title_key] and chrome are authored per panel in [code]ui/templates/[/code] or
+## [code]ui/panels/[/code]; script defaults are generic fallbacks.
 
 const _ICON_CLOSE := preload("res://assets/ui/icons/art/icon_close.png")
 const _ICON_MINIMIZE := preload("res://assets/ui/icons/art/icon_minus.png")
@@ -21,6 +24,7 @@ signal panel_minimized(minimized: bool)
 	set(value):
 		title_key = value
 		_refresh_title()
+## Chrome toggles; match template defaults unless overridden in panel [code].tscn[/code].
 @export var draggable: bool = true
 @export var show_close_button: bool = true
 @export var show_minimize_button: bool = true

@@ -7,3 +7,8 @@
 
 [node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
 texture = ExtResource("3_silhouette")
+
+[node name="UfEquipmentCore" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=678117324]
+offset_left = 752.2895
+offset_right = 792.2895
+layout_center_norm = Vector2(2.7178729, -0.0033333334)

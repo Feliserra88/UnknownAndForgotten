@@ -19,7 +19,24 @@ Ver `docs/GAME_DESIGN.md` §10. Basado en controles Godot (`Control`, contenedor
 - Herramientas de editor opcionales en `res://addons/uf_gui_tools/` (`EditorPlugin`); ver norma general `editor-artist-tools.mdc`.
 - Texto visible → claves + `tr()` (`label_key`, `title_key`).
 
-## Jerarquía
+## Valores `@export` — escena como referencia
+
+Los **defaults del script** son solo *fallback* (nodos creados por código o escena base sin override). **No** son el diseño autorizado.
+
+| Capa | Rol |
+|------|-----|
+| Script (`modules/gui/…`) | API + fallback mínimo (`""`, `false`, `Vector2.ZERO`, tamaño mínimo 16×16) |
+| Widget `.tscn` (`ui/widgets/`) | Prefab: estructura + flags del tipo de control |
+| Template (`ui/templates/`) | **Referencia de diseño** (layout inspección humanoide, columnas loot, `title_key`, …) |
+| Panel hijo (`ui/panels/`) | Solo **overrides** respecto al template (silueta, `layout_center_norm` por criatura, …) |
+
+**Normas**
+
+- Autoría artística → guardar en `.tscn` (template o panel hijo), no hardcodear posiciones/ids en el script.
+- Con `layout_center_anchored`, la posición es **`layout_center_norm`**; no persistir `offset_*` en slots anclados (el layout los recalcula).
+- Inspector → «Revertir» vuelve al default del **script**, no al del template; para resetear al template, revertir en escena heredada o copiar del template.
+- Grids (loot/inventario): columnas y tamaño de celda viven en la escena (`GridContainer.columns`, slots); los `@export` del panel solo aplican si el grid se genera por código.
+
 
 ```
 UfPanel (shell vacío: Layout + ContentSlot)

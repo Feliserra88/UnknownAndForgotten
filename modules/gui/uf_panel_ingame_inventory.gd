@@ -4,6 +4,9 @@ class_name UfInventoryPanel
 extends UfPanelIngame
 ## In-game inventory panel: draggable item grid backed by EquipmentState (see docs/GAME_DESIGN.md
 ## section 7). Presentational grid with opaque instance payloads; domain sync via bridge script.
+##
+## Grid layout is authored in [code]ui/panels/uf_inventory.tscn[/code]. [member grid_columns],
+## [member grid_rows] and [member cell_size] are fallbacks when the grid is built from code.
 
 const _SlotScript := preload("res://modules/gui/widgets/uf_item_slot.gd")
 const _DEFAULT_COLUMNS := 6

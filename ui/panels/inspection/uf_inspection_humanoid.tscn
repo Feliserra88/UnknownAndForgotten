@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cs124hen41ls2" path="res://ui/templates/uf_panel_ingame_inspection.tscn" id="1_tjxo4"]
 [ext_resource type="Texture2D" uid="uid://d3w0c1nm4f2n8" path="res://assets/visuals/parts/portraits/humanoid/preset_pixellab_01.png" id="2_60eld"]
+[ext_resource type="PackedScene" uid="uid://dp6ydmn6l7wxf" path="res://ui/widgets/uf_equipment_slot.tscn" id="3_60eld"]
 
 [node name="UfInspectionPanel" unique_id=1540991670 instance=ExtResource("1_tjxo4")]
 offset_right = 398.0
@@ -10,34 +11,42 @@ offset_bottom = 520.0
 [node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
 texture = ExtResource("2_60eld")
 
-[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=981317227]
-offset_left = 134.5
-offset_top = 46.0
-offset_right = 174.5
-offset_bottom = 86.0
+[node name="UfEquipmentLegL" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="0" unique_id=981317227 instance=ExtResource("3_60eld")]
+top_level = true
+layout_mode = 0
+offset_left = 228.0
+offset_top = 200.0
+offset_right = 268.0
+offset_bottom = 240.0
 
-[node name="UfEquipmentLeftHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=311245213]
-offset_left = 89.79998
-offset_top = 111.0
-offset_right = 129.79999
-offset_bottom = 151.0
+[node name="UfEquipmentLegR" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="1" unique_id=2124956090 instance=ExtResource("3_60eld")]
+top_level = true
+layout_mode = 0
+offset_left = 206.0
+offset_top = 268.0
+offset_right = 246.0
+offset_bottom = 308.0
 
-[node name="UfEquipmentRightHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=1111039831]
-offset_left = 187.20001
-offset_top = 122.0
-offset_right = 227.20001
-offset_bottom = 162.0
+[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="2" unique_id=894582718 instance=ExtResource("3_60eld")]
+top_level = true
+layout_mode = 0
+offset_left = 158.0
+offset_top = 273.0
+offset_right = 198.0
+offset_bottom = 313.0
 
-[node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=384866164]
-offset_left = 115.5
-offset_top = 192.0
-offset_right = 155.5
-offset_bottom = 232.0
+[node name="UfEquipmentArmR" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="3" unique_id=104910558 instance=ExtResource("3_60eld")]
+top_level = true
+layout_mode = 0
+offset_left = 137.0
+offset_top = 202.0
+offset_right = 177.0
+offset_bottom = 242.0
 
-[node name="UfEquipmentBody" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=678117324]
-offset_left = 134.5
-offset_right = 174.5
-
-[node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=1283183109]
-offset_left = 134.5
-offset_right = 174.5
+[node name="UfEquipmentArmL" parent="Layout/ContentSlot/UfLayoutRegion/Silhouette" index="4" unique_id=261583111 instance=ExtResource("3_60eld")]
+top_level = true
+layout_mode = 0
+offset_left = 181.0
+offset_top = 135.0
+offset_right = 221.0
+offset_bottom = 175.0

@@ -7,6 +7,7 @@ extends ScrollContainer
 ##
 ## Structure is authored in [code]uf_list.tscn[/code] ([code]Items[/code] + rows). Do not redefine
 ## [code]Items[/code] in parent scenes; add rows under [code]UfList/Items[/code] only.
+## [member flow] defaults to vertical; override in scene if needed.
 
 enum Flow {
 	VERTICAL,

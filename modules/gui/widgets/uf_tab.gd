@@ -5,6 +5,7 @@ extends MarginContainer
 ## One tab page for [class UfTabbedPanel]. Each instance is a direct child of Godot's
 ## [TabContainer]; [member title_key] drives the tab label via [code]tr()[/code].
 ## Put widgets inside [method get_content_slot] (see GAME_DESIGN section 10.6).
+## [member title_key] is authored per tab in the panel [code].tscn[/code].
 
 @export var title_key: String = "":
 	set(value):

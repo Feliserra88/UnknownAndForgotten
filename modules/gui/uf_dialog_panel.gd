@@ -5,6 +5,9 @@ extends UfPanel
 ## Panel with accept/cancel actions in a footer chrome bar (see docs/GAME_DESIGN.md section 10.5).
 ## [code]Footer/Chrome[/code] mirrors the header pattern: fixed-height bar with shrink-sized buttons
 ## aligned to the end so they do not stretch to the full panel width.
+##
+## Footer copy and button sizes are authored in [code]ui/templates/uf_panel_dialog.tscn[/code];
+## exports are fallbacks for programmatic setup.
 
 signal confirmed
 signal cancelled

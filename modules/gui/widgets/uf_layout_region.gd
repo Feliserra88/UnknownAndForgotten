@@ -12,19 +12,38 @@ extends Control
 ## Scene inheritance: open a child panel (e.g. [code]uf_inspection_quadruped.tscn[/code]), select a slot
 ## under this region, move it in the 2D editor or edit [member UfEquipmentSlot.layout_center_norm] in the
 ## Inspector. Saving stores only that override; anchor mode and other slot settings stay inherited.
+##
+## Region size and [member layout_reference_size] are authored in
+## [code]ui/templates/uf_panel_ingame_inspection.tscn[/code]; script defaults are minimal fallbacks.
 
-@export var region_min_size: Vector2 = Vector2(240, 160):
+const _MIN_AXIS := 16.0
+
+@export var region_min_size: Vector2 = Vector2(_MIN_AXIS, _MIN_AXIS):
 	set(value):
-		region_min_size = value.max(Vector2(16, 16))
+		region_min_size = value.max(Vector2(_MIN_AXIS, _MIN_AXIS))
 		_sync_min_size()
 
-## Pixel reference used when authoring [member UfEquipmentSlot.layout_center_norm].
-@export var layout_reference_size: Vector2 = Vector2(240, 300):
+## Authoring reference for [member UfEquipmentSlot.layout_center_norm]. Set in inspection template;
+## when zero, [method resolved_reference_size] uses the region's current size.
+@export var layout_reference_size: Vector2 = Vector2.ZERO:
 	set(value):
-		layout_reference_size = value.max(Vector2(16, 16))
+		layout_reference_size = value
+		if layout_reference_size.x > 0.0 and layout_reference_size.y > 0.0:
+			layout_reference_size = layout_reference_size.max(Vector2(_MIN_AXIS, _MIN_AXIS))
 		_request_layout()
 
 var _layout_pending: bool = false
+var _suppress_child_sync: bool = false
+
+func should_suppress_editor_sync() -> bool:
+	return _suppress_child_sync
+
+func resolved_reference_size() -> Vector2:
+	if size.x >= _MIN_AXIS and size.y >= _MIN_AXIS:
+		return size
+	if layout_reference_size.x >= _MIN_AXIS and layout_reference_size.y >= _MIN_AXIS:
+		return layout_reference_size
+	return Vector2(_MIN_AXIS, _MIN_AXIS)
 
 func _enter_tree() -> void:
 	_sync_min_size()
@@ -59,12 +78,18 @@ func _on_resized() -> void:
 	queue_redraw()
 
 func _on_ancestor_resized() -> void:
-	_request_layout()
-	call_deferred("_request_layout_after_frame")
-
-func _request_layout_after_frame() -> void:
+	_suppress_child_sync = true
 	_layout_pending = false
-	_request_layout()
+	call_deferred("_request_layout_after_resize_settle")
+
+func _request_layout_after_resize_settle() -> void:
+	call_deferred("_request_layout")
+	call_deferred("_release_child_sync_suppress")
+
+func _release_child_sync_suppress() -> void:
+	call_deferred(func() -> void:
+		_suppress_child_sync = false
+	)
 
 func _on_child_entered_tree(node: Node) -> void:
 	if node is UfEquipmentSlot and (node as UfEquipmentSlot).layout_center_anchored:
@@ -79,9 +104,26 @@ func _request_layout() -> void:
 func _deferred_layout_center_anchored_children() -> void:
 	_layout_pending = false
 	if not is_inside_tree() or size.x < 1.0 or size.y < 1.0:
+		#region agent log
+		AgentDebugLog.write("H2", "uf_layout_region.gd:_deferred_layout", "layout skipped (invalid size)", {
+			"size": [size.x, size.y],
+			"editor": Engine.is_editor_hint(),
+		})
+		#endregion
 		return
+	_suppress_child_sync = true
+	#region agent log
+	AgentDebugLog.write("H2", "uf_layout_region.gd:_deferred_layout", "layout pass start", {
+		"runId": "resize-fix",
+		"size": [size.x, size.y],
+		"ref_size": [layout_reference_size.x, layout_reference_size.y],
+		"resolved_ref": [resolved_reference_size().x, resolved_reference_size().y],
+		"editor": Engine.is_editor_hint(),
+	})
+	#endregion
 	for child in get_children():
 		_layout_center_anchored_child(child)
+	call_deferred("_release_child_sync_suppress")
 
 func _layout_center_anchored_children() -> void:
 	_request_layout()
@@ -101,6 +143,20 @@ func _layout_center_anchored_child(child: Node) -> void:
 		slot.layout_center_norm.x * size.x,
 		slot.layout_center_norm.y * size.y,
 	)
+	var new_pos := region_center + offset - half
+	#region agent log
+	AgentDebugLog.write("H1", "uf_layout_region.gd:_layout_child", "apply layout position", {
+		"runId": "resize-fix",
+		"slot": slot.name,
+		"norm": [slot.layout_center_norm.x, slot.layout_center_norm.y],
+		"region_size": [size.x, size.y],
+		"ref_size": [layout_reference_size.x, layout_reference_size.y],
+		"offset": [offset.x, offset.y],
+		"new_pos": [new_pos.x, new_pos.y],
+		"prev_pos": [slot.position.x, slot.position.y],
+		"prev_offsets": [slot.offset_left, slot.offset_top, slot.offset_right, slot.offset_bottom],
+	})
+	#endregion
 	slot.layout_mode = 0
 	slot.set_anchors_preset(Control.PRESET_TOP_LEFT, false)
 	slot.anchor_left = 0.0
@@ -111,7 +167,7 @@ func _layout_center_anchored_child(child: Node) -> void:
 	slot.offset_top = 0.0
 	slot.offset_right = 0.0
 	slot.offset_bottom = 0.0
-	slot.position = region_center + offset - half
+	slot.position = new_pos
 	slot.size = slot.layout_fixed_size
 	slot.custom_minimum_size = slot.layout_fixed_size
 	slot.end_layout_apply()
@@ -133,7 +189,7 @@ func _bootstrap_slot_center_anchor(slot: UfEquipmentSlot) -> void:
 		center = slot.position + slot.size * 0.5
 	else:
 		return
-	var ref_size := size if size.x >= 16.0 and size.y >= 16.0 else layout_reference_size
+	var ref_size := resolved_reference_size()
 	var norm := pixel_center_to_norm(center, ref_size)
 	apply_center_anchored_slot(slot, norm, fixed_size)
 

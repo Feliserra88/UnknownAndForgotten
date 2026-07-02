@@ -17,6 +17,10 @@ extends Resource
 @export var max_durability: float = 100.0
 @export var state_tiers: Array[ItemStateTierDef] = []
 @export var quality_tiers: Array[ItemQualityTierDef] = []
+## Starting wear tier index for new instances (mutable at runtime on ItemInstance).
+@export var default_state_index: int = 0
+## Starting quality tier index for new instances (mutable at runtime on ItemInstance).
+@export var default_quality_index: int = 0
 @export var allowed_archetype_tags: Array[StringName] = []
 @export var category_data: Resource
 

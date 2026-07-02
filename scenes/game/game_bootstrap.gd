@@ -117,7 +117,7 @@ func _seed_player_inventory() -> void:
 	if _player == null or _player.instance == null:
 		return
 	var items := ItemsModule.new()
-	var sword := items.create_instance(&"long_sword_type01", 0, 1)
+	var sword := items.create_instance(&"long_sword_type01")
 	sword.modifier_ids = [&"enchanted"]
 	items.add_to_inventory(_player.instance.equipment, sword, _player.instance.uid)
 	var bread := items.create_instance(&"bread_loaf")

@@ -110,13 +110,14 @@ func tag_display_name(tag_id: StringName) -> String:
 		return tr(def.display_name_key)
 	return String(tag_id)
 
-## Creates a runtime ItemInstance from [param def_id] with tier indices.
-func create_instance(def_id: StringName, state_idx: int = 0, quality_idx: int = 0) -> ItemInstance:
+## Creates a runtime ItemInstance from [param def_id].
+## Pass [param state_override] / [param quality_override] >= 0 to force indices; otherwise uses ItemDef defaults.
+func create_instance(def_id: StringName, state_override: int = -1, quality_override: int = -1) -> ItemInstance:
+	var def := load_def(def_id)
 	var inst := ItemInstance.new()
 	inst.def_id = def_id
-	inst.state_index = state_idx
-	inst.quality_index = quality_idx
-	var def := load_def(def_id)
+	inst.state_index = state_override if state_override >= 0 else (def.default_state_index if def != null else 0)
+	inst.quality_index = quality_override if quality_override >= 0 else (def.default_quality_index if def != null else 0)
 	if def != null and def.max_durability > 0.0:
 		inst.durability = def.max_durability
 	inst.ensure_uid()
@@ -133,6 +134,8 @@ func save_def(item: ItemDef) -> Error:
 	if item == null or String(item.id).is_empty():
 		Log.warn(_LOG, "save_def: missing id")
 		return ERR_INVALID_PARAMETER
+	item.default_state_index = clampi(item.default_state_index, 0, maxi(0, item.state_tiers.size() - 1))
+	item.default_quality_index = clampi(item.default_quality_index, 0, maxi(0, item.quality_tiers.size() - 1))
 	var path := "%s/%s.tres" % [DIR, item.id]
 	return ResourceSaver.save(item, path)
 
@@ -175,8 +178,6 @@ func resolve_price(instance: ItemInstance, def: ItemDef = null) -> float:
 ## Returns list-row display data for editor or UI previews.
 func resolve_list_row(
 	target: Variant,
-	preview_state: int = 0,
-	preview_quality: int = 0,
 	preview_modifier_ids: Array = [],
 	modifier_module: ModifierModule = null,
 ) -> Dictionary:
@@ -189,11 +190,10 @@ func resolve_list_row(
 		def = load_def(instance.def_id)
 	if def == null:
 		return {}
-	var state_idx := instance.state_index if instance != null else preview_state
-	var quality_idx := instance.quality_index if instance != null else preview_quality
-	var icon_tex: Texture2D = resolve_icon(instance, def) if instance != null else resolve_icon(
-		create_instance(def.id, state_idx, quality_idx), def
-	)
+	var state_idx := instance.state_index if instance != null else def.default_state_index
+	var quality_idx := instance.quality_index if instance != null else def.default_quality_index
+	var preview_inst := instance if instance != null else create_instance(def.id, state_idx, quality_idx)
+	var icon_tex: Texture2D = resolve_icon(preview_inst, def)
 	var state_tier := def.get_state_tier(state_idx)
 	var quality_tier := def.get_quality_tier(quality_idx)
 	var mod_ids: Array = instance.modifier_ids if instance != null else preview_modifier_ids.duplicate()
@@ -203,7 +203,7 @@ func resolve_list_row(
 		"category_id": def.category_id,
 		"icon": icon_tex,
 		"weight": def.weight,
-		"price": resolve_price(instance if instance != null else create_instance(def.id, state_idx, quality_idx), def),
+		"price": resolve_price(preview_inst, def),
 		"durability": instance.durability if instance != null else def.max_durability,
 		"inventory_size": def.inventory_size,
 		"tags": def.tags,

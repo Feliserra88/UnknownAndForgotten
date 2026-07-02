@@ -2,7 +2,7 @@
 class_name UfCheckButton
 extends CheckButton
 ## Localized on/off widget built on Godot's native CheckButton, suitable for panel toggles
-## and settings rows (see GAME_DESIGN section 10.6).
+## and settings rows (see GAME_DESIGN section 10.6). [member label_key] is authored in the scene.
 
 @export var label_key: String = "":
 	set(value):

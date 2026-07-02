@@ -37,13 +37,11 @@ var _browse_mode: StringName = &"saved"
 var _back_to_saved_btn: Button
 var _browse_hint: Label
 var _preview_state: int = 0
-var _preview_quality: int = 0
 var _preview_modifier_ids: Array[StringName] = []
 
 var _category_option: OptionButton
 var _family_option: OptionButton
 var _state_option: OptionButton
-var _quality_option: OptionButton
 var _modifier_option: OptionButton
 var _status_label: Label
 var _save_btn: Button
@@ -67,6 +65,8 @@ var _price_field: SpinBox
 var _durability_field: SpinBox
 var _grid_w_field: SpinBox
 var _grid_h_field: SpinBox
+var _def_state_option: OptionButton
+var _def_quality_option: OptionButton
 var _weapon_family_field: LineEdit
 var _weapon_type_field: LineEdit
 var _weapon_slot_option: OptionButton
@@ -127,7 +127,7 @@ func _fit_to_parent() -> void:
 func _bootstrap_data() -> void:
 	_populate_categories()
 	_populate_weapon_families()
-	_populate_preview_tiers()
+	_populate_art_strip_states()
 	_populate_item_modifiers()
 	_refresh_tag_pickers(true)
 	_refresh_localized_strings()
@@ -402,10 +402,8 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	box.add_child(filters_wrap.block)
 	_family_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.family"))
 	_family_option.item_selected.connect(func(_i: int) -> void: _rebuild_list())
-	_state_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_state"))
-	_state_option.item_selected.connect(_on_preview_state_changed)
-	_quality_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_quality"))
-	_quality_option.item_selected.connect(_on_preview_quality_changed)
+	_state_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.strip_state"))
+	_state_option.item_selected.connect(_on_art_strip_state_changed)
 	_modifier_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_modifier"))
 	_modifier_option.item_selected.connect(_on_preview_modifier_changed)
 	_section_gap(box)
@@ -439,6 +437,10 @@ func _rebuild_details_form() -> void:
 	_durability_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.max_durability"), 0, 9999, 1)
 	_grid_w_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.grid_w"), 1, 8, 1)
 	_grid_h_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.grid_h"), 1, 8, 1)
+	_def_state_option = _add_option_field_to(props_wrap.body, _T("item_editor.field.state"))
+	_def_state_option.item_selected.connect(_on_def_state_changed)
+	_def_quality_option = _add_option_field_to(props_wrap.body, _T("item_editor.field.quality"))
+	_def_quality_option.item_selected.connect(_on_def_quality_changed)
 	_section_gap(_details_box)
 	var tags_wrap := _BLOCK.create("item_editor.block.tags")
 	_register_block_title(tags_wrap)
@@ -559,15 +561,56 @@ func _populate_weapon_families() -> void:
 		_family_option.add_item(String(fam))
 		_family_option.set_item_metadata(_family_option.item_count - 1, fam)
 
-func _populate_preview_tiers() -> void:
-	if _state_option == null or _quality_option == null:
+func _populate_art_strip_states() -> void:
+	if _state_option == null:
 		return
 	_state_option.clear()
-	for tier in _items.default_weapon_state_tiers():
+	for tier in _preview_state_tiers():
 		_state_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
-	_quality_option.clear()
-	for tier in _items.default_quality_tiers():
-		_quality_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+	_update_art_strip_filter_visibility()
+
+func _sync_def_tier_option_menus() -> void:
+	if _def_state_option == null or _def_quality_option == null:
+		return
+	var state_tiers: Array[ItemStateTierDef] = []
+	var quality_tiers: Array[ItemQualityTierDef] = []
+	var state_idx := 0
+	var quality_idx := 0
+	if _draft != null:
+		state_tiers = _draft.state_tiers
+		quality_tiers = _draft.quality_tiers
+		state_idx = _draft.default_state_index
+		quality_idx = _draft.default_quality_index
+	else:
+		var cat := _items.load_category(_current_category_id())
+		if cat != null and not cat.default_state_tiers.is_empty():
+			state_tiers = cat.default_state_tiers
+		else:
+			state_tiers = _items.default_weapon_state_tiers()
+		if cat != null and not cat.default_quality_tiers.is_empty():
+			quality_tiers = cat.default_quality_tiers
+		else:
+			quality_tiers = _items.default_quality_tiers()
+	_def_state_option.clear()
+	for tier in state_tiers:
+		_def_state_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+	_def_quality_option.clear()
+	for tier in quality_tiers:
+		_def_quality_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+	if _def_state_option.item_count > 0:
+		_def_state_option.select(clampi(state_idx, 0, _def_state_option.item_count - 1))
+	if _def_quality_option.item_count > 0:
+		_def_quality_option.select(clampi(quality_idx, 0, _def_quality_option.item_count - 1))
+	var editable := _draft != null
+	_def_state_option.disabled = not editable
+	_def_quality_option.disabled = not editable
+
+func _update_art_strip_filter_visibility() -> void:
+	if _state_option == null:
+		return
+	var row := _state_option.get_parent() as Control
+	if row != null:
+		row.visible = _browse_mode == &"art"
 
 func _current_category_id() -> StringName:
 	var idx := _category_option.selected
@@ -591,6 +634,7 @@ func _set_browse_mode(mode: StringName, rebuild: bool = true) -> void:
 		_selected_meta = {}
 	if rebuild:
 		_rebuild_list()
+	_update_art_strip_filter_visibility()
 
 func _on_new_from_art_pressed() -> void:
 	_set_browse_mode(&"art")
@@ -689,12 +733,7 @@ func _append_item_rows(active_tags: Array[StringName]) -> void:
 		_list_box.add_child(_body_label(_T("item_editor.list.no_items")))
 		return
 	for def in defs:
-		var row_data := _items.resolve_list_row(
-			def,
-			_preview_state,
-			_preview_quality,
-			_preview_modifier_ids,
-		)
+		var row_data := _items.resolve_list_row(def, _preview_modifier_ids, _modifier)
 		var row := _ROW.new()
 		row.custom_minimum_size = Vector2(0, 80)
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -711,15 +750,29 @@ func _on_row_selected(meta: Dictionary) -> void:
 func _on_category_changed(_idx: int) -> void:
 	_update_category_sections_visibility()
 	_refresh_tag_pickers(true)
+	_populate_art_strip_states()
+	if _draft != null:
+		_sync_def_tier_option_menus()
 	_rebuild_list()
 
-func _on_preview_state_changed(idx: int) -> void:
+func _on_art_strip_state_changed(idx: int) -> void:
 	_preview_state = idx
 	_refresh_preview_panel()
-	_rebuild_list()
+	if _browse_mode == &"art":
+		_rebuild_list()
 
-func _on_preview_quality_changed(idx: int) -> void:
-	_preview_quality = idx
+func _on_def_state_changed(idx: int) -> void:
+	if _draft == null:
+		return
+	_draft.default_state_index = idx
+	_refresh_preview_panel()
+	if _browse_mode == &"saved":
+		_rebuild_list()
+
+func _on_def_quality_changed(idx: int) -> void:
+	if _draft == null:
+		return
+	_draft.default_quality_index = idx
 	_refresh_preview_panel()
 	if _browse_mode == &"saved":
 		_rebuild_list()
@@ -731,7 +784,7 @@ func _on_preview_modifier_changed(idx: int) -> void:
 		if not String(mid).is_empty():
 			_preview_modifier_ids.append(mid)
 	_refresh_preview_panel()
-	if _browse_mode == &"saved":
+	if _browse_mode == &"saved" and _draft != null:
 		_rebuild_list()
 
 func _populate_item_modifiers() -> void:
@@ -748,12 +801,18 @@ func _on_reset_state_tiers() -> void:
 	if _draft == null:
 		return
 	_draft.state_tiers = _items.default_weapon_state_tiers()
+	_draft.default_state_index = clampi(_draft.default_state_index, 0, maxi(0, _draft.state_tiers.size() - 1))
+	_sync_def_tier_option_menus()
+	_refresh_preview_panel()
 	_set_status(_T("item_editor.status.state_tiers_reset"))
 
 func _on_reset_quality_tiers() -> void:
 	if _draft == null:
 		return
 	_draft.quality_tiers = _items.default_quality_tiers()
+	_draft.default_quality_index = clampi(_draft.default_quality_index, 0, maxi(0, _draft.quality_tiers.size() - 1))
+	_sync_def_tier_option_menus()
+	_refresh_preview_panel()
 	_set_status(_T("item_editor.status.quality_tiers_reset"))
 
 func _refresh_preview_panel() -> void:
@@ -767,8 +826,8 @@ func _refresh_preview_icon() -> void:
 	if _draft != null:
 		var inst := ItemInstance.new()
 		inst.def_id = _draft.id
-		inst.state_index = _preview_state
-		inst.quality_index = _preview_quality
+		inst.state_index = _draft.default_state_index
+		inst.quality_index = _draft.default_quality_index
 		inst.modifier_ids = _preview_modifier_ids.duplicate()
 		tex = _items.resolve_icon(inst, _draft)
 	elif _selected_meta.has("icon"):
@@ -794,13 +853,7 @@ func _refresh_preview_summary() -> void:
 		return
 	if _draft != null and _id_field != null:
 		_apply_form_to_draft()
-		var row := _items.resolve_list_row(
-			_draft,
-			_preview_state,
-			_preview_quality,
-			_preview_modifier_ids,
-			_modifier,
-		)
+		var row := _items.resolve_list_row(_draft, _preview_modifier_ids, _modifier)
 		_preview_summary.show_item(_items, row, _draft)
 		return
 	if _browse_mode == &"art" and _selected_meta.get("is_sprite_template", false):
@@ -809,13 +862,7 @@ func _refresh_preview_summary() -> void:
 	if _selected_meta.has("id"):
 		var def := _items.load_def(_selected_meta.get("id"))
 		if def != null:
-			var row := _items.resolve_list_row(
-				def,
-				_preview_state,
-				_preview_quality,
-				_preview_modifier_ids,
-				_modifier,
-			)
+			var row := _items.resolve_list_row(def, _preview_modifier_ids, _modifier)
 			_preview_summary.show_item(_items, row, def)
 			return
 	_preview_summary.show_empty()
@@ -946,6 +993,8 @@ func _apply_sprite_template_to_draft(meta: Dictionary) -> void:
 		_draft.state_tiers = _items.default_weapon_state_tiers()
 	if _draft.quality_tiers.is_empty():
 		_draft.quality_tiers = _items.default_quality_tiers()
+	_draft.default_state_index = _preview_state
+	_draft.default_quality_index = 0
 	var fam := String(meta.get("family", ""))
 	var typ := String(meta.get("design_type", ""))
 	_draft.id = StringName("%s_%s" % [fam, typ]) if not fam.is_empty() else &"new_item"
@@ -962,6 +1011,10 @@ func _apply_form_to_draft() -> void:
 	_draft.base_price = _price_field.value
 	_draft.max_durability = _durability_field.value
 	_draft.inventory_size = Vector2i(int(_grid_w_field.value), int(_grid_h_field.value))
+	if _def_state_option != null and _def_state_option.item_count > 0:
+		_draft.default_state_index = _def_state_option.selected
+	if _def_quality_option != null and _def_quality_option.item_count > 0:
+		_draft.default_quality_index = _def_quality_option.selected
 	if _tag_assign_zone != null:
 		_draft.tags = _items.normalize_tags(_tag_assign_zone.get_tags(), _current_category_id())
 	_draft.category_id = _current_category_id()
@@ -994,6 +1047,7 @@ func _sync_form_from_draft() -> void:
 	if _draft == null:
 		if _id_field != null:
 			_id_field.text = ""
+		_sync_def_tier_option_menus()
 		return
 	_id_field.text = String(_draft.id)
 	_name_key_field.text = _draft.display_name_key
@@ -1003,6 +1057,7 @@ func _sync_form_from_draft() -> void:
 	_durability_field.value = _draft.max_durability
 	_grid_w_field.value = _draft.inventory_size.x
 	_grid_h_field.value = _draft.inventory_size.y
+	_sync_def_tier_option_menus()
 	if _tag_assign_zone != null:
 		_tag_assign_zone.set_tags(_draft.tags)
 	_update_category_sections_visibility()
@@ -1160,7 +1215,7 @@ func _refresh_localized_ui() -> void:
 	_refresh_localized_strings()
 	if _data_ready:
 		_populate_categories()
-		_populate_preview_tiers()
+		_populate_art_strip_states()
 		_populate_item_modifiers()
 		if _tag_filter_flow != null:
 			_tag_filter_flow.refresh(_current_category_id())
@@ -1170,6 +1225,9 @@ func _refresh_localized_ui() -> void:
 			_tag_assign_zone.set_tags(_draft.tags)
 		elif _tag_assign_zone != null:
 			_tag_assign_zone.set_tags(_tag_assign_zone.get_tags())
+		if _draft != null:
+			_sync_def_tier_option_menus()
+		_update_art_strip_filter_visibility()
 	_localizing = false
 
 func _refresh_localized_strings() -> void:

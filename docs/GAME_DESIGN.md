@@ -716,11 +716,11 @@ Cada NPC (incluido el jugador) tiene tres conjuntos en `EquipmentState`:
 
 | Capa | Tipo | Contenido |
 |------|------|-----------|
-| Definición | `ItemDef` | `category_id`, `tags`, peso, precio base, huella inventario, `state_tiers[]`, `quality_tiers[]`, `category_data` (payload) |
+| Definición | `ItemDef` | `category_id`, `tags`, peso, precio base, huella inventario, `state_tiers[]`, `quality_tiers[]`, `default_state_index`, `default_quality_index`, `category_data` (payload) |
 | Instancia | `ItemInstance` | `state_index`, `quality_index`, `modifier_ids` (ModifierDef ajenos al ItemDef), `durability`, `count` |
 
-- **Estado** (pristine … battered): tiers en `ItemDef` definen sprite (strip) y multiplicadores; el índice activo vive en la instancia.
-- **Calidad** (common … epic): igual patrón que estado.
+- **Estado** (pristine … battered): tiers en `ItemDef` definen sprite (strip) y multiplicadores; `default_state_index` fija el desgaste inicial al instanciar (p. ej. dos `ItemDef` distintos pueden representar la misma arma en distinto estado). El índice activo en runtime vive en `ItemInstance` y puede cambiar durante el juego.
+- **Calidad** (common … epic): igual patrón que estado — `default_quality_index` en `ItemDef` (p. ej. un item common y otro uncommon como definiciones separadas); el índice en runtime vive en `ItemInstance`.
 - **Modificadores** (enchanted, coated…): solo en `ItemInstance`; referencian `ModifierDef` con `kind = ITEM` o tags `item_modifier`.
 - Categorías v1: `weapon` (completa), `armor`, `food`, `valuable` (payloads stub donde aplique). Payloads: `WeaponItemData`, `ArmorItemData`, `FoodItemData`, `ValuableItemData`.
 
@@ -1062,6 +1062,8 @@ Reglas:
 - Lógica de dominio vive en **módulos** (`equipment`, `status`…); el panel solo enlaza señales y refresca widgets.
 
 ### 10.6 Widgets modulares (`res://ui/widgets/`)
+
+**Escena como referencia:** los `@export` del script son *fallback*; el diseño autorizado vive en `ui/widgets/*.tscn` (prefab), `ui/templates/` (referencia de panel) y `ui/panels/` (overrides). Ver regla `gui-panels.mdc` («Valores @export — escena como referencia»). Con `UfEquipmentSlot.layout_center_anchored`, editar solo `layout_center_norm` (no `offset_*`).
 
 Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 
