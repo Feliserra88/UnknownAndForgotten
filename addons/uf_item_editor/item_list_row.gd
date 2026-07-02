@@ -4,10 +4,39 @@ extends PanelContainer
 
 signal row_selected(meta: Dictionary)
 
+const _PAD := 8
+const _ROW_SEP := 10
+const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+
 var _meta: Dictionary = {}
+var _selected: bool = false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	_apply_selection_style()
+
+func set_selected(selected: bool) -> void:
+	if _selected == selected:
+		return
+	_selected = selected
+	_apply_selection_style()
+
+func _apply_selection_style() -> void:
+	var style := StyleBoxFlat.new()
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 0
+	style.content_margin_right = 0
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	if _selected:
+		style.bg_color = Color(0.22, 0.42, 0.62, 0.55)
+		style.border_color = Color(0.55, 0.78, 1.0)
+		style.set_border_width_all(2)
+	else:
+		style.bg_color = Color(0.14, 0.15, 0.17, 0.4)
+		style.border_color = Color(0.28, 0.30, 0.34)
+		style.set_border_width_all(1)
+	add_theme_stylebox_override("panel", style)
 
 ## Fills the row from [param row_data] returned by ItemsModule.resolve_list_row or sprite templates.
 func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
@@ -15,11 +44,19 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 	_meta["is_sprite_template"] = is_sprite_template
 	for child in get_children():
 		child.queue_free()
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", _PAD)
+	margin.add_theme_constant_override("margin_right", _PAD)
+	margin.add_theme_constant_override("margin_top", _PAD)
+	margin.add_theme_constant_override("margin_bottom", _PAD)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(margin)
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", _ROW_SEP)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(row)
+	margin.add_child(row)
 	var icon_rect := TextureRect.new()
-	icon_rect.custom_minimum_size = Vector2(48, 48)
+	icon_rect.custom_minimum_size = Vector2(52, 52)
 	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	var tex: Texture2D = row_data.get("icon")
@@ -30,6 +67,7 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 	icon_rect.texture = tex
 	row.add_child(icon_rect)
 	var info := VBoxContainer.new()
+	info.add_theme_constant_override("separation", 2)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info)
 	var title := Label.new()
@@ -37,10 +75,17 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 		title.text = String(row_data.get("label", ""))
 	else:
 		var key: String = row_data.get("display_name_key", "")
-		title.text = tr(key) if not key.is_empty() else String(row_data.get("id", ""))
+		title.text = _I18N.translate_key(key) if not key.is_empty() else String(row_data.get("id", ""))
 	info.add_child(title)
 	if is_sprite_template:
-		info.add_child(_muted_label("Sprite template"))
+		var family := String(row_data.get("family", ""))
+		var design := String(row_data.get("design_type", ""))
+		var detail := _I18N.translate_key("item_editor.row.art_source")
+		if not family.is_empty():
+			detail = "%s — %s" % [detail, family]
+			if not design.is_empty():
+				detail = "%s / %s" % [detail, design]
+		info.add_child(_muted_label(detail))
 	else:
 		info.add_child(_muted_label(
 			"w:%.1f  price:%.0f  dur:%.0f  grid:%dx%d" % [
@@ -58,13 +103,15 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 		var quality_key: String = row_data.get("quality_key", "")
 		if not state_key.is_empty() or not quality_key.is_empty():
 			info.add_child(_muted_label("%s / %s" % [
-				tr(state_key) if not state_key.is_empty() else "-",
-				tr(quality_key) if not quality_key.is_empty() else "-",
+				_I18N.translate_key(state_key) if not state_key.is_empty() else "-",
+				_I18N.translate_key(quality_key) if not quality_key.is_empty() else "-",
 			]))
 		var mods: Array = row_data.get("modifier_ids", [])
 		if not mods.is_empty():
 			info.add_child(_muted_label("mods: %s" % ", ".join(_string_names(mods))))
-	gui_input.connect(_on_gui_input)
+	if not gui_input.is_connected(_on_gui_input):
+		gui_input.connect(_on_gui_input)
+	_apply_selection_style()
 
 func get_meta_data() -> Dictionary:
 	return _meta
@@ -78,6 +125,7 @@ func _muted_label(text: String) -> Label:
 	label.text = text
 	label.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return label
 
 func _string_names(arr: Array) -> PackedStringArray:

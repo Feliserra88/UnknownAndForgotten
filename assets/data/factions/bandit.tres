@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FactionDef" format=3 uid="uid://dkpvlyjr1kg3m"]
+
+[ext_resource type="Script" uid="uid://uwotr6tx6iij" path="res://modules/faction/faction_def.gd" id="1_faction"]
+
+[resource]
+script = ExtResource("1_faction")
+id = &"bandit"
+display_name_key = "faction.bandit.name"
+tags = Array[StringName]([&"bandit", &"hostile"])

@@ -10,6 +10,9 @@ extends Resource
 @export var background_texture: Texture2D
 ## Panel size hint in pixels for the background area.
 @export var background_size: Vector2 = Vector2(240, 300)
+## Optional artist-tuned panel scene under res://ui/panels/inspection/.
+## When set, GuiModule instantiates this scene instead of build_from_layout().
+@export_file("*.tscn") var panel_path: String = ""
 ## Slot placements: each entry is { "slot_id": StringName, "rect": Rect2 (normalized 0..1) }.
 ## Rect is expressed as a fraction of the background so it scales with the panel.
 @export var slots: Array[Dictionary] = []

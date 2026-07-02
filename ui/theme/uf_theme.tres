@@ -2,8 +2,8 @@
 
 [ext_resource type="FontFile" uid="uid://dbc7j2fvfa7lo" path="res://assets/fonts/FiraCode-VariableFont_wght.ttf" id="1_qoi4m"]
 [ext_resource type="Texture2D" uid="uid://4krucnfomc1" path="res://ui/theme/art/panel_frame.png" id="2_frame"]
-[ext_resource type="StyleBox" path="res://ui/theme/styles/panel_header_placeholder.tres" id="3_header"]
-[ext_resource type="StyleBox" path="res://ui/theme/styles/panel_footer_placeholder.tres" id="4_footer"]
+[ext_resource type="StyleBox" uid="uid://qys5vbnvxrj5" path="res://ui/theme/styles/panel_header_placeholder.tres" id="3_header"]
+[ext_resource type="StyleBox" uid="uid://bm6wjjjae74hr" path="res://ui/theme/styles/panel_footer_placeholder.tres" id="4_footer"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_panel"]
 content_margin_left = 44.0

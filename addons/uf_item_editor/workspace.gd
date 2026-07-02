@@ -3,14 +3,27 @@ extends Control
 ## Item editor workspace: left properties, center browse list, right actions and filters.
 
 const _ROW := preload("res://addons/uf_item_editor/item_list_row.gd")
+const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
+const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
+const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
+const _TAG_ZONE := preload("res://addons/uf_item_editor/tag_assign_zone.gd")
+const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
 const _LOG := "ITM"
+const _MARGIN := 12
+const _PANEL_SEP := 10
+const _FIELD_SEP := 8
+const _SECTION_SEP := 14
+const _LABEL_WIDTH := 132
 
 var _items: ItemsModule
 var _modifier: ModifierModule
 var _draft: ItemDef
 var _data_ready: bool = false
 var _selected_meta: Dictionary = {}
-var _browse_tab: int = 0
+var _selected_list_key: String = ""
+var _browse_mode: StringName = &"saved"
+var _back_to_saved_btn: Button
+var _browse_hint: Label
 var _preview_state: int = 0
 var _preview_quality: int = 0
 var _preview_modifier_ids: Array[StringName] = []
@@ -20,13 +33,18 @@ var _family_option: OptionButton
 var _state_option: OptionButton
 var _quality_option: OptionButton
 var _modifier_option: OptionButton
-var _tag_filter: LineEdit
 var _status_label: Label
+var _save_btn: Button
+var _action_buttons: Array[Dictionary] = []
+var _locale_labels: Array[Dictionary] = []
+var _tag_filter_flow: _TAG_FLOW
+var _tag_palette_flow: _TAG_FLOW
+var _tag_assign_zone: _TAG_ZONE
 var _details_box: VBoxContainer
 var _list_box: VBoxContainer
 var _preview_icon: TextureRect
 var _cols: HSplitContainer
-var _splits_initialized: bool = false
+var _center_right: HSplitContainer
 var _id_field: LineEdit
 var _name_key_field: LineEdit
 var _desc_key_field: LineEdit
@@ -35,16 +53,19 @@ var _price_field: SpinBox
 var _durability_field: SpinBox
 var _grid_w_field: SpinBox
 var _grid_h_field: SpinBox
-var _tags_field: LineEdit
 var _weapon_family_field: LineEdit
 var _weapon_type_field: LineEdit
 var _weapon_slot_option: OptionButton
 var _weapon_hands_field: SpinBox
 var _weapon_modifier_field: LineEdit
 var _weapon_section: VBoxContainer
+var _weapon_block: PanelContainer
 var _armor_section: VBoxContainer
+var _armor_block: PanelContainer
 var _food_section: VBoxContainer
+var _food_block: PanelContainer
 var _valuable_section: VBoxContainer
+var _valuable_block: PanelContainer
 var _armor_slot_option: OptionButton
 var _armor_modifier_field: LineEdit
 var _food_nutrition_field: SpinBox
@@ -54,46 +75,89 @@ var _valuable_stackable: CheckBox
 var _valuable_merchant_field: LineEdit
 var _tier_state_box: VBoxContainer
 var _tier_quality_box: VBoxContainer
+var _localizing: bool = false
 
 func setup() -> void:
 	_items = ItemsModule.new()
 	_modifier = ModifierModule.new()
 	_build_ui()
+	_refresh_localized_strings()
 
 func ensure_ready() -> void:
+	_fit_to_parent()
 	if not _data_ready:
-		call_deferred("_bootstrap_data")
+		if not is_inside_tree() or _category_option == null:
+			call_deferred("ensure_ready")
+			return
+		_bootstrap_data()
 	else:
-		call_deferred("_rebuild_list")
+		_refresh_localized_ui()
+		_rebuild_list()
+	_finalize_layout()
+	call_deferred("_finalize_layout")
 
 func sync_layout() -> void:
+	_fit_to_parent()
 	_finalize_layout()
+
+func _fit_to_parent() -> void:
+	var parent := get_parent() as Control
+	if parent == null:
+		return
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	if parent.size.x > 8 and parent.size.y > 8:
+		size = parent.size
 
 func _bootstrap_data() -> void:
 	_populate_categories()
 	_populate_weapon_families()
 	_populate_preview_tiers()
 	_populate_item_modifiers()
+	_refresh_tag_pickers()
+	_refresh_localized_strings()
 	_rebuild_list()
-	_set_status("Ready")
+	_set_status(_T("item_editor.status.ready"))
 	_data_ready = true
 	call_deferred("_finalize_layout")
 
+func _refresh_tag_pickers() -> void:
+	var cat := _current_category_id()
+	if _tag_filter_flow != null:
+		_tag_filter_flow.configure(_TAG_CHIP.Mode.FILTER, _items, cat)
+	if _tag_palette_flow != null:
+		_tag_palette_flow.configure(_TAG_CHIP.Mode.PALETTE, _items, cat)
+
 func _finalize_layout() -> void:
-	if not _splits_initialized and _cols != null:
-		_cols.split_offset = 280
-		_splits_initialized = true
+	_apply_column_splits()
+
+func _apply_column_splits() -> void:
+	if _cols == null or _cols.size.x < 480:
+		return
+	var total_w := _cols.size.x
+	_cols.split_offset = clampi(int(total_w * 0.28), 240, int(total_w * 0.36))
+	if _center_right == null:
+		return
+	var sep := _cols.get_theme_constant("separation", "HSplitContainer")
+	var inner_w := maxi(total_w - _cols.split_offset - sep, 320)
+	_center_right.split_offset = clampi(int(inner_w * 0.70), 300, int(inner_w * 0.82))
 
 func _build_ui() -> void:
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_left", _MARGIN)
+	margin.add_theme_constant_override("margin_right", _MARGIN)
+	margin.add_theme_constant_override("margin_top", _MARGIN)
+	margin.add_theme_constant_override("margin_bottom", _MARGIN)
 	add_child(margin)
 	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", _PANEL_SEP)
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
@@ -103,199 +167,300 @@ func _build_ui() -> void:
 	_cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_cols)
 	_build_left_column(_cols)
-	_build_center_column(_cols)
-	_build_right_column(_cols)
+	_center_right = HSplitContainer.new()
+	_center_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_center_right.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_cols.add_child(_center_right)
+	_build_center_column(_center_right)
+	_build_right_column(_center_right)
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status_label.custom_minimum_size = Vector2(0, 22)
 	_status_label.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
 	root.add_child(_status_label)
+	call_deferred("_bind_parent_resize")
+
+func _bind_parent_resize() -> void:
+	var parent := get_parent() as Control
+	if parent != null and not parent.resized.is_connected(_on_parent_resized):
+		parent.resized.connect(_on_parent_resized)
+
+func _on_parent_resized() -> void:
+	if is_visible_in_tree():
+		sync_layout()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_apply_column_splits()
+	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
+		call_deferred("sync_layout")
+	elif what == NOTIFICATION_TRANSLATION_CHANGED:
+		if _data_ready:
+			_refresh_localized_ui()
 
 func _build_toolbar(parent: VBoxContainer) -> void:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
+	parent.add_child(panel)
 	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 10)
-	parent.add_child(bar)
-	bar.add_child(_label("Category"))
+	bar.add_theme_constant_override("separation", _FIELD_SEP)
+	panel.add_child(bar)
+	bar.add_child(_tracked_label("item_editor.toolbar.category"))
 	_category_option = OptionButton.new()
-	_category_option.custom_minimum_size = Vector2(140, 28)
+	_category_option.custom_minimum_size = Vector2(160, 30)
 	_category_option.item_selected.connect(_on_category_changed)
 	bar.add_child(_category_option)
-	var save_btn := Button.new()
-	save_btn.text = "Save"
-	save_btn.custom_minimum_size = Vector2(80, 28)
-	save_btn.pressed.connect(_on_save_pressed)
-	bar.add_child(save_btn)
+	_save_btn = Button.new()
+	_save_btn.custom_minimum_size = Vector2(96, 30)
+	_save_btn.pressed.connect(_on_save_pressed)
+	_action_buttons.append({"button": _save_btn, "key": "item_editor.action.save"})
+	bar.add_child(_save_btn)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
 
 func _build_left_column(parent: HSplitContainer) -> void:
+	var col_wrap := _BLOCK.create("item_editor.block.definition")
+	_register_block_title(col_wrap)
+	col_wrap.block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col_wrap.block.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	parent.add_child(col_wrap.block)
 	var left := ScrollContainer.new()
-	left.custom_minimum_size = Vector2(260, 0)
+	left.name = "DefinitionScroll"
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	parent.add_child(left)
+	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	col_wrap.body.add_child(left)
 	_details_box = VBoxContainer.new()
+	_details_box.add_theme_constant_override("separation", _PANEL_SEP)
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_child(_details_box)
 	_rebuild_details_form()
 
 func _build_center_column(parent: HSplitContainer) -> void:
-	var center := VBoxContainer.new()
-	center.custom_minimum_size = Vector2(360, 0)
+	var browse_wrap := _BLOCK.create("item_editor.block.browse")
+	_register_block_title(browse_wrap)
+	browse_wrap.block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	browse_wrap.block.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	parent.add_child(browse_wrap.block)
+	var center: VBoxContainer = browse_wrap.body as VBoxContainer
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	parent.add_child(center)
-	var tabs := HBoxContainer.new()
-	center.add_child(tabs)
-	var sprites_btn := Button.new()
-	sprites_btn.text = "Sprites"
-	sprites_btn.pressed.connect(func() -> void:
-		_browse_tab = 0
-		_rebuild_list()
-	)
-	tabs.add_child(sprites_btn)
-	var items_btn := Button.new()
-	items_btn.text = "Items"
-	items_btn.pressed.connect(func() -> void:
-		_browse_tab = 1
-		_rebuild_list()
-	)
-	tabs.add_child(items_btn)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	center.add_child(scroll)
-	_list_box = VBoxContainer.new()
-	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_list_box)
+	var browse_bar := HBoxContainer.new()
+	browse_bar.add_theme_constant_override("separation", _FIELD_SEP)
+	center.add_child(browse_bar)
+	_back_to_saved_btn = Button.new()
+	_back_to_saved_btn.custom_minimum_size = Vector2(0, 30)
+	_back_to_saved_btn.visible = false
+	_back_to_saved_btn.pressed.connect(_on_back_to_saved_pressed)
+	_action_buttons.append({"button": _back_to_saved_btn, "key": "item_editor.action.back_to_saved"})
+	browse_bar.add_child(_back_to_saved_btn)
+	_browse_hint = Label.new()
+	_browse_hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_browse_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_browse_hint.add_theme_color_override("font_color", Color(0.62, 0.67, 0.72))
+	browse_bar.add_child(_browse_hint)
+	_set_browse_mode(&"saved", false)
+	var preview_panel := PanelContainer.new()
+	preview_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	preview_panel.add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
+	center.add_child(preview_panel)
 	_preview_icon = TextureRect.new()
-	_preview_icon.custom_minimum_size = Vector2(0, 96)
+	_preview_icon.custom_minimum_size = Vector2(0, 112)
+	_preview_icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	center.add_child(_preview_icon)
+	preview_panel.add_child(_preview_icon)
+	var scroll := ScrollContainer.new()
+	scroll.name = "BrowseListScroll"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	center.add_child(scroll)
+	_list_box = VBoxContainer.new()
+	_list_box.add_theme_constant_override("separation", 6)
+	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_list_box)
 
 func _build_right_column(parent: HSplitContainer) -> void:
 	var right := ScrollContainer.new()
-	right.custom_minimum_size = Vector2(240, 0)
+	right.name = "SidebarScroll"
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	right.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	parent.add_child(right)
 	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", _PANEL_SEP)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	right.add_child(box)
-	box.add_child(_section("Actions"))
+	var actions_wrap := _BLOCK.create("item_editor.block.actions")
+	_register_block_title(actions_wrap)
+	box.add_child(actions_wrap.block)
+	var actions := GridContainer.new()
+	actions.columns = 2
+	actions.add_theme_constant_override("h_separation", _FIELD_SEP)
+	actions.add_theme_constant_override("v_separation", _FIELD_SEP)
+	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions_wrap.body.add_child(actions)
 	for spec in [
-		["New", _on_new_pressed],
-		["Clone", _on_clone_pressed],
-		["Edit", _on_edit_pressed],
-		["Delete", _on_delete_pressed],
+		["item_editor.action.new", _on_new_pressed],
+		["item_editor.action.new_from_art", _on_new_from_art_pressed],
+		["item_editor.action.clone", _on_clone_pressed],
+		["item_editor.action.edit", _on_edit_pressed],
+		["item_editor.action.delete", _on_delete_pressed],
 	]:
 		var btn := Button.new()
-		btn.text = spec[0]
+		btn.custom_minimum_size = Vector2(0, 30)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.pressed.connect(spec[1])
-		box.add_child(btn)
-	box.add_child(_section("Filters"))
-	box.add_child(_label("Family"))
-	_family_option = OptionButton.new()
+		_action_buttons.append({"button": btn, "key": spec[0]})
+		actions.add_child(btn)
+	var filters_wrap := _BLOCK.create("item_editor.block.preview_filters")
+	_register_block_title(filters_wrap)
+	box.add_child(filters_wrap.block)
+	_family_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.family"))
 	_family_option.item_selected.connect(func(_i: int) -> void: _rebuild_list())
-	box.add_child(_family_option)
-	box.add_child(_label("Preview state"))
-	_state_option = OptionButton.new()
+	_state_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_state"))
 	_state_option.item_selected.connect(_on_preview_state_changed)
-	box.add_child(_state_option)
-	box.add_child(_label("Preview quality"))
-	_quality_option = OptionButton.new()
+	_quality_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_quality"))
 	_quality_option.item_selected.connect(_on_preview_quality_changed)
-	box.add_child(_quality_option)
-	box.add_child(_label("Preview modifier"))
-	_modifier_option = OptionButton.new()
+	_modifier_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_modifier"))
 	_modifier_option.item_selected.connect(_on_preview_modifier_changed)
-	box.add_child(_modifier_option)
-	box.add_child(_label("Tag filter"))
-	_tag_filter = LineEdit.new()
-	_tag_filter.placeholder_text = "sword, 2handed…"
-	_tag_filter.text_submitted.connect(func(_t: String) -> void: _rebuild_list())
-	box.add_child(_tag_filter)
+	var tag_filter_wrap := _BLOCK.create("item_editor.block.tag_filter")
+	_register_block_title(tag_filter_wrap)
+	box.add_child(tag_filter_wrap.block)
+	var filter_hint := _tracked_label("item_editor.tags.filter_hint")
+	filter_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tag_filter_wrap.body.add_child(filter_hint)
+	_tag_filter_flow = _TAG_FLOW.new()
+	_tag_filter_flow.filter_changed.connect(func(_t: Array[StringName]) -> void: _rebuild_list())
+	tag_filter_wrap.body.add_child(_tag_filter_flow)
 
 func _rebuild_details_form() -> void:
 	if _details_box == null:
 		return
+	var saved_tags: Array[StringName] = []
+	if _tag_assign_zone != null:
+		saved_tags = _tag_assign_zone.get_tags()
 	for child in _details_box.get_children():
 		child.queue_free()
-	_details_box.add_child(_section("Item properties"))
-	_id_field = _add_line_field("id")
-	_name_key_field = _add_line_field("display_name_key")
-	_desc_key_field = _add_line_field("description_key")
-	_weight_field = _add_spin_field("weight", 0, 9999, 0.1)
-	_price_field = _add_spin_field("base_price", 0, 999999, 1)
-	_durability_field = _add_spin_field("max_durability", 0, 9999, 1)
-	_grid_w_field = _add_spin_field("grid_w", 1, 8, 1)
-	_grid_h_field = _add_spin_field("grid_h", 1, 8, 1)
-	_tags_field = _add_line_field("tags (comma)")
+	var props_wrap := _BLOCK.create("item_editor.block.properties")
+	_register_block_title(props_wrap)
+	_details_box.add_child(props_wrap.block)
+	_id_field = _add_line_field_to(props_wrap.body, _T("item_editor.field.id"))
+	_name_key_field = _add_line_field_to(props_wrap.body, _T("item_editor.field.display_name_key"))
+	_desc_key_field = _add_line_field_to(props_wrap.body, _T("item_editor.field.description_key"))
+	_weight_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.weight"), 0, 9999, 0.1)
+	_price_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.base_price"), 0, 999999, 1)
+	_durability_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.max_durability"), 0, 9999, 1)
+	_grid_w_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.grid_w"), 1, 8, 1)
+	_grid_h_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.grid_h"), 1, 8, 1)
+	var tags_wrap := _BLOCK.create("item_editor.block.tags")
+	_register_block_title(tags_wrap)
+	_details_box.add_child(tags_wrap.block)
+	var palette_hint := _tracked_label("item_editor.tags.palette_hint")
+	palette_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tags_wrap.body.add_child(palette_hint)
+	_tag_palette_flow = _TAG_FLOW.new()
+	_tag_palette_flow.palette_tag_selected.connect(_on_palette_tag_selected)
+	tags_wrap.body.add_child(_tag_palette_flow)
+	_tag_assign_zone = _TAG_ZONE.new()
+	_tag_assign_zone.setup(_items)
+	_tag_assign_zone.tags_changed.connect(_on_draft_tags_changed)
+	tags_wrap.body.add_child(_tag_assign_zone)
+	var tiers_wrap := _BLOCK.create("item_editor.block.tiers")
+	_register_block_title(tiers_wrap)
+	_details_box.add_child(tiers_wrap.block)
 	_tier_state_box = VBoxContainer.new()
-	_details_box.add_child(_section("State tiers"))
-	_details_box.add_child(_tier_state_box)
+	_tier_state_box.add_theme_constant_override("separation", _FIELD_SEP)
+	tiers_wrap.body.add_child(_tracked_label("item_editor.block.state_tiers"))
+	tiers_wrap.body.add_child(_tier_state_box)
 	var reset_state := Button.new()
-	reset_state.text = "Reset default state tiers"
+	reset_state.custom_minimum_size = Vector2(0, 30)
 	reset_state.pressed.connect(_on_reset_state_tiers)
-	_tier_state_box.add_child(reset_state)
+	_locale_labels.append({"label": reset_state, "key": "item_editor.action.reset_state_tiers", "is_button": true})
+	tiers_wrap.body.add_child(reset_state)
 	_tier_quality_box = VBoxContainer.new()
-	_details_box.add_child(_section("Quality tiers"))
-	_details_box.add_child(_tier_quality_box)
+	_tier_quality_box.add_theme_constant_override("separation", _FIELD_SEP)
+	tiers_wrap.body.add_child(_tracked_label("item_editor.block.quality_tiers"))
+	tiers_wrap.body.add_child(_tier_quality_box)
 	var reset_quality := Button.new()
-	reset_quality.text = "Reset default quality tiers"
+	reset_quality.custom_minimum_size = Vector2(0, 30)
 	reset_quality.pressed.connect(_on_reset_quality_tiers)
-	_tier_quality_box.add_child(reset_quality)
-	_weapon_section = VBoxContainer.new()
-	_details_box.add_child(_section("Weapon payload"))
-	_details_box.add_child(_weapon_section)
-	_weapon_family_field = _add_line_field_to(_weapon_section, "weapon_family")
-	_weapon_type_field = _add_line_field_to(_weapon_section, "design_type")
-	_weapon_section.add_child(_label("equip slot"))
-	_weapon_slot_option = OptionButton.new()
+	_locale_labels.append({"label": reset_quality, "key": "item_editor.action.reset_quality_tiers", "is_button": true})
+	tiers_wrap.body.add_child(reset_quality)
+	var weapon_wrap := _BLOCK.create("item_editor.block.weapon_payload")
+	_register_block_title(weapon_wrap)
+	_details_box.add_child(weapon_wrap.block)
+	_weapon_block = weapon_wrap.block
+	_weapon_section = weapon_wrap.body
+	_weapon_family_field = _add_line_field_to(_weapon_section, _T("item_editor.field.weapon_family"))
+	_weapon_type_field = _add_line_field_to(_weapon_section, _T("item_editor.field.design_type"))
+	_weapon_slot_option = _add_option_field_to(_weapon_section, _T("item_editor.field.equip_slot"))
 	for slot in [&"arm_right", &"arm_left", &"belt", &"back"]:
 		_weapon_slot_option.add_item(String(slot), -1)
 		_weapon_slot_option.set_item_metadata(_weapon_slot_option.item_count - 1, slot)
-	_weapon_section.add_child(_weapon_slot_option)
-	_weapon_hands_field = _add_spin_field_to(_weapon_section, "hands", 1, 2, 1)
-	_weapon_modifier_field = _add_line_field_to(_weapon_section, "attribute_modifier_id")
-	_armor_section = VBoxContainer.new()
-	_details_box.add_child(_section("Armor payload"))
-	_details_box.add_child(_armor_section)
-	_armor_section.add_child(_label("equip slot"))
-	_armor_slot_option = OptionButton.new()
+	_weapon_hands_field = _add_spin_field_to(_weapon_section, _T("item_editor.field.hands"), 1, 2, 1)
+	_weapon_modifier_field = _add_line_field_to(_weapon_section, _T("item_editor.field.attribute_modifier_id"))
+	var armor_wrap := _BLOCK.create("item_editor.block.armor_payload")
+	_register_block_title(armor_wrap)
+	_details_box.add_child(armor_wrap.block)
+	_armor_block = armor_wrap.block
+	_armor_section = armor_wrap.body
+	_armor_slot_option = _add_option_field_to(_armor_section, _T("item_editor.field.equip_slot"))
 	for slot in [&"head", &"body", &"arm_left", &"arm_right", &"belt", &"neck", &"ring_1", &"ring_2", &"feet", &"back"]:
 		_armor_slot_option.add_item(String(slot), -1)
 		_armor_slot_option.set_item_metadata(_armor_slot_option.item_count - 1, slot)
-	_armor_section.add_child(_armor_slot_option)
-	_armor_modifier_field = _add_line_field_to(_armor_section, "attribute_modifier_id")
-	_food_section = VBoxContainer.new()
-	_details_box.add_child(_section("Food payload"))
-	_details_box.add_child(_food_section)
-	_food_nutrition_field = _add_spin_field_to(_food_section, "nutrition", 0, 999, 1)
-	_food_spoilage_field = _add_spin_field_to(_food_section, "spoilage_hours", 0, 9999, 1)
+	_armor_modifier_field = _add_line_field_to(_armor_section, _T("item_editor.field.attribute_modifier_id"))
+	var food_wrap := _BLOCK.create("item_editor.block.food_payload")
+	_register_block_title(food_wrap)
+	_details_box.add_child(food_wrap.block)
+	_food_block = food_wrap.block
+	_food_section = food_wrap.body
+	_food_nutrition_field = _add_spin_field_to(_food_section, _T("item_editor.field.nutrition"), 0, 999, 1)
+	_food_spoilage_field = _add_spin_field_to(_food_section, _T("item_editor.field.spoilage_hours"), 0, 9999, 1)
 	_food_stackable = CheckBox.new()
-	_food_stackable.text = "stackable"
 	_food_stackable.button_pressed = true
+	_locale_labels.append({"label": _food_stackable, "key": "item_editor.field.stackable", "is_button": true})
 	_food_section.add_child(_food_stackable)
-	_valuable_section = VBoxContainer.new()
-	_details_box.add_child(_section("Valuable payload"))
-	_details_box.add_child(_valuable_section)
+	var valuable_wrap := _BLOCK.create("item_editor.block.valuable_payload")
+	_register_block_title(valuable_wrap)
+	_details_box.add_child(valuable_wrap.block)
+	_valuable_block = valuable_wrap.block
+	_valuable_section = valuable_wrap.body
 	_valuable_stackable = CheckBox.new()
-	_valuable_stackable.text = "stackable"
 	_valuable_stackable.button_pressed = true
+	_locale_labels.append({"label": _valuable_stackable, "key": "item_editor.field.stackable", "is_button": true})
 	_valuable_section.add_child(_valuable_stackable)
-	_valuable_merchant_field = _add_line_field_to(_valuable_section, "merchant_category")
+	_valuable_merchant_field = _add_line_field_to(_valuable_section, _T("item_editor.field.merchant_category"))
+	_refresh_tag_pickers()
+	if not saved_tags.is_empty():
+		_tag_assign_zone.set_tags(saved_tags)
 	_update_category_sections_visibility()
 	_sync_form_from_draft()
 
 func _populate_categories() -> void:
+	if _category_option == null:
+		return
+	var selected_id := _current_category_id() if _category_option.item_count > 0 else &"weapon"
 	_category_option.clear()
 	for cat in _items.list_categories():
-		_category_option.add_item(tr(cat.display_name_key) if not cat.display_name_key.is_empty() else String(cat.id))
+		_category_option.add_item(_T(cat.display_name_key) if not cat.display_name_key.is_empty() else String(cat.id))
 		_category_option.set_item_metadata(_category_option.item_count - 1, cat.id)
-	if _category_option.item_count > 0:
-		_category_option.select(0)
+	for i in _category_option.item_count:
+		if _category_option.get_item_metadata(i) == selected_id:
+			_category_option.select(i)
+			break
 
 func _populate_weapon_families() -> void:
+	if _family_option == null:
+		return
 	_family_option.clear()
 	_family_option.add_item("(all)", -1)
 	_family_option.set_item_metadata(0, &"")
@@ -309,12 +474,14 @@ func _populate_weapon_families() -> void:
 		_family_option.set_item_metadata(_family_option.item_count - 1, fam)
 
 func _populate_preview_tiers() -> void:
+	if _state_option == null or _quality_option == null:
+		return
 	_state_option.clear()
 	for tier in _items.default_weapon_state_tiers():
-		_state_option.add_item(tr(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+		_state_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
 	_quality_option.clear()
 	for tier in _items.default_quality_tiers():
-		_quality_option.add_item(tr(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+		_quality_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
 
 func _current_category_id() -> StringName:
 	var idx := _category_option.selected
@@ -327,54 +494,103 @@ func _current_family_filter() -> StringName:
 		return &""
 	return _family_option.get_item_metadata(_family_option.selected)
 
+func _set_browse_mode(mode: StringName, rebuild: bool = true) -> void:
+	_browse_mode = mode
+	if _back_to_saved_btn != null:
+		_back_to_saved_btn.visible = mode == &"art"
+	if _browse_hint != null:
+		_browse_hint.text = _T("item_editor.hint.art_library") if mode == &"art" else _T("item_editor.hint.saved_items")
+	if mode == &"saved" and _selected_list_key.begins_with("art:"):
+		_selected_list_key = ""
+		_selected_meta = {}
+	if rebuild:
+		_rebuild_list()
+
+func _on_new_from_art_pressed() -> void:
+	_set_browse_mode(&"art")
+
+func _on_back_to_saved_pressed() -> void:
+	_set_browse_mode(&"saved")
+
+func _row_selection_key(meta: Dictionary) -> String:
+	if meta.get("is_sprite_template", false):
+		var path := String(meta.get("library_path", ""))
+		if not path.is_empty():
+			return "art:%s" % path
+		return "art:%s" % String(meta.get("label", ""))
+	return "item:%s" % String(meta.get("id", ""))
+
+func _draft_selection_key() -> String:
+	if _draft == null or String(_draft.id).is_empty():
+		return ""
+	return "item:%s" % String(_draft.id)
+
+func _active_selection_key() -> String:
+	if not _selected_list_key.is_empty():
+		return _selected_list_key
+	return _draft_selection_key()
+
+func _update_list_selection() -> void:
+	var active := _active_selection_key()
+	for child in _list_box.get_children():
+		if child is _ROW:
+			var row: _ROW = child
+			row.set_selected(_row_selection_key(row.get_meta_data()) == active and not active.is_empty())
+
 func _rebuild_list() -> void:
 	if _list_box == null:
 		return
 	for child in _list_box.get_children():
 		child.queue_free()
-	var tag_filter := _tag_filter.text.strip_edges().to_lower() if _tag_filter != null else ""
-	if _browse_tab == 0:
+	var tag_filter: Array[StringName] = []
+	if _tag_filter_flow != null:
+		tag_filter = _tag_filter_flow.get_active_filter_tags()
+	if _browse_mode == &"art":
 		_append_sprite_rows(tag_filter)
 	else:
 		_append_item_rows(tag_filter)
+	_update_list_selection()
 
-func _append_sprite_rows(tag_filter: String) -> void:
+func _append_sprite_rows(active_tags: Array[StringName]) -> void:
 	var family := _current_family_filter()
 	var entries := _items.list_sprite_templates(_current_category_id(), family)
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return String(a.get("label", "")) < String(b.get("label", ""))
 	)
 	if entries.is_empty():
-		_list_box.add_child(_body_label("No sprite templates."))
+		_list_box.add_child(_body_label(_T("item_editor.list.no_art")))
 		return
 	for entry in entries:
-		if not tag_filter.is_empty() and not String(entry.get("label", "")).to_lower().contains(tag_filter):
-			continue
+		if not active_tags.is_empty():
+			var label := String(entry.get("label", "")).to_lower()
+			var fam := String(entry.get("family", "")).to_lower()
+			var hit := false
+			for tid in active_tags:
+				var token := String(tid).to_lower()
+				if label.contains(token) or fam.contains(token):
+					hit = true
+					break
+			if not hit:
+				continue
 		var row := _ROW.new()
-		row.custom_minimum_size = Vector2(0, 56)
+		row.custom_minimum_size = Vector2(0, 64)
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_list_box.add_child(row)
 		row.setup(entry, true)
 		row.row_selected.connect(_on_row_selected)
 
-func _append_item_rows(tag_filter: String) -> void:
+func _append_item_rows(active_tags: Array[StringName]) -> void:
 	var filter := {"category_id": _current_category_id()}
+	if not active_tags.is_empty():
+		filter["tags_any"] = active_tags
 	var defs := _items.list_defs(filter)
 	defs.sort_custom(func(a: ItemDef, b: ItemDef) -> bool:
 		return String(a.id) < String(b.id)
 	)
 	if defs.is_empty():
-		_list_box.add_child(_body_label("No saved items for this category."))
+		_list_box.add_child(_body_label(_T("item_editor.list.no_items")))
 		return
 	for def in defs:
-		if not tag_filter.is_empty():
-			var hit := false
-			for t in def.tags:
-				if String(t).to_lower().contains(tag_filter):
-					hit = true
-					break
-			if not hit and not String(def.id).to_lower().contains(tag_filter):
-				continue
 		var row_data := _items.resolve_list_row(
 			def,
 			_preview_state,
@@ -382,7 +598,7 @@ func _append_item_rows(tag_filter: String) -> void:
 			_preview_modifier_ids,
 		)
 		var row := _ROW.new()
-		row.custom_minimum_size = Vector2(0, 72)
+		row.custom_minimum_size = Vector2(0, 80)
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_list_box.add_child(row)
 		row.setup(row_data, false)
@@ -390,22 +606,25 @@ func _append_item_rows(tag_filter: String) -> void:
 
 func _on_row_selected(meta: Dictionary) -> void:
 	_selected_meta = meta
+	_selected_list_key = _row_selection_key(meta)
+	_update_list_selection()
 	_refresh_preview_icon()
 
 func _on_category_changed(_idx: int) -> void:
 	_update_category_sections_visibility()
+	_refresh_tag_pickers()
 	_rebuild_list()
 
 func _on_preview_state_changed(idx: int) -> void:
 	_preview_state = idx
 	_refresh_preview_icon()
-	if _browse_tab == 1:
+	if _browse_mode == &"saved":
 		_rebuild_list()
 
 func _on_preview_quality_changed(idx: int) -> void:
 	_preview_quality = idx
 	_refresh_preview_icon()
-	if _browse_tab == 1:
+	if _browse_mode == &"saved":
 		_rebuild_list()
 
 func _on_preview_modifier_changed(idx: int) -> void:
@@ -415,7 +634,7 @@ func _on_preview_modifier_changed(idx: int) -> void:
 		if not String(mid).is_empty():
 			_preview_modifier_ids.append(mid)
 	_refresh_preview_icon()
-	if _browse_tab == 1:
+	if _browse_mode == &"saved":
 		_rebuild_list()
 
 func _populate_item_modifiers() -> void:
@@ -425,20 +644,20 @@ func _populate_item_modifiers() -> void:
 	_modifier_option.add_item("(none)", -1)
 	_modifier_option.set_item_metadata(0, &"")
 	for def in _modifier.list_by_kind(ModifierDef.Kind.ITEM):
-		_modifier_option.add_item(tr(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id))
+		_modifier_option.add_item(_T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id))
 		_modifier_option.set_item_metadata(_modifier_option.item_count - 1, def.id)
 
 func _on_reset_state_tiers() -> void:
 	if _draft == null:
 		return
 	_draft.state_tiers = _items.default_weapon_state_tiers()
-	_set_status("State tiers reset")
+	_set_status(_T("item_editor.status.state_tiers_reset"))
 
 func _on_reset_quality_tiers() -> void:
 	if _draft == null:
 		return
 	_draft.quality_tiers = _items.default_quality_tiers()
-	_set_status("Quality tiers reset")
+	_set_status(_T("item_editor.status.quality_tiers_reset"))
 
 func _refresh_preview_icon() -> void:
 	if _preview_icon == null:
@@ -462,28 +681,48 @@ func _refresh_preview_icon() -> void:
 
 func _update_category_sections_visibility() -> void:
 	var cat := _current_category_id()
-	if _weapon_section != null:
-		_weapon_section.visible = cat == &"weapon"
-	if _armor_section != null:
-		_armor_section.visible = cat == &"armor"
-	if _food_section != null:
-		_food_section.visible = cat == &"food"
-	if _valuable_section != null:
-		_valuable_section.visible = cat == &"valuable"
+	if _weapon_block != null:
+		_weapon_block.visible = cat == &"weapon"
+	if _armor_block != null:
+		_armor_block.visible = cat == &"armor"
+	if _food_block != null:
+		_food_block.visible = cat == &"food"
+	if _valuable_block != null:
+		_valuable_block.visible = cat == &"valuable"
+
+func _on_draft_tags_changed(tags: Array[StringName]) -> void:
+	if _draft != null:
+		_draft.tags = _items.normalize_tags(tags, _current_category_id())
+
+func _on_palette_tag_selected(tag_id: StringName) -> void:
+	if _tag_assign_zone == null:
+		return
+	var tags := _tag_assign_zone.get_tags()
+	if tags.has(tag_id):
+		return
+	tags.append(tag_id)
+	_tag_assign_zone.set_tags(_items.normalize_tags(tags, _current_category_id()))
 
 func _on_new_pressed() -> void:
 	var cat := _current_category_id()
 	_draft = _items.create_blank_def(cat)
-	if _selected_meta.get("is_sprite_template", false):
+	if _browse_mode == &"art":
+		if not _selected_meta.get("is_sprite_template", false):
+			_set_status(_T("item_editor.status.pick_art"))
+			_draft = null
+			return
 		_apply_sprite_template_to_draft(_selected_meta)
+		_set_browse_mode(&"saved", false)
 	elif not _selected_meta.is_empty() and _selected_meta.has("id"):
 		var src := _items.load_def(_selected_meta.get("id"))
 		if src != null:
 			_draft = _items.duplicate_def(src)
 			_draft.id = &""
 	_sync_form_from_draft()
+	_selected_list_key = _draft_selection_key()
 	_refresh_preview_icon()
-	_set_status("New draft")
+	_update_list_selection()
+	_set_status(_T("item_editor.status.new_draft"))
 
 func _on_clone_pressed() -> void:
 	if _draft == null and _selected_meta.has("id"):
@@ -495,25 +734,29 @@ func _on_clone_pressed() -> void:
 		_draft = _items.duplicate_def(_draft)
 		_draft.id = StringName("%s_copy" % _draft.id)
 	else:
-		_set_status("Select an item to clone")
+		_set_status(_T("item_editor.status.pick_item"))
 		return
 	_sync_form_from_draft()
-	_set_status("Cloned to draft")
+	_selected_list_key = _draft_selection_key()
+	_update_list_selection()
+	_set_status(_T("item_editor.status.cloned"))
 
 func _on_edit_pressed() -> void:
-	if _selected_meta.get("is_sprite_template", false):
+	if _browse_mode == &"art":
 		_on_new_pressed()
 		return
 	if not _selected_meta.has("id"):
-		_set_status("Select an item row")
+		_set_status(_T("item_editor.status.pick_item"))
 		return
 	_draft = _items.load_def(_selected_meta.get("id"))
 	if _draft == null:
-		_set_status("Failed to load item")
+		_set_status(_T("item_editor.status.load_failed"))
 		return
 	_sync_form_from_draft()
+	_selected_list_key = _draft_selection_key()
 	_refresh_preview_icon()
-	_set_status("Editing %s" % _draft.id)
+	_update_list_selection()
+	_set_status(_T("item_editor.status.editing") % _draft.id)
 
 func _on_delete_pressed() -> void:
 	if _draft == null or String(_draft.id).is_empty():
@@ -524,8 +767,10 @@ func _on_delete_pressed() -> void:
 		_set_status("Delete failed: %s" % path)
 		return
 	_draft = null
+	_selected_list_key = ""
+	_selected_meta = {}
 	_rebuild_list()
-	_set_status("Deleted %s" % path)
+	_set_status(_T("item_editor.status.deleted") % path)
 
 func _on_save_pressed() -> void:
 	if _draft == null:
@@ -539,7 +784,9 @@ func _on_save_pressed() -> void:
 		_set_status("Save failed (%s)" % err)
 		return
 	_rebuild_list()
-	_set_status("Saved %s" % _draft.id)
+	_selected_list_key = _draft_selection_key()
+	_update_list_selection()
+	_set_status(_T("item_editor.status.saved") % _draft.id)
 
 func _apply_sprite_template_to_draft(meta: Dictionary) -> void:
 	if _draft == null:
@@ -561,7 +808,7 @@ func _apply_sprite_template_to_draft(meta: Dictionary) -> void:
 	var typ := String(meta.get("design_type", ""))
 	_draft.id = StringName("%s_%s" % [fam, typ]) if not fam.is_empty() else &"new_item"
 	_draft.display_name_key = "item.%s.name" % _draft.id
-	_draft.tags = [meta.get("family", &""), &"weapon"]
+	_draft.tags = _items.normalize_tags([meta.get("family", &""), &"weapon"], _draft.category_id)
 
 func _apply_form_to_draft() -> void:
 	if _draft == null:
@@ -573,11 +820,8 @@ func _apply_form_to_draft() -> void:
 	_draft.base_price = _price_field.value
 	_draft.max_durability = _durability_field.value
 	_draft.inventory_size = Vector2i(int(_grid_w_field.value), int(_grid_h_field.value))
-	_draft.tags.clear()
-	for part in _tags_field.text.split(","):
-		var t := part.strip_edges()
-		if not t.is_empty():
-			_draft.tags.append(StringName(t))
+	if _tag_assign_zone != null:
+		_draft.tags = _items.normalize_tags(_tag_assign_zone.get_tags(), _current_category_id())
 	_draft.category_id = _current_category_id()
 	if _draft.category_data is WeaponItemData:
 		var w := _draft.category_data as WeaponItemData
@@ -617,10 +861,8 @@ func _sync_form_from_draft() -> void:
 	_durability_field.value = _draft.max_durability
 	_grid_w_field.value = _draft.inventory_size.x
 	_grid_h_field.value = _draft.inventory_size.y
-	var tag_parts: PackedStringArray = []
-	for t in _draft.tags:
-		tag_parts.append(String(t))
-	_tags_field.text = ", ".join(tag_parts)
+	if _tag_assign_zone != null:
+		_tag_assign_zone.set_tags(_draft.tags)
 	_update_category_sections_visibility()
 	if _draft.category_data is WeaponItemData:
 		var w := _draft.category_data as WeaponItemData
@@ -651,31 +893,59 @@ func _sync_form_from_draft() -> void:
 	_refresh_preview_icon()
 
 func _add_line_field(placeholder: String) -> LineEdit:
-	_details_box.add_child(_label(placeholder))
 	var field := LineEdit.new()
-	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_details_box.add_child(field)
+	field.custom_minimum_size = Vector2(0, 30)
+	_add_form_row(_details_box, placeholder, field)
 	return field
 
 func _add_spin_field(label_text: String, min_v: float, max_v: float, step: float) -> SpinBox:
 	return _add_spin_field_to(_details_box, label_text, min_v, max_v, step)
 
 func _add_line_field_to(parent: Control, placeholder: String) -> LineEdit:
-	parent.add_child(_label(placeholder))
 	var field := LineEdit.new()
-	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	parent.add_child(field)
+	field.custom_minimum_size = Vector2(0, 30)
+	_add_form_row(parent, placeholder, field)
 	return field
 
+func _add_option_field_to(parent: Control, label_text: String) -> OptionButton:
+	var opt := OptionButton.new()
+	opt.custom_minimum_size = Vector2(0, 30)
+	_add_form_row(parent, label_text, opt)
+	return opt
+
 func _add_spin_field_to(parent: Control, label_text: String, min_v: float, max_v: float, step: float) -> SpinBox:
-	parent.add_child(_label(label_text))
 	var spin := SpinBox.new()
 	spin.min_value = min_v
 	spin.max_value = max_v
 	spin.step = step
-	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	parent.add_child(spin)
+	spin.custom_minimum_size = Vector2(0, 30)
+	_add_form_row(parent, label_text, spin)
 	return spin
+
+func _add_filter_row(parent: Control, label_text: String) -> OptionButton:
+	var opt := OptionButton.new()
+	opt.custom_minimum_size = Vector2(0, 30)
+	_add_form_row(parent, label_text, opt)
+	return opt
+
+func _add_form_row(parent: Control, label_text: String, field: Control) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", _FIELD_SEP)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(row)
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.custom_minimum_size = Vector2(_LABEL_WIDTH, 0)
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(lbl)
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	field.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(field)
+
+func _section_gap(parent: Control) -> void:
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, _SECTION_SEP)
+	parent.add_child(gap)
 
 func _label(text: String) -> Label:
 	var l := Label.new()
@@ -686,6 +956,8 @@ func _section(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", 14)
+	l.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
+	l.custom_minimum_size = Vector2(0, 24)
 	return l
 
 func _body_label(text: String) -> Label:
@@ -698,3 +970,53 @@ func _set_status(text: String) -> void:
 	if _status_label != null:
 		_status_label.text = text
 	Log.info(_LOG, "editor", text)
+
+func _register_block_title(wrap: Dictionary) -> void:
+	var header: Variant = wrap.get("header")
+	var key: String = wrap.get("title_key", "")
+	if header is Label and not key.is_empty():
+		_locale_labels.append({"label": header, "key": key, "is_button": false})
+
+func _T(key: String) -> String:
+	return _I18N.translate_key(key)
+
+func _tracked_label(key: String) -> Label:
+	var label := Label.new()
+	_locale_labels.append({"label": label, "key": key, "is_button": false})
+	label.text = _T(key)
+	return label
+
+func _refresh_localized_ui() -> void:
+	if _category_option == null or _localizing:
+		return
+	_localizing = true
+	_refresh_localized_strings()
+	if _data_ready:
+		_populate_categories()
+		_populate_preview_tiers()
+		_populate_item_modifiers()
+		if _tag_filter_flow != null:
+			_tag_filter_flow.refresh(_current_category_id())
+		if _tag_palette_flow != null:
+			_tag_palette_flow.refresh(_current_category_id())
+		if _tag_assign_zone != null and _draft != null:
+			_tag_assign_zone.set_tags(_draft.tags)
+		elif _tag_assign_zone != null:
+			_tag_assign_zone.set_tags(_tag_assign_zone.get_tags())
+	_localizing = false
+
+func _refresh_localized_strings() -> void:
+	_I18N.ensure_loaded()
+	for spec in _action_buttons:
+		if spec.has("button") and spec.has("key"):
+			(spec.button as Button).text = _T(spec.key)
+	for spec in _locale_labels:
+		var node: Node = spec.label
+		var text := _T(spec.key)
+		if spec.get("is_button", false):
+			if node is Button:
+				(node as Button).text = text
+			elif node is CheckBox:
+				(node as CheckBox).text = text
+		elif node is Label:
+			(node as Label).text = text

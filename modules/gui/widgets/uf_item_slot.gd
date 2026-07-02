@@ -1,9 +1,11 @@
-@tool
 @icon("res://ui/widgets/icons/item_slot.svg")
 class_name UfItemSlot
 extends Panel
 ## Square slot cell for loot, inventory and other generic item grids (see docs/GAME_DESIGN.md
 ## section 10.6). Presentational only: icon + opaque drag payload; no domain types.
+##
+## Structure is authored in [code]uf_item_slot.tscn[/code] ([code]Icon[/code]). Do not add [code]Icon[/code]
+## overrides in parent scenes.
 
 signal item_dropped(slot_id: StringName, payload: Dictionary)
 signal item_removed(slot_id: StringName)
@@ -26,7 +28,7 @@ func get_payload_type() -> StringName:
 	return ITEM_PAYLOAD_TYPE
 
 func _ready() -> void:
-	_ensure_icon()
+	_bind_icon()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 ## Displays [param item_id] with [param tex] as its icon (empty id clears the slot).
@@ -37,8 +39,9 @@ func set_item(item_id: StringName, tex: Texture2D) -> void:
 func set_instance(instance_uid: String, item_id: StringName, tex: Texture2D) -> void:
 	_instance_uid = instance_uid
 	_item_id = item_id
-	_ensure_icon()
-	_icon.texture = tex
+	_bind_icon()
+	if _icon != null:
+		_icon.texture = tex
 
 ## Clears any item shown in this slot.
 func clear_item() -> void:
@@ -59,8 +62,13 @@ func item_id() -> StringName:
 func item_texture() -> Texture2D:
 	return _icon.texture if _icon != null else null
 
-func _ensure_icon() -> void:
+func _bind_icon() -> void:
 	if _icon != null:
+		return
+	_icon = get_node_or_null("Icon") as TextureRect
+	if _icon != null:
+		return
+	if Engine.is_editor_hint():
 		return
 	_icon = TextureRect.new()
 	_icon.name = "Icon"

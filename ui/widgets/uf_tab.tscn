@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://bqx7uf_tab_widget"]
+[gd_scene format=3 uid="uid://s8ou6kglyi6p"]
 
-[ext_resource type="Script" path="res://modules/gui/widgets/uf_tab.gd" id="1_tab"]
+[ext_resource type="Script" uid="uid://2clk2ee731hh" path="res://modules/gui/widgets/uf_tab.gd" id="1_tab"]
 
-[node name="UfTab" type="MarginContainer"]
+[node name="UfTab" type="MarginContainer" unique_id=1159937945]
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/margin_left = 4
@@ -12,7 +12,7 @@ theme_override_constants/margin_bottom = 4
 script = ExtResource("1_tab")
 title_key = "gui.tab.placeholder.one"
 
-[node name="ContentSlot" type="VBoxContainer" parent="."]
+[node name="ContentSlot" type="VBoxContainer" parent="." unique_id=49824048]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

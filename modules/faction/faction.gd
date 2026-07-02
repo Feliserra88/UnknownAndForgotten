@@ -7,16 +7,28 @@ extends RefCounted
 
 const _LOG := "FAC"
 const DIR := "res://assets/data/factions"
+const _Catalog := preload("res://modules/faction/faction_catalog.gd")
 
-## Returns the FactionDef for [param id] loaded from DIR, or null when missing.
+## Returns factions from the project catalog (assets/data/factions/catalog.tres).
+func list_catalog_defs() -> Array[FactionDef]:
+	var catalog: FactionCatalog = _Catalog.load_default()
+	if catalog == null:
+		Log.warn(_LOG, "list_catalog_defs: missing catalog")
+		return []
+	return catalog.load_factions()
+
+## Returns the FactionDef for [param id] from the catalog, or null when missing.
 func load_def(id: StringName) -> FactionDef:
 	if String(id).is_empty():
 		return null
+	for def in list_catalog_defs():
+		if def.id == id:
+			return def
 	var path := "%s/%s.tres" % [DIR, id]
-	if not ResourceLoader.exists(path):
-		Log.warn(_LOG, "load_def: missing %s" % path)
-		return null
-	return load(path) as FactionDef
+	if ResourceLoader.exists(path):
+		return load(path) as FactionDef
+	Log.warn(_LOG, "load_def: missing %s" % id)
+	return null
 
 ## Returns every FactionDef asset found in DIR.
 func list_defs() -> Array[FactionDef]:

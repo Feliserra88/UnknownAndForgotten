@@ -1,9 +1,11 @@
 [gd_resource type="Resource" script_class="ItemDef" format=3 uid="uid://dplxlt5i3uxy0"]
 
-[ext_resource type="Script" path="res://modules/items/item_def.gd" id="1_item"]
-[ext_resource type="Script" path="res://modules/items/armor_item_data.gd" id="2_armor"]
-[ext_resource type="Script" path="res://modules/equipment/equipment_visual_def.gd" id="3_visual"]
-[ext_resource type="Texture2D" path="res://assets/visuals/equipment/icons/dummy/equipo_humano_anillo_1_dummy.svg" id="4_icon"]
+[ext_resource type="Script" uid="uid://t2faobbcwcey" path="res://modules/items/item_def.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://bimbxs23fsfan" path="res://modules/items/armor_item_data.gd" id="2_armor"]
+[ext_resource type="Script" uid="uid://ttlf8jdqy5s5" path="res://modules/equipment/equipment_visual_def.gd" id="3_visual"]
+[ext_resource type="Texture2D" uid="uid://m3y8n0ra388t" path="res://assets/visuals/equipment/icons/dummy/equipo_humano_anillo_1_dummy.svg" id="4_icon"]
+[ext_resource type="Script" uid="uid://bd1aglcekj4kb" path="res://modules/items/item_quality_tier_def.gd" id="4_n7q8t"]
+[ext_resource type="Script" uid="uid://bp35fcgkk05cq" path="res://modules/items/item_state_tier_def.gd" id="6_sesjo"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("3_visual")
@@ -19,10 +21,8 @@ script = ExtResource("1_item")
 id = &"equipo_humano_anillo_1_dummy"
 display_name_key = "item.equipo_humano_anillo_1_dummy.name"
 category_id = &"armor"
-allowed_archetype_tags = Array[StringName]([&"humanoid", &"dummy"])
 icon = ExtResource("4_icon")
-inventory_size = Vector2i(1, 1)
 weight = 1.0
 base_price = 1.0
-max_durability = 100.0
+allowed_archetype_tags = Array[StringName]([&"humanoid", &"dummy"])
 category_data = SubResource("Resource_armor")

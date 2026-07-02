@@ -1,9 +1,0 @@
-[gd_scene format=3 uid="uid://dq8m2k5n7p4xr"]
-
-[ext_resource type="PackedScene" uid="uid://cs124hen41ls2" path="res://ui/templates/uf_panel_ingame_inspection.tscn" id="1_spc51"]
-[ext_resource type="Texture2D" uid="uid://fce0r1qxk76" path="res://assets/visuals/parts/art/quadruped_silhouette_se.png" id="3_silhouette"]
-
-[node name="UfInspectionPanel" unique_id=1540991670 instance=ExtResource("1_spc51")]
-
-[node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
-texture = ExtResource("3_silhouette")

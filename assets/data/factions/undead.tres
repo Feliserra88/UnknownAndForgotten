@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FactionDef" format=3 uid="uid://c084tgqvxwc5g"]
+
+[ext_resource type="Script" uid="uid://uwotr6tx6iij" path="res://modules/faction/faction_def.gd" id="1_faction"]
+
+[resource]
+script = ExtResource("1_faction")
+id = &"undead"
+display_name_key = "faction.undead.name"
+tags = Array[StringName]([&"undead", &"hostile"])

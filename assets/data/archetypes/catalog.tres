@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="NpcArchetypeCatalog" format=3 uid="uid://ccinbs2f60m0j"]
+
+[ext_resource type="Script" uid="uid://cbuaimq76pkc8" path="res://modules/npc/npc_archetype_catalog.gd" id="1_catalog"]
+
+[resource]
+script = ExtResource("1_catalog")
+entries = Array[String](["res://assets/data/archetypes/humanoid.tres", "res://assets/data/archetypes/quadruped_animal.tres", "res://assets/data/archetypes/beast.tres", "res://assets/data/archetypes/horror.tres", "res://assets/data/archetypes/winged_horror.tres"])

@@ -15,3 +15,14 @@ static func humanoid() -> BodyPartMap:
 	var map := BodyPartMap.new()
 	map.parts = [&"body", &"head", &"arm_left", &"arm_right", &"leg_left", &"leg_right"]
 	return map
+
+## Builds the standard quadruped body map (four legs, tail, head).
+static func quadruped() -> BodyPartMap:
+	var map := BodyPartMap.new()
+	map.parts = [
+		&"head", &"body",
+		&"leg_front_left", &"leg_front_right",
+		&"leg_back_left", &"leg_back_right",
+		&"tail",
+	]
+	return map

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NpcArchetype" format=3 uid="uid://yurydgjyy7bf"]
+
+[ext_resource type="Script" uid="uid://buy15ctorbxdb" path="res://modules/attributes/attribute_set.gd" id="1_attrs"]
+[ext_resource type="Script" uid="uid://dvk6pu1dm80f1" path="res://modules/attributes/vitals_template.gd" id="2_vitals"]
+[ext_resource type="Resource" uid="uid://dq7b55pjra7gw" path="res://assets/data/archetypes/npc_root.tres" id="3_root"]
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="4_c7fpu"]
+[ext_resource type="PackedScene" uid="uid://kft5dvql2a5y" path="res://scenes/npc/npc_base.tscn" id="4_scene"]
+[ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="5_arch"]
+[ext_resource type="Resource" uid="uid://gbtfpa7k4a2p" path="res://assets/visuals/parts/horror_inspection_layout.tres" id="6_layout"]
+
+[sub_resource type="Resource" id="Resource_attrs"]
+script = ExtResource("1_attrs")
+
+[sub_resource type="Resource" id="Resource_vitals"]
+script = ExtResource("2_vitals")
+
+[resource]
+script = ExtResource("5_arch")
+id = &"horror"
+parent = ExtResource("3_root")
+display_name_key = "archetype.horror.name"
+scene = ExtResource("4_scene")
+base_attributes = SubResource("Resource_attrs")
+base_vitals = SubResource("Resource_vitals")
+inspection_layout = ExtResource("6_layout")
+tags = Array[StringName]([&"horror"])
+default_factions = Array[StringName]([&"none"])

@@ -587,11 +587,22 @@ Para inspeccionar o equipar un NPC (en juego o en `uf_npc_editor`), el arquetipo
 
 Flujo editor / runtime:
 
-1. `archetype.resolve_inspection_layout()` → `InspectionLayoutDef`.
-2. `GuiModule.create_inspection_panel(layout)` → `UfInspectionPanel.build_from_layout()`.
-3. Al soltar un item, el **consumidor** (editor o módulo `equipment`) actualiza `EquipmentState` y llama `NpcAppearanceController.set_equipment_texture(part_id, tex)`.
+1. `archetype.resolve_inspection_layout()` → `InspectionLayoutDef` (referenciado en el `.tres` del arquetipo del catálogo).
+2. Si `layout.panel_path` apunta a un `.tscn` en `ui/panels/inspection/`, `GuiModule` **instancia ese panel** y enlaza `slot_id` (`bind_scene_slots`). Si no, `build_from_layout(layout)` (fallback procedural).
+3. `GuiModule.create_inspection_panel_for_archetype(archetype)` orquesta el paso anterior.
+4. Al soltar un item, el **consumidor** (editor o módulo `equipment`) actualiza `EquipmentState` y llama `NpcAppearanceController.set_equipment_texture(part_id, tex)`.
 
-Assets de ejemplo: `assets/visuals/parts/humanoid_inspection_layout.tres`. El módulo `gui` **no** importa `ItemDef` ni `FactionDef`.
+**Fuente de verdad:** el arquetipo referencia un `InspectionLayoutDef` en `assets/visuals/parts/`. Ese layout declara `panel_path` (panel del artista) y, opcionalmente, `slots[]` como fallback procedural.
+
+| Arquetipo (catálogo) | Layout | Panel (`panel_path`) |
+|----------------------|--------|----------------------|
+| `humanoid` | `humanoid_inspection_layout.tres` | `ui/panels/inspection/uf_inspection_humanoid.tscn` |
+| `quadruped_animal` | `quadruped_inspection_layout.tres` | `ui/panels/inspection/uf_inspection_quadruped.tscn` |
+| `beast` | `beast_inspection_layout.tres` | `ui/panels/inspection/uf_inspection_beast.tscn` |
+| `horror` | `horror_inspection_layout.tres` | (pendiente) |
+| `winged_horror` | `winged_horror_inspection_layout.tres` | (pendiente) |
+
+Assets de ejemplo: `assets/visuals/parts/humanoid_inspection_layout.tres`. El módulo `gui` **no** importa `ItemDef` ni `FactionDef`; el módulo `npc` **no** importa escenas de `ui/`.
 
 #### 5.5.5 Reglas de diseño
 

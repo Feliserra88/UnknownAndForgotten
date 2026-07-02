@@ -86,9 +86,22 @@ func _ensure_loot_grid() -> void:
 		_grid.add_theme_constant_override("h_separation", _GRID_SEPARATION)
 		_grid.add_theme_constant_override("v_separation", _GRID_SEPARATION)
 		_add_structural_child(content, _grid)
+	if Engine.is_editor_hint() and _grid.get_child_count() > 0:
+		_refresh_slots_cache()
+		return
 	var expected := grid_columns * grid_rows
 	if _grid.columns != grid_columns or _grid.get_child_count() != expected:
 		_rebuild_grid()
+
+func _refresh_slots_cache() -> void:
+	if _grid == null:
+		return
+	_slots.clear()
+	for child in _grid.get_children():
+		if child is UfItemSlot:
+			var slot := child as UfItemSlot
+			_slots[slot.slot_id] = slot
+			_wire_slot(slot)
 
 func _rebuild_grid() -> void:
 	if _grid == null:

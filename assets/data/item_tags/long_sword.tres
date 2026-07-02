@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemTagDef" format=3 uid="uid://w3jcyem0u4rf"]
+
+[ext_resource type="Script" uid="uid://wp0t38w64sl2" path="res://modules/items/item_tag_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"long_sword"
+display_name_key = "item_tag.long_sword.name"
+categories = Array[StringName]([&"weapon"])
+chip_color = Color(0.32, 0.48, 0.62, 1)

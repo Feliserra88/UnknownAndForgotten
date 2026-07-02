@@ -7,6 +7,7 @@ extends Node
 const _LOG := "NPC"
 const _DEFAULT_SCENE := preload("res://scenes/npc/npc_base.tscn")
 const _Human := preload("res://modules/npc/_private/human_factory.gd")
+const _ArchetypeCatalog := preload("res://modules/npc/npc_archetype_catalog.gd")
 
 ## Sibling facades injected by callers (e.g. the NPC editor). Optional: spawn works without them.
 var _faction: FactionModule
@@ -28,6 +29,28 @@ func assemble(instance: NpcInstanceData) -> void:
 	for mid in _faction.granted_modifier_ids(instance.faction_ids):
 		if not instance.modifier_ids.has(mid):
 			instance.modifier_ids.append(mid)
+
+## Returns archetypes from the project catalog (assets/data/archetypes/catalog.tres).
+func list_catalog_archetypes() -> Array[NpcArchetype]:
+	var catalog: NpcArchetypeCatalog = _ArchetypeCatalog.load_default()
+	if catalog == null:
+		Log.warn(_LOG, "list_catalog_archetypes: missing catalog")
+		return []
+	return catalog.load_archetypes()
+
+## Returns ordered catalog paths for editor and tooling.
+func catalog_archetype_paths() -> Array[String]:
+	var catalog: NpcArchetypeCatalog = _ArchetypeCatalog.load_default()
+	if catalog == null:
+		return []
+	return catalog.entries.duplicate()
+
+## Returns the catalog archetype with [param id], or null.
+func load_catalog_archetype(id: StringName) -> NpcArchetype:
+	for archetype in list_catalog_archetypes():
+		if archetype.id == id:
+			return archetype
+	return null
 
 ## Returns [param instance]'s attributes with all modifiers and equipment applied, using the injected
 ## facades. Falls back to base attributes when no modifier facade is available.

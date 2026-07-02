@@ -9,6 +9,7 @@ const CATEGORIES_DIR := "res://assets/data/item_categories"
 
 const _Catalog := preload("res://modules/items/_private/item_catalog.gd")
 const _SpriteLibrary := preload("res://modules/items/_private/sprite_library.gd")
+const _TagCatalog := preload("res://modules/items/_private/tag_catalog.gd")
 
 ## Returns every ItemDef, optionally filtered by category_id, tag or equip_slot.
 func list_defs(filter: Dictionary = {}) -> Array[ItemDef]:
@@ -45,6 +46,27 @@ func load_category(category_id: StringName) -> ItemCategoryDef:
 ## Returns sprite template entries for new items (see _private/sprite_library.gd).
 func list_sprite_templates(category_id: StringName, family: StringName = &"") -> Array[Dictionary]:
 	return _SpriteLibrary.list_templates(category_id, family)
+
+## Returns every ItemTagDef, optionally limited to [param category_id].
+func list_tag_defs(category_id: StringName = &"") -> Array[ItemTagDef]:
+	if String(category_id).is_empty():
+		return _TagCatalog.list_all()
+	return _TagCatalog.list_for_category(category_id)
+
+## Returns the ItemTagDef for [param id], or null.
+func load_tag_def(id: StringName) -> ItemTagDef:
+	return _TagCatalog.load_def(id)
+
+## Keeps only known tag ids valid for [param category_id].
+func normalize_tags(tags: Array, category_id: StringName = &"") -> Array[StringName]:
+	return _TagCatalog.normalize(tags, category_id)
+
+## Localized label for a tag id (falls back to raw id).
+func tag_display_name(tag_id: StringName) -> String:
+	var def := load_tag_def(tag_id)
+	if def != null and not def.display_name_key.is_empty():
+		return tr(def.display_name_key)
+	return String(tag_id)
 
 ## Creates a runtime ItemInstance from [param def_id] with tier indices.
 func create_instance(def_id: StringName, state_idx: int = 0, quality_idx: int = 0) -> ItemInstance:

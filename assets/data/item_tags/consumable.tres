@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemTagDef" format=3 uid="uid://dlk3gb4qretbg"]
+
+[ext_resource type="Script" uid="uid://wp0t38w64sl2" path="res://modules/items/item_tag_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"consumable"
+display_name_key = "item_tag.consumable.name"
+categories = Array[StringName]([&"food"])
+chip_color = Color(0.38, 0.55, 0.38, 1)

@@ -8,7 +8,6 @@
 [ext_resource type="PackedScene" uid="uid://kft5dvql2a5y" path="res://scenes/npc/npc_base.tscn" id="6_6p0cl"]
 [ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="7_ap67b"]
 [ext_resource type="Script" uid="uid://7wl2cr2yd8j1" path="res://modules/equipment/equipment_slot_map.gd" id="8_eqmap"]
-[ext_resource type="Resource" uid="uid://80rbw4orj42n" path="res://assets/visuals/parts/humanoid_inspection_layout.tres" id="9_layout"]
 
 [sub_resource type="Resource" id="Resource_lbqoq"]
 script = ExtResource("1_cbgoy")
@@ -78,5 +77,5 @@ base_vitals = SubResource("Resource_g7yhl")
 body_part_map = SubResource("Resource_7jqgk")
 part_visuals = Array[ExtResource("5_378d2")]([SubResource("Resource_kk4wx"), SubResource("Resource_y6ed2"), SubResource("Resource_1r2an"), SubResource("Resource_w8386"), SubResource("Resource_fjpe4"), SubResource("Resource_xcbeg")])
 equipment_slot_map = SubResource("Resource_eqmap")
-inspection_layout = ExtResource("9_layout")
 tags = Array[StringName]([&"humanoid"])
+default_factions = Array[StringName]([&"none"])

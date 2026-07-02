@@ -1,7 +1,15 @@
-[gd_scene format=3 uid="uid://c8item_slot_widget"]
+[gd_scene format=3 uid="uid://coagnb4gtbhrb"]
 
-[ext_resource type="Script" path="res://modules/gui/widgets/uf_item_slot.gd" id="1_slot"]
+[ext_resource type="Script" uid="uid://ca23lo8efafe6" path="res://modules/gui/widgets/uf_item_slot.gd" id="1_slot"]
 
-[node name="UfItemSlot" type="Panel"]
+[node name="UfItemSlot" type="Panel" unique_id=302485995]
 custom_minimum_size = Vector2(40, 40)
 script = ExtResource("1_slot")
+
+[node name="Icon" type="TextureRect" parent="." unique_id=159877636]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

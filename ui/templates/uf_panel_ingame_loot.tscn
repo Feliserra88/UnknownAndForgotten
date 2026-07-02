@@ -22,12 +22,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Header" type="Control" parent="Layout" unique_id=1448105502]
+[node name="Header" type="PanelContainer" parent="Layout" unique_id=88344324]
 custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"UfPanelHeader"
 
-[node name="Title" type="Label" parent="Layout/Header" unique_id=338264888]
+[node name="Body" type="Control" parent="Layout/Header" unique_id=393272340]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Header/Body" unique_id=158563814]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -36,7 +40,7 @@ text = "gui.loot.title"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Chrome" type="HBoxContainer" parent="Layout/Header" unique_id=460636904]
+[node name="Chrome" type="HBoxContainer" parent="Layout/Header/Body" unique_id=1321790286]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -49,7 +53,7 @@ mouse_filter = 0
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="MinimizeButton" type="Button" parent="Layout/Header/Chrome" unique_id=850238640]
+[node name="MinimizeButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=1487295254]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.minimize"
@@ -57,7 +61,7 @@ focus_mode = 0
 icon = ExtResource("3_min")
 flat = true
 
-[node name="DragHandle" type="Button" parent="Layout/Header/Chrome" unique_id=699049287]
+[node name="DragHandle" type="Button" parent="Layout/Header/Body/Chrome" unique_id=1625088948]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.drag"
@@ -65,7 +69,7 @@ focus_mode = 0
 icon = ExtResource("4_drag")
 flat = true
 
-[node name="CloseButton" type="Button" parent="Layout/Header/Chrome" unique_id=1486318489]
+[node name="CloseButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=620270406]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 tooltip_text = "gui.header.close"
@@ -91,44 +95,12 @@ tooltip_text = "0"
 script = ExtResource("6_hwcib")
 slot_id = &"0"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_0" unique_id=1001307189]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20222" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_0" unique_id=1397489641]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_1" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=695364274]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "1"
 script = ExtResource("6_hwcib")
 slot_id = &"1"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_1" unique_id=481450469]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20223" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_1" unique_id=2001842699]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_2" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=533423165]
 custom_minimum_size = Vector2(40, 40)
@@ -137,44 +109,12 @@ tooltip_text = "2"
 script = ExtResource("6_hwcib")
 slot_id = &"2"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_2" unique_id=329066844]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20224" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_2" unique_id=308026065]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_3" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1570552744]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "3"
 script = ExtResource("6_hwcib")
 slot_id = &"3"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_3" unique_id=1783465120]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20225" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_3" unique_id=322079839]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_4" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1476467953]
 custom_minimum_size = Vector2(40, 40)
@@ -183,44 +123,12 @@ tooltip_text = "4"
 script = ExtResource("6_hwcib")
 slot_id = &"4"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_4" unique_id=192735741]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20226" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_4" unique_id=590153130]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_5" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=36620132]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "5"
 script = ExtResource("6_hwcib")
 slot_id = &"5"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_5" unique_id=1362946780]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20227" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_5" unique_id=1713276641]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_6" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1541712277]
 custom_minimum_size = Vector2(40, 40)
@@ -229,44 +137,12 @@ tooltip_text = "6"
 script = ExtResource("6_hwcib")
 slot_id = &"6"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_6" unique_id=597558375]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20228" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_6" unique_id=1517156954]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_7" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=779376909]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "7"
 script = ExtResource("6_hwcib")
 slot_id = &"7"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_7" unique_id=176677585]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20229" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_7" unique_id=866838206]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_8" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1544101445]
 custom_minimum_size = Vector2(40, 40)
@@ -275,44 +151,12 @@ tooltip_text = "8"
 script = ExtResource("6_hwcib")
 slot_id = &"8"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_8" unique_id=946131166]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20230" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_8" unique_id=671845557]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_9" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=416034862]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "9"
 script = ExtResource("6_hwcib")
 slot_id = &"9"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_9" unique_id=1946831772]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20231" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_9" unique_id=1198332876]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_10" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1182661580]
 custom_minimum_size = Vector2(40, 40)
@@ -321,44 +165,12 @@ tooltip_text = "10"
 script = ExtResource("6_hwcib")
 slot_id = &"10"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_10" unique_id=1469503667]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20232" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_10" unique_id=1008067916]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_11" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=42419019]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "11"
 script = ExtResource("6_hwcib")
 slot_id = &"11"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_11" unique_id=1705557910]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20233" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_11" unique_id=396619553]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_12" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1228386712]
 custom_minimum_size = Vector2(40, 40)
@@ -367,44 +179,12 @@ tooltip_text = "12"
 script = ExtResource("6_hwcib")
 slot_id = &"12"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_12" unique_id=1234542140]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20234" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_12" unique_id=1728084989]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_13" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=198092699]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "13"
 script = ExtResource("6_hwcib")
 slot_id = &"13"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_13" unique_id=718923977]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20235" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_13" unique_id=250980762]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Slot_14" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=1791042193]
 custom_minimum_size = Vector2(40, 40)
@@ -413,41 +193,9 @@ tooltip_text = "14"
 script = ExtResource("6_hwcib")
 slot_id = &"14"
 
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_14" unique_id=154391849]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20236" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_14" unique_id=1515830333]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Slot_15" type="Panel" parent="Layout/ContentSlot/LootGrid" unique_id=754639982]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 tooltip_text = "15"
 script = ExtResource("6_hwcib")
 slot_id = &"15"
-
-[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_15" unique_id=998393334]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="@TextureRect@20237" type="TextureRect" parent="Layout/ContentSlot/LootGrid/Slot_15" unique_id=1500262117]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5

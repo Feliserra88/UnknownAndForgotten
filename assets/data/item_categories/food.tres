@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="ItemCategoryDef" format=3]
+[gd_resource type="Resource" script_class="ItemCategoryDef" format=3 uid="uid://diofswhwqo6si"]
 
-[ext_resource type="Script" path="res://modules/items/item_category_def.gd" id="1_cat"]
-[ext_resource type="Script" path="res://modules/items/food_item_data.gd" id="2_payload"]
+[ext_resource type="Script" uid="uid://bd1aglcekj4kb" path="res://modules/items/item_quality_tier_def.gd" id="1_2mdx5"]
+[ext_resource type="Script" uid="uid://cese2054rhlrh" path="res://modules/items/item_category_def.gd" id="1_cat"]
+[ext_resource type="Script" uid="uid://bp35fcgkk05cq" path="res://modules/items/item_state_tier_def.gd" id="2_hq6hb"]
+[ext_resource type="Script" uid="uid://cn648v3185cnu" path="res://modules/items/food_item_data.gd" id="2_payload"]
 
 [resource]
 script = ExtResource("1_cat")

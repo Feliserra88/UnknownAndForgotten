@@ -44,6 +44,16 @@ static func _matches_filter(item: ItemDef, filter: Dictionary) -> bool:
 	if filter.has("tag"):
 		if not item.tags.has(filter["tag"]):
 			return false
+	if filter.has("tags_any"):
+		var wanted: Array = filter["tags_any"]
+		if not wanted.is_empty():
+			var hit := false
+			for tid in wanted:
+				if item.tags.has(tid):
+					hit = true
+					break
+			if not hit:
+				return false
 	if filter.has("equip_slot"):
 		if item.get_equip_slot() != filter["equip_slot"]:
 			return false

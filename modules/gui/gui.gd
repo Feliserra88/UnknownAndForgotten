@@ -66,9 +66,27 @@ func create_panel(kind: StringName = &"panel", title_key: String = "") -> UfPane
 	Log.detail(_LOG, "create", "panel kind=%s" % kind)
 	return panel
 
+## Creates an inspection panel for [param archetype] using its resolved layout. Returns null when the
+## archetype has no inspection layout. Used by uf_npc_editor and in-game NPC inspection.
+func create_inspection_panel_for_archetype(
+	archetype: NpcArchetype,
+	title_key: String = "gui.inspection.title",
+) -> UfInspectionPanel:
+	if archetype == null:
+		return null
+	return create_inspection_panel(archetype.resolve_inspection_layout(), title_key)
+
 ## Creates an inspection panel built from [param layout] with the shared theme applied. Returns null
 ## when the panel asset is missing. Used by uf_npc_editor and in-game NPC inspection.
 func create_inspection_panel(layout: InspectionLayoutDef, title_key: String = "gui.inspection.title") -> UfInspectionPanel:
+	if layout != null and not layout.panel_path.is_empty():
+		var scene_panel := load_panel(layout.panel_path) as UfInspectionPanel
+		if scene_panel != null:
+			if not title_key.is_empty():
+				scene_panel.set_title_key(title_key)
+			apply_theme(scene_panel)
+			scene_panel.bind_scene_slots()
+			return scene_panel
 	var panel := create_panel(&"inspection", title_key) as UfInspectionPanel
 	if panel == null:
 		return null

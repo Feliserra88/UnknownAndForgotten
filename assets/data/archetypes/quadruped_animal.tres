@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="NpcArchetype" format=3 uid="uid://coxhed3rcnpxj"]
+
+[ext_resource type="Script" uid="uid://buy15ctorbxdb" path="res://modules/attributes/attribute_set.gd" id="1_attrs"]
+[ext_resource type="Script" uid="uid://dvk6pu1dm80f1" path="res://modules/attributes/vitals_template.gd" id="2_vitals"]
+[ext_resource type="Script" uid="uid://053ccfxqmvem" path="res://modules/appearance/body_part_map.gd" id="3_body"]
+[ext_resource type="Resource" uid="uid://dq7b55pjra7gw" path="res://assets/data/archetypes/npc_root.tres" id="4_root"]
+[ext_resource type="PackedScene" uid="uid://kft5dvql2a5y" path="res://scenes/npc/npc_base.tscn" id="5_scene"]
+[ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="6_arch"]
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="6_ypfjr"]
+[ext_resource type="Resource" uid="uid://28yjcg8fju2b" path="res://assets/visuals/parts/quadruped_inspection_layout.tres" id="7_layout"]
+
+[sub_resource type="Resource" id="Resource_attrs"]
+script = ExtResource("1_attrs")
+
+[sub_resource type="Resource" id="Resource_vitals"]
+script = ExtResource("2_vitals")
+
+[sub_resource type="Resource" id="Resource_body"]
+script = ExtResource("3_body")
+parts = Array[StringName]([&"head", &"body", &"leg_front_left", &"leg_front_right", &"leg_back_left", &"leg_back_right", &"tail"])
+
+[resource]
+script = ExtResource("6_arch")
+id = &"quadruped_animal"
+parent = ExtResource("4_root")
+display_name_key = "archetype.quadruped_animal.name"
+scene = ExtResource("5_scene")
+base_attributes = SubResource("Resource_attrs")
+base_vitals = SubResource("Resource_vitals")
+body_part_map = SubResource("Resource_body")
+inspection_layout = ExtResource("7_layout")
+tags = Array[StringName]([&"quadruped", &"animal"])
+default_factions = Array[StringName]([&"none"])

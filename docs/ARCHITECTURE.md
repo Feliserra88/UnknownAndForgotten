@@ -326,8 +326,8 @@ res://assets/world/        # Definiciones (tiles, biomas, presets, structure kit
 │   └── maps/              # Mapas baked estables (commit selectivo)
 res://local/world/maps/    # Sesión del uf_map_editor (editor_session.tscn); no en git
 res://assets/data/         # Resources de juego (.tres)
-│   ├── archetypes/        # NpcArchetype
-│   ├── factions/          # FactionDef
+│   ├── archetypes/        # NpcArchetype + catalog.tres (fuente de verdad del editor)
+│   ├── factions/          # FactionDef + catalog.tres (fuente de verdad del editor)
 │   ├── items/             # ItemDef
 │   ├── effects/           # StatusEffectDef, MaladyDef, TraitDef
 │   └── attributes/        # AttributeSet, VitalsTemplate
@@ -389,10 +389,10 @@ Mantener tabla actualizada al crear módulos:
 | World | `modules/world/` | WLD | `LOG_WORLD_LEVEL` | Tile (`TileDef`, flags, reglas por lado, modificadores), `MapHeightField`, capas `TileMapLayer`, consultas de paso/visión/cobertura |
 | World gen | `modules/world_gen/` | WGN | `LOG_WORLD_GEN_LEVEL` | `BiomeDef`, `WorldGenRequest`, generador con solver de restricciones (agua redondeada, caminos conectados); bioma `field` placeholder |
 | Camera | `modules/camera/` | CAM | `LOG_CAMERA_LEVEL` | Rig `Node2D` + `Camera2D` (pan; vista fija 0°) |
-| NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype` (cadena de datos, resolvers de facción/modificadores/equipo/inspección), `NpcInstanceData` (equipo + modificadores + `effective_attributes`), fachada `NpcModule` (inyección de facciones/modificadores/equipo, `assemble`, spawn); cadena `npc`→`humanoid`→`human` |
+| NPC | `modules/npc/` | NPC | `LOG_NPC_LEVEL` | `NpcArchetype`, `NpcArchetypeCatalog` (`catalog.tres`), `NpcInstanceData`, fachada `NpcModule` (`list_catalog_archetypes`, spawn, `assemble`) |
 | Appearance | `modules/appearance/` | APP | `LOG_APPEARANCE_LEVEL` | Fachada `AppearanceModule` (localiza/acciona el rig); `NpcAppearanceController` (`set_equipment_texture`), `BodyPartMap`, `PartVisualDef`, `InspectionLayoutDef` (layout del panel de inspección por arquetipo) |
 | Attributes | `modules/attributes/` | ATR | `LOG_ATTRIBUTES_LEVEL` | Fachada estática `AttributesModule` (ciclo de vida de stats); `AttributeSet`, `VitalsTemplate`, `NpcVitals` (Resource-only) |
-| Faction | `modules/faction/` | FAC | `LOG_FACTION_LEVEL` | Fachada `FactionModule` (Resource-only); `FactionDef` (pertenencia a grupo, `granted_modifier_ids`, relaciones ally/hostile, tags) |
+| Faction | `modules/faction/` | FAC | `LOG_FACTION_LEVEL` | `FactionDef`, `FactionCatalog` (`catalog.tres`), fachada `FactionModule` (`list_catalog_defs`, relaciones, grants) |
 | Modifier | `modules/modifier/` | MOD | `LOG_MODIFIER_LEVEL` | Fachada `ModifierModule` (Resource-only); `ModifierDef` (`kind` trait/malady/status/scaler, ops aditivas y multiplicativas por atributo, tags); `apply()` compone atributos efectivos |
 | Equipment | `modules/equipment/` | EQP | `LOG_EQUIPMENT_LEVEL` | Fachada `EquipmentModule`; `EquipmentVisualDef`, `EquipmentSlotMap`, `EquipmentState` (runtime slot→`ItemInstance`, inventario/death_loot); validación equipar y resolución de visuales (depende de `items`) |
 | Items | `modules/items/` | ITM | `LOG_ITEMS_LEVEL` | Fachada `ItemsModule`; `ItemDef`, `ItemInstance`, `ItemCategoryDef`, tiers estado/calidad, payloads por categoría (`WeaponItemData`, `FoodItemData`, …); catálogo y resolución de icono/precio |

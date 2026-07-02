@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_layout")
+panel_path = "res://ui/panels/inspection/uf_inspection_humanoid.tscn"
 slots = Array[Dictionary]([{
 "rect": Rect2(0.42, 0.04, 0.16, 0.12),
 "slot_id": &"head"

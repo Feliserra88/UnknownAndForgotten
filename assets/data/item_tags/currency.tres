@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemTagDef" format=3 uid="uid://3gevbcluw61x"]
+
+[ext_resource type="Script" uid="uid://wp0t38w64sl2" path="res://modules/items/item_tag_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"currency"
+display_name_key = "item_tag.currency.name"
+categories = Array[StringName]([&"valuable"])
+chip_color = Color(0.62, 0.52, 0.22, 1)

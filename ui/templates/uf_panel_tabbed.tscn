@@ -2,30 +2,35 @@
 
 [ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
 [ext_resource type="Script" uid="uid://g3fmg7qjqagv" path="res://modules/gui/uf_tabbed_panel.gd" id="2_tabbed"]
-[ext_resource type="PackedScene" uid="uid://bqx7uf_tab_widget" path="res://ui/widgets/uf_tab.tscn" id="3_tab"]
+[ext_resource type="PackedScene" uid="uid://s8ou6kglyi6p" path="res://ui/widgets/uf_tab.tscn" id="3_tab"]
 
-[node name="UfTabbedPanel" type="PanelContainer"]
+[node name="UfTabbedPanel" type="PanelContainer" unique_id=2005682755]
 custom_minimum_size = Vector2(280, 200)
 theme = ExtResource("1_theme")
 script = ExtResource("2_tabbed")
 
-[node name="Layout" type="VBoxContainer" parent="."]
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1226001324]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Tabs" type="TabContainer" parent="Layout"]
+[node name="Tabs" type="TabContainer" parent="Layout" unique_id=1058853974]
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 current_tab = 0
+tab_0/title = "gui.tab.placeholder.one"
+tab_1/title = "gui.tab.placeholder.two"
 
-[node name="TabOne" parent="Layout/Tabs" instance=ExtResource("3_tab")]
+[node name="TabOne" parent="Layout/Tabs" unique_id=251482484 instance=ExtResource("3_tab")]
 layout_mode = 2
-title_key = "gui.tab.placeholder.one"
+metadata/_tab_index = 0
+metadata/_tab_name = "gui.tab.placeholder.one"
 
-[node name="TabTwo" parent="Layout/Tabs" instance=ExtResource("3_tab")]
+[node name="TabTwo" parent="Layout/Tabs" unique_id=1351928402 instance=ExtResource("3_tab")]
 visible = false
 layout_mode = 2
 title_key = "gui.tab.placeholder.two"
+metadata/_tab_index = 1
+metadata/_tab_name = "gui.tab.placeholder.two"

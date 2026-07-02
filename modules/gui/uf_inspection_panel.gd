@@ -7,6 +7,15 @@ extends UfPanelIngame
 ## the uf_npc_editor. Presentational only; it relays slot signals and never touches domain modules.
 
 const _SlotScript := preload("res://modules/gui/widgets/uf_equipment_slot.gd")
+## Maps legacy uf_gui_tools slot node names to equipment slot_id when the saved scene omits slot_id.
+const _LEGACY_SLOT_NODE_MAP := {
+	&"UfEquipmentHead": &"head",
+	&"UfEquipmentLeftHand": &"arm_left",
+	&"UfEquipmentRightHand": &"arm_right",
+	&"UfEquipmentLegs": &"feet",
+	&"UfEquipmentBody": &"body",
+	&"UfEquipmentWaist": &"belt",
+}
 
 signal item_dropped(slot_id: StringName, payload: Dictionary)
 signal item_removed(slot_id: StringName)
@@ -48,6 +57,43 @@ func build_from_layout(layout: InspectionLayoutDef) -> void:
 			continue
 		_add_slot(slot_id, rect)
 
+## Indexes UfEquipmentSlot nodes from a saved panel scene and wires slot_id + signals.
+## Call after instantiating a scene from InspectionLayoutDef.panel_path.
+func bind_scene_slots() -> void:
+	_slots.clear()
+	var content := get_content_slot()
+	if content == null:
+		return
+	_bind_slots_recursive(content)
+	_request_region_layout(content)
+
+func _request_region_layout(node: Node) -> void:
+	for child in node.get_children():
+		if child is UfLayoutRegion:
+			(child as UfLayoutRegion)._layout_center_anchored_children()
+		_request_region_layout(child)
+
+func _bind_slots_recursive(node: Node) -> void:
+	for child in node.get_children():
+		if child is UfEquipmentSlot:
+			_register_slot(child as UfEquipmentSlot)
+		_bind_slots_recursive(child)
+
+func _register_slot(slot: UfEquipmentSlot) -> void:
+	var slot_id := slot.slot_id
+	if String(slot_id).is_empty():
+		slot_id = _LEGACY_SLOT_NODE_MAP.get(StringName(slot.name), &"")
+	if String(slot_id).is_empty():
+		return
+	slot.slot_id = slot_id
+	_slots[slot_id] = slot
+	if not slot.item_dropped.is_connected(_on_slot_item_dropped):
+		slot.item_dropped.connect(_on_slot_item_dropped)
+	if not slot.item_removed.is_connected(_on_slot_item_removed):
+		slot.item_removed.connect(_on_slot_item_removed)
+	if not slot.slot_activated.is_connected(_on_slot_activated):
+		slot.slot_activated.connect(_on_slot_activated)
+
 ## Sets [param item_id] with [param tex] on the slot [param slot_id], if present.
 func set_slot_item(slot_id: StringName, item_id: StringName, tex: Texture2D) -> void:
 	var slot := _slots.get(slot_id, null) as UfEquipmentSlot
@@ -68,15 +114,8 @@ func _add_slot(slot_id: StringName, rect: Rect2) -> void:
 	var slot := _SlotScript.new() as UfEquipmentSlot
 	slot.slot_id = slot_id
 	slot.name = "Slot_%s" % slot_id
-	slot.custom_minimum_size = Vector2(28, 28)
-	slot.set_anchor(SIDE_LEFT, rect.position.x)
-	slot.set_anchor(SIDE_TOP, rect.position.y)
-	slot.set_anchor(SIDE_RIGHT, rect.position.x + rect.size.x)
-	slot.set_anchor(SIDE_BOTTOM, rect.position.y + rect.size.y)
-	slot.offset_left = 0.0
-	slot.offset_top = 0.0
-	slot.offset_right = 0.0
-	slot.offset_bottom = 0.0
+	var center_norm := UfLayoutRegion.norm_rect_center_offset(rect)
+	UfLayoutRegion.apply_center_anchored_slot(slot, center_norm)
 	_region.add_child(slot)
 	_slots[slot_id] = slot
 	slot.item_dropped.connect(_on_slot_item_dropped)

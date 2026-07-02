@@ -3,10 +3,7 @@ extends Control
 ## NPC editor workspace (debug skeleton). Three columns: details, rig preview, inspection + item list.
 
 const _ITEM := preload("res://addons/uf_npc_editor/compatible_item.gd")
-const _ARCHETYPE_DIR := "res://assets/data/archetypes"
-const _DUMMY_ARCHETYPE_PATH := "res://assets/data/archetypes/archetype_dummy.tres"
-const _DUMMY_ARCHETYPE_ID := &"archetype_dummy"
-const _DEBUG_DUMMY_ONLY := true
+const _DEFAULT_ARCHETYPE_ID := &"humanoid"
 const _LOG := "NPC"
 const _STARTER_EQUIPMENT: Array = [
 	[&"head", &"equipo_humano_cabeza_dummy"],
@@ -21,6 +18,8 @@ const _PANEL_SEP := 10
 const _FIELD_SEP := 8
 const _SECTION_SEP := 14
 const _LABEL_WIDTH := 96
+const _INSPECTION_SCROLL_MIN := Vector2(200, 100)
+const _ITEMS_PANEL_MIN_H := 180
 
 var _npc: NpcModule
 var _gui: GuiModule
@@ -39,7 +38,7 @@ var _faction_option: OptionButton
 var _modifier_option: OptionButton
 var _status_label: Label
 var _details_box: VBoxContainer
-var _effective_label: Label
+var _attr_total_label: Label
 var _preview_host: Control
 var _preview_viewport: SubViewport
 var _appearance: NpcAppearanceController
@@ -90,11 +89,14 @@ func _bootstrap_data() -> void:
 	var item_count := _equipment.list_items().size()
 	_set_status("Archetypes: %d | Items: %d" % [_archetype_paths.size(), item_count])
 	if _archetype_paths.is_empty():
-		_set_status("No archetypes in %s" % _ARCHETYPE_DIR)
+		_set_status("No archetypes in catalog")
 		return
-	var idx := _archetype_paths.find(_DUMMY_ARCHETYPE_PATH)
-	if idx < 0:
-		idx = 0
+	var idx := 0
+	for i in _archetype_paths.size():
+		var archetype := load(_archetype_paths[i]) as NpcArchetype
+		if archetype != null and archetype.id == _DEFAULT_ARCHETYPE_ID:
+			idx = i
+			break
 	_archetype_option.set_block_signals(true)
 	_archetype_option.select(idx)
 	_archetype_option.set_block_signals(false)
@@ -116,8 +118,11 @@ func _apply_column_splits() -> void:
 		var sep := _cols.get_theme_constant("separation", "HSplitContainer")
 		var inner_w := maxi(total_w - _cols.split_offset - sep, 320)
 		_center_right.split_offset = clampi(int(inner_w * 0.58), 260, int(inner_w * 0.72))
-	if _right_split != null and _right_split.size.y > 280:
-		_right_split.split_offset = int(_right_split.size.y * 0.52)
+	if _right_split != null and _right_split.size.y > _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
+		var sep := _right_split.get_theme_constant("separation", "VSplitContainer")
+		var avail := _right_split.size.y - sep
+		var max_top := avail - _ITEMS_PANEL_MIN_H
+		_right_split.split_offset = clampi(int(avail * 0.42), _INSPECTION_SCROLL_MIN.y, max_top)
 
 func _sync_preview_viewport_size() -> void:
 	if _preview_host == null or _preview_viewport == null:
@@ -277,7 +282,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	_right_split = right
 
 	var inspection_scroll := ScrollContainer.new()
-	inspection_scroll.custom_minimum_size = Vector2(0, 0)
+	inspection_scroll.custom_minimum_size = _INSPECTION_SCROLL_MIN
 	inspection_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inspection_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inspection_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -291,12 +296,14 @@ func _build_right_column(parent: HSplitContainer) -> void:
 
 	var items_panel := VBoxContainer.new()
 	items_panel.add_theme_constant_override("separation", _FIELD_SEP)
+	items_panel.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, _ITEMS_PANEL_MIN_H)
+	items_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(items_panel)
-	items_panel.add_child(_section_label("Compatible items"))
+	items_panel.add_child(_section_label(tr("npc_editor.compatible_items")))
 
 	var items_scroll := ScrollContainer.new()
-	items_scroll.custom_minimum_size = Vector2(0, 0)
+	items_scroll.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, 80)
 	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	items_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -311,24 +318,18 @@ func _build_right_column(parent: HSplitContainer) -> void:
 # --- Population ---------------------------------------------------------------
 
 func _populate_archetypes() -> void:
-	_archetype_paths = _list_tres_paths(_ARCHETYPE_DIR)
-	_archetype_paths.sort()
-	var dummy_idx := _archetype_paths.find(_DUMMY_ARCHETYPE_PATH)
-	if dummy_idx > 0:
-		var dummy_path: String = _archetype_paths[dummy_idx]
-		_archetype_paths.remove_at(dummy_idx)
-		_archetype_paths.insert(0, dummy_path)
+	_archetype_paths = _npc.catalog_archetype_paths()
 	_archetype_option.clear()
 	for path in _archetype_paths:
-		_archetype_option.add_item(path.get_file().get_basename())
+		var archetype := load(path) as NpcArchetype
+		if archetype == null:
+			continue
+		var label := archetype.get_display_name()
+		_archetype_option.add_item(label if not label.is_empty() else String(archetype.id))
 
 func _populate_factions() -> void:
 	_faction_option.clear()
-	_faction_option.add_item("(none)")
-	_faction_option.set_item_metadata(0, &"")
-	for def in _faction.list_defs():
-		if _DEBUG_DUMMY_ONLY and not String(def.id).contains("dummy"):
-			continue
+	for def in _faction.list_catalog_defs():
 		var label := tr(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id)
 		_faction_option.add_item(label)
 		_faction_option.set_item_metadata(_faction_option.item_count - 1, def.id)
@@ -338,28 +339,8 @@ func _populate_modifiers() -> void:
 	_modifier_option.add_item("(add...)")
 	_modifier_option.set_item_metadata(0, &"")
 	for def in _modifier.list_defs():
-		if _DEBUG_DUMMY_ONLY and not String(def.id).contains("dummy"):
-			continue
 		_modifier_option.add_item(String(def.id))
 		_modifier_option.set_item_metadata(_modifier_option.item_count - 1, def.id)
-
-func _list_tres_paths(dir_path: String) -> Array[String]:
-	var out: Array[String] = []
-	var dir := DirAccess.open(dir_path)
-	if dir == null:
-		dir = DirAccess.open(ProjectSettings.globalize_path(dir_path))
-	if dir == null:
-		Log.warn(_LOG, "editor: cannot open dir %s" % dir_path)
-		return out
-	for file in dir.get_files():
-		if not file.ends_with(".tres"):
-			continue
-		if _DEBUG_DUMMY_ONLY and not file.contains("dummy"):
-			continue
-		out.append("%s/%s" % [dir_path, file])
-	return out
-
-# --- Archetype load ----------------------------------------------------------
 
 func _load_archetype(path: String) -> void:
 	_archetype = load(path) as NpcArchetype
@@ -382,6 +363,7 @@ func _rebuild_all() -> void:
 	_rebuild_items()
 	_rebuild_details()
 	call_deferred("_refresh_scroll_areas")
+	call_deferred("_finalize_layout")
 
 func _refresh_scroll_areas() -> void:
 	for scroll in [_details_scroll, _inspection_scroll, _items_scroll]:
@@ -394,14 +376,12 @@ func _count_compatible_items() -> int:
 	for item in _equipment.list_items():
 		if item == null:
 			continue
-		if _DEBUG_DUMMY_ONLY and not String(item.id).contains("dummy"):
-			continue
 		if item.allows_archetype(tags):
 			count += 1
 	return count
 
 func _apply_starter_loadout() -> void:
-	if _archetype == null or _archetype.id != _DUMMY_ARCHETYPE_ID:
+	if _archetype == null or _archetype.id != _DEFAULT_ARCHETYPE_ID:
 		return
 	for pair in _STARTER_EQUIPMENT:
 		var inst := _items.create_instance(pair[1])
@@ -410,7 +390,9 @@ func _apply_starter_loadout() -> void:
 func _sync_faction_picker() -> void:
 	if _faction_option == null or _instance == null:
 		return
-	var active: StringName = _instance.faction_ids[0] if not _instance.faction_ids.is_empty() else &""
+	var active: StringName = &"none"
+	if not _instance.faction_ids.is_empty():
+		active = _instance.faction_ids[0]
 	_faction_option.set_block_signals(true)
 	for i in _faction_option.item_count:
 		if _faction_option.get_item_metadata(i) == active:
@@ -456,11 +438,14 @@ func _rebuild_inspection() -> void:
 	if layout == null:
 		_inspection_holder.add_child(_body_label("No inspection layout."))
 		return
-	_inspection_panel = _gui.create_inspection_panel(layout)
+	_inspection_panel = _gui.create_inspection_panel_for_archetype(_archetype)
 	if _inspection_panel == null:
 		_inspection_holder.add_child(_body_label("Failed to build inspection panel."))
 		return
 	_inspection_panel.draggable = false
+	_inspection_panel.show_close_button = false
+	_inspection_panel.show_minimize_button = false
+	_inspection_panel.show_drag_handle = false
 	_inspection_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inspection_panel.custom_minimum_size = Vector2(240, 0)
 	_inspection_holder.add_child(_inspection_panel)
@@ -484,8 +469,6 @@ func _rebuild_items() -> void:
 	var items: Array[ItemDef] = []
 	for item in _equipment.list_items():
 		if item == null:
-			continue
-		if _DEBUG_DUMMY_ONLY and not String(item.id).contains("dummy"):
 			continue
 		if item.allows_archetype(tags):
 			items.append(item)
@@ -513,14 +496,12 @@ func _rebuild_details() -> void:
 	_details_box.add_child(_body_label("tags: %s" % ", ".join(_string_list(_archetype.resolve_tags()))))
 	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Base attributes"))
+	_attr_total_label = Label.new()
+	_attr_total_label.add_theme_color_override("font_color", Color(0.75, 0.82, 0.7))
+	_details_box.add_child(_attr_total_label)
+	_refresh_attribute_total()
 	for attr in _ATTR_NAMES:
 		_details_box.add_child(_attribute_row(attr))
-	_section_gap(_details_box)
-	_details_box.add_child(_section_label("Effective"))
-	_effective_label = Label.new()
-	_effective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_details_box.add_child(_effective_label)
-	_refresh_effective()
 	_section_gap(_details_box)
 	_details_box.add_child(_section_label("Vitals"))
 	_details_box.add_child(_body_label("health: %.0f  energy: %.0f" % [_instance.vitals.health, _instance.vitals.energy]))
@@ -573,8 +554,8 @@ func _attribute_row(attr_name: String) -> Control:
 	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(label)
 	var spin := SpinBox.new()
-	spin.min_value = 0
-	spin.max_value = 999
+	spin.min_value = AttributesModule.ATTR_MIN
+	spin.max_value = AttributesModule.ATTR_MAX
 	spin.step = 1
 	spin.custom_minimum_size = Vector2(0, 30)
 	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -583,14 +564,13 @@ func _attribute_row(attr_name: String) -> Control:
 	row.add_child(spin)
 	return row
 
-func _refresh_effective() -> void:
-	if _effective_label == null or _instance == null:
+func _refresh_attribute_total() -> void:
+	if _attr_total_label == null or _instance == null:
 		return
-	var eff := _npc.effective_attributes(_instance)
-	var lines: Array[String] = []
+	var total := 0
 	for attr in _ATTR_NAMES:
-		lines.append("%s: %d" % [attr, int(eff.get(attr))])
-	_effective_label.text = "\n".join(lines)
+		total += int(_instance.attributes.get(attr))
+	_attr_total_label.text = tr("npc_editor.attributes_total") % total
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
@@ -610,8 +590,7 @@ func _on_faction_selected(index: int) -> void:
 		return
 	var fid: StringName = _faction_option.get_item_metadata(index)
 	_instance.faction_ids.clear()
-	if not String(fid).is_empty():
-		_instance.faction_ids.append(fid)
+	_instance.faction_ids.append(fid)
 	_instance.modifier_ids = _archetype.resolve_default_modifiers()
 	_npc.assemble(_instance)
 	_rebuild_details()
@@ -647,17 +626,15 @@ func _on_item_dropped(slot_id: StringName, payload: Dictionary) -> void:
 	var icon_tex := _items.resolve_icon(inst)
 	_inspection_panel.set_slot_item(slot_id, item_id, icon_tex)
 	_appearance.set_equipment_texture(slot_id, icon_tex)
-	_refresh_effective()
 
 func _on_item_removed(slot_id: StringName) -> void:
 	_instance.equipment.unequip(slot_id)
 	if _appearance != null:
 		_appearance.clear_equipment_texture(slot_id)
-	_refresh_effective()
 
 func _on_attribute_changed(value: float, attr_name: String) -> void:
-	_instance.attributes.set(attr_name, int(value))
-	_refresh_effective()
+	_instance.attributes.set(attr_name, AttributesModule.clamp_attribute(int(value)))
+	_refresh_attribute_total()
 
 # --- UI helpers --------------------------------------------------------------
 

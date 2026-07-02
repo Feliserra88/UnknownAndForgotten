@@ -30,6 +30,10 @@ tile.dmw_floor_rotten.name,Rotten wood floor,Suelo madera podrida
 archetype.npc.name,Creature,Criatura
 archetype.humanoid.name,Humanoid,Humanoide
 archetype.human.name,Human,Humano
+archetype.quadruped_animal.name,Quadruped animal,Animal cuadrúpedo
+archetype.beast.name,Beast,Bestia
+archetype.horror.name,Horror,Horror
+archetype.winged_horror.name,Winged horror,Horror alado
 archetype.dummy.name,Dummy archetype,Arquetipo dummy
 npc.main_character.name,Wanderer,Errante
 gui.action.accept,Accept,Aceptar
@@ -47,6 +51,10 @@ gui.tab.placeholder.one,Tab One,PestaÃ±a 1
 gui.tab.placeholder.two,Tab Two,PestaÃ±a 2
 gui.placeholder.list_item,List item,Elemento de lista
 faction.dummy.name,Dummy faction,FacciÃ³n dummy
+faction.none.name,None,Ninguna
+faction.bandit.name,Bandit,Bandido
+faction.chaos.name,Chaos,Caos
+faction.undead.name,Undead,No muertos
 modifier.dummy.name,Dummy trait,Rasgo dummy
 item.equipo_humano_cabeza_dummy.name,Dummy head (human),Cabeza dummy (humano)
 item.equipo_humano_cuerpo_dummy.name,Dummy body (human),Cuerpo dummy (humano)
@@ -62,6 +70,7 @@ npc_editor.title,NPC Editor,Editor de PNJ
 npc_editor.details,Details,Detalles
 npc_editor.preview,Preview,Vista previa
 npc_editor.compatible_items,Compatible items,Objetos compatibles
+npc_editor.attributes_total,Total power: %d,Poder total: %d
 item.category.weapon,Weapon,Arma
 item.category.armor,Armor,Armadura
 item.category.food,Food,Comida
@@ -84,3 +93,80 @@ item.gold_coin.desc,Standard currency.,Moneda corriente.
 modifier.blade_basic.name,Basic blade,Hoja básica
 modifier.enchanted.name,Enchanted,Encantado
 modifier.oiled.name,Oiled,Aceitado
+item_editor.tab.art_library,Art library,Biblioteca de arte
+item_editor.tab.saved_items,Saved items,Items guardados
+item_editor.hint.art_library,PNG files from assets/visuals/equipment. Pick one and press New to create an item definition.,Archivos PNG en assets/visuals/equipment. Elige uno y pulsa New para crear una definición de item.
+item_editor.hint.saved_items,Item definitions (.tres) already saved in assets/data/items.,Definiciones de item (.tres) ya guardadas en assets/data/items.
+item_editor.row.art_source,Art reference (not saved yet),Arte de referencia (aún no guardado)
+item_editor.list.no_art,No art files for this category.,No hay archivos de arte para esta categoría.
+item_editor.list.no_items,No saved items for this category.,No hay items guardados para esta categoría.
+item_editor.action.new,New,Nuevo
+item_editor.action.new_from_art,New from art,Nuevo desde arte
+item_editor.action.clone,Clone,Clonar
+item_editor.action.edit,Edit,Editar
+item_editor.action.delete,Delete,Borrar
+item_editor.action.back_to_saved,Back to saved items,Volver a items guardados
+item_editor.status.pick_art,Select an art PNG then press New.,Selecciona un PNG de arte y pulsa New.
+item_editor.status.pick_item,Select a saved item row.,Selecciona un item guardado en la lista.
+item_editor.status.new_draft,New draft — edit properties and Save.,Borrador nuevo — edita propiedades y guarda.
+item_editor.status.cloned,Cloned to draft — change id before saving.,Clonado a borrador — cambia el id antes de guardar.
+item_editor.status.load_failed,Failed to load item.,No se pudo cargar el item.
+item_editor.status.editing,Editing %s,Editando %s
+item_editor.status.deleted,Deleted %s,Borrado %s
+item_editor.status.saved,Saved %s,Guardado %s
+item_editor.action.save,Save,Guardar
+item_editor.toolbar.category,Category,Categoría
+item_editor.status.ready,Ready,Listo
+item_editor.status.state_tiers_reset,State tiers reset,Tiers de estado restablecidos
+item_editor.status.quality_tiers_reset,Quality tiers reset,Tiers de calidad restablecidos
+item_editor.block.definition,Item definition,Definición del item
+item_editor.block.properties,Core properties,Propiedades base
+item_editor.block.tags,Tags,Etiquetas
+item_editor.block.tiers,State and quality tiers,Tiers de estado y calidad
+item_editor.block.state_tiers,State tiers,Tiers de estado
+item_editor.block.quality_tiers,Quality tiers,Tiers de calidad
+item_editor.block.weapon_payload,Weapon data,Datos de arma
+item_editor.block.armor_payload,Armor data,Datos de armadura
+item_editor.block.food_payload,Food data,Datos de comida
+item_editor.block.valuable_payload,Valuable data,Datos de valioso
+item_editor.block.browse,Browse,Explorar
+item_editor.block.actions,Actions,Acciones
+item_editor.block.preview_filters,List preview,Previsualización de lista
+item_editor.block.tag_filter,Tag filter,Filtro por etiquetas
+item_editor.field.id,id,id
+item_editor.field.display_name_key,display_name_key,display_name_key
+item_editor.field.description_key,description_key,description_key
+item_editor.field.weight,weight,peso
+item_editor.field.base_price,base_price,precio_base
+item_editor.field.max_durability,max_durability,durabilidad_máx
+item_editor.field.grid_w,grid_w,grid_w
+item_editor.field.grid_h,grid_h,grid_h
+item_editor.field.family,family,familia
+item_editor.field.preview_state,Preview state,Estado preview
+item_editor.field.preview_quality,Preview quality,Calidad preview
+item_editor.field.preview_modifier,Preview modifier,Modificador preview
+item_editor.field.weapon_family,weapon_family,familia_arma
+item_editor.field.design_type,design_type,tipo_diseño
+item_editor.field.equip_slot,equip slot,ranura equipo
+item_editor.field.hands,hands,manos
+item_editor.field.attribute_modifier_id,attribute_modifier_id,modificador_atributo
+item_editor.field.nutrition,nutrition,nutrición
+item_editor.field.spoilage_hours,spoilage_hours,horas_caducidad
+item_editor.field.stackable,stackable,apilable
+item_editor.field.merchant_category,merchant_category,categoría_mercader
+item_editor.action.reset_state_tiers,Reset default state tiers,Restablecer tiers de estado
+item_editor.action.reset_quality_tiers,Reset default quality tiers,Restablecer tiers de calidad
+item_editor.tags.palette_hint,Drag tags into the box below (or click a tag).,Arrastra etiquetas a la caja inferior (o haz clic en una).
+item_editor.tags.filter_hint,Toggle tags to filter the list (OR — any match).,Activa etiquetas para filtrar la lista (OR — cualquier coincidencia).
+item_editor.tags.drop_hint,Drop tags here or click palette tags.,Suelta etiquetas aquí o haz clic en la paleta.
+item_editor.tags.filter_active,Active filter — click to disable,Filtro activo — clic para desactivar
+item_editor.tags.filter_inactive,Inactive filter — click to enable,Filtro inactivo — clic para activar
+item_editor.tags.remove_hint,Right-click to remove,Clic derecho para quitar
+item_tag.weapon.name,Weapon,Arma
+item_tag.sword.name,Sword,Espada
+item_tag.long_sword.name,Long sword,Espada larga
+item_tag.armor.name,Armor,Armadura
+item_tag.food.name,Food,Comida
+item_tag.consumable.name,Consumable,Consumible
+item_tag.valuable.name,Valuable,Valioso
+item_tag.currency.name,Currency,Moneda

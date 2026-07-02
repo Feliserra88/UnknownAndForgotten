@@ -6,3 +6,20 @@
 [resource]
 script = ExtResource("1_layout")
 background_texture = ExtResource("2_bg")
+panel_path = "res://ui/panels/inspection/uf_inspection_beast.tscn"
+slots = Array[Dictionary]([{
+"rect": Rect2(0.42, 0.04, 0.16, 0.12),
+"slot_id": &"head"
+}, {
+"rect": Rect2(0.38, 0.28, 0.24, 0.18),
+"slot_id": &"body"
+}, {
+"rect": Rect2(0.13, 0.3, 0.14, 0.12),
+"slot_id": &"arm_left"
+}, {
+"rect": Rect2(0.73, 0.3, 0.14, 0.12),
+"slot_id": &"arm_right"
+}, {
+"rect": Rect2(0.4, 0.86, 0.2, 0.1),
+"slot_id": &"feet"
+}])

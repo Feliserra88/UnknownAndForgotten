@@ -1,20 +1,51 @@
-[gd_resource type="Resource" script_class="ItemDef" format=3]
+[gd_resource type="Resource" script_class="ItemDef" format=3 uid="uid://c3t2jviwnu7jj"]
 
-[ext_resource type="Script" path="res://modules/items/item_def.gd" id="1_item"]
-[ext_resource type="Script" path="res://modules/items/weapon_item_data.gd" id="2_weapon"]
-[ext_resource type="Script" path="res://modules/items/item_sprite_ref.gd" id="3_sprite"]
-[ext_resource type="Script" path="res://modules/items/item_state_tier_def.gd" id="4_state"]
-[ext_resource type="Script" path="res://modules/items/item_quality_tier_def.gd" id="5_quality"]
-[ext_resource type="Texture2D" path="res://assets/visuals/equipment/weapons/long_sword/type01/icon.png" id="6_icon"]
+[ext_resource type="Script" uid="uid://t2faobbcwcey" path="res://modules/items/item_def.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://inn268mkgnoa" path="res://modules/items/weapon_item_data.gd" id="2_weapon"]
+[ext_resource type="Script" uid="uid://oxeq51n7c1fd" path="res://modules/items/item_sprite_ref.gd" id="3_sprite"]
+[ext_resource type="Script" uid="uid://bp35fcgkk05cq" path="res://modules/items/item_state_tier_def.gd" id="4_state"]
+[ext_resource type="Script" uid="uid://bd1aglcekj4kb" path="res://modules/items/item_quality_tier_def.gd" id="5_quality"]
+
+[sub_resource type="Resource" id="WeaponData"]
+script = ExtResource("2_weapon")
+weapon_family = &"long_sword"
+design_type = &"type01"
+attribute_modifier_id = &"blade_basic"
+
+[sub_resource type="Resource" id="Quality_0"]
+script = ExtResource("5_quality")
+id = &"common"
+display_name_key = "item.quality.common"
+
+[sub_resource type="Resource" id="Quality_1"]
+script = ExtResource("5_quality")
+id = &"uncommon"
+display_name_key = "item.quality.uncommon"
+stat_multiplier = 1.1
+price_multiplier = 1.25
+
+[sub_resource type="Resource" id="Quality_2"]
+script = ExtResource("5_quality")
+id = &"rare"
+display_name_key = "item.quality.rare"
+stat_multiplier = 1.25
+price_multiplier = 2.0
+
+[sub_resource type="Resource" id="Quality_3"]
+script = ExtResource("5_quality")
+id = &"epic"
+display_name_key = "item.quality.epic"
+stat_multiplier = 1.5
+price_multiplier = 4.0
+
+[sub_resource type="Resource" id="SpriteRef"]
+script = ExtResource("3_sprite")
+library_path = "res://assets/visuals/equipment/weapons/long_sword/type01.png"
 
 [sub_resource type="Resource" id="State_0"]
 script = ExtResource("4_state")
 id = &"pristine"
 display_name_key = "item.state.pristine"
-sprite_index = 0
-stat_multiplier = 1.0
-price_multiplier = 1.0
-durability_multiplier = 1.0
 
 [sub_resource type="Resource" id="State_1"]
 script = ExtResource("4_state")
@@ -52,47 +83,6 @@ stat_multiplier = 0.55
 price_multiplier = 0.35
 durability_multiplier = 0.4
 
-[sub_resource type="Resource" id="Quality_0"]
-script = ExtResource("5_quality")
-id = &"common"
-display_name_key = "item.quality.common"
-stat_multiplier = 1.0
-price_multiplier = 1.0
-
-[sub_resource type="Resource" id="Quality_1"]
-script = ExtResource("5_quality")
-id = &"uncommon"
-display_name_key = "item.quality.uncommon"
-stat_multiplier = 1.1
-price_multiplier = 1.25
-
-[sub_resource type="Resource" id="Quality_2"]
-script = ExtResource("5_quality")
-id = &"rare"
-display_name_key = "item.quality.rare"
-stat_multiplier = 1.25
-price_multiplier = 2.0
-
-[sub_resource type="Resource" id="Quality_3"]
-script = ExtResource("5_quality")
-id = &"epic"
-display_name_key = "item.quality.epic"
-stat_multiplier = 1.5
-price_multiplier = 4.0
-
-[sub_resource type="Resource" id="SpriteRef"]
-script = ExtResource("3_sprite")
-library_path = "res://assets/visuals/equipment/weapons/long_sword/type01.png"
-strip_cell_size = Vector2i(64, 64)
-
-[sub_resource type="Resource" id="WeaponData"]
-script = ExtResource("2_weapon")
-weapon_family = &"long_sword"
-design_type = &"type01"
-slot = &"arm_right"
-hands = 1
-attribute_modifier_id = &"blade_basic"
-
 [resource]
 script = ExtResource("1_item")
 id = &"long_sword_type01"
@@ -100,12 +90,10 @@ display_name_key = "item.long_sword_type01.name"
 description_key = "item.long_sword_type01.desc"
 category_id = &"weapon"
 tags = Array[StringName]([&"weapon", &"sword", &"long_sword"])
-icon = ExtResource("6_icon")
 sprite_ref = SubResource("SpriteRef")
 inventory_size = Vector2i(3, 1)
 weight = 3.5
 base_price = 120.0
-max_durability = 100.0
 state_tiers = Array[ExtResource("4_state")]([SubResource("State_0"), SubResource("State_1"), SubResource("State_2"), SubResource("State_3"), SubResource("State_4")])
 quality_tiers = Array[ExtResource("5_quality")]([SubResource("Quality_0"), SubResource("Quality_1"), SubResource("Quality_2"), SubResource("Quality_3")])
 category_data = SubResource("WeaponData")

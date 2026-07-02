@@ -21,7 +21,7 @@
 | Asset | Job ID |
 |-------|--------|
 | beast flat SE | `c955bb17-24d0-4604-ad8a-006eda1109a9` |
-| quadruped flat SE | `518dcc98-1217-4361-b354-19b0420b964f` |
+| quadruped flat SE | `863a06a4-1f11-4110-88fe-c692bc13153b` (v2, elongated snout) |
 | beast portrait (old) | `1c21e6db-4248-4dff-aed2-75025128a5c8` |
 | humanoid portrait | `c05b2753-9b66-42d9-ba0f-97ae61faf0c4` |
 | horror portrait | `2e93fcb7-f080-4393-ad55-3c79e9508e77` |
