@@ -140,10 +140,17 @@ func rename_map(source_path: String, new_map_id: String) -> void:
 	if source_path.is_empty():
 		set_dock_status("Select a map to rename.")
 		return
+	if _current_map_path == source_path:
+		var world := _active_world()
+		if world != null:
+			_save_map_to_path(world, source_path)
 	var new_path := WorldModule.rename_baked_map(source_path, new_map_id)
 	if new_path.is_empty():
-		set_dock_status("Rename failed (invalid name or file already exists).")
+		set_dock_status("Rename failed (invalid name, file exists, or file locked).")
 		return
+	var fs := get_editor_interface().get_resource_filesystem()
+	if fs != null:
+		fs.scan()
 	if _current_map_path == source_path:
 		_current_map_path = new_path
 		_set_scene_editor_baked_map(new_path)

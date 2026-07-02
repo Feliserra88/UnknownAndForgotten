@@ -849,6 +849,7 @@ static func rename_baked_map(source_path: String, new_map_id: String) -> String:
 		ProjectSettings.globalize_path(dest_path),
 	)
 	if err != OK:
+		push_warning("WorldModule.rename_baked_map failed (%d): %s -> %s" % [err, source_path, dest_path])
 		return ""
 	var src_height := "%s_height.tres" % source_path.get_basename()
 	var dst_height := "%s_height.tres" % dest_path.get_basename()

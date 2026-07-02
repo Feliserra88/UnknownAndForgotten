@@ -24,6 +24,7 @@ var _map_list: ItemList
 var _map_list_panel: Control
 var _rename_line: LineEdit
 var _rename_index: int = -1
+var _rename_ignore_focus_exit: bool = false
 var _open_dialog: EditorFileDialog
 var _status: Label
 
@@ -71,6 +72,7 @@ func _build() -> void:
 
 	_rename_line = LineEdit.new()
 	_rename_line.visible = false
+	_rename_line.z_index = 1
 	_rename_line.focus_exited.connect(_on_rename_commit)
 	_rename_line.text_submitted.connect(_on_rename_submitted)
 	_map_list_panel.add_child(_rename_line)
@@ -229,37 +231,56 @@ func _on_map_rename_begin(index: int) -> void:
 	_rename_index = index
 	_rename_line.text = _map_paths[index].get_file().get_basename()
 	_rename_line.visible = true
+	_rename_ignore_focus_exit = true
+	_map_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	call_deferred("_position_rename_line", index)
+	call_deferred("_focus_rename_line")
+
+func _focus_rename_line() -> void:
+	if _rename_line == null or _rename_index < 0:
+		return
 	_rename_line.grab_focus()
 	_rename_line.select_all()
+	call_deferred("_enable_rename_focus_exit")
+
+func _enable_rename_focus_exit() -> void:
+	_rename_ignore_focus_exit = false
 
 func _position_rename_line(index: int) -> void:
 	if _map_list == null or _rename_line == null:
 		return
 	var rect := _map_list.get_item_rect(index, true)
-	_rename_line.position = rect.position
+	_rename_line.position = _map_list.position + rect.position
 	_rename_line.size = rect.size
 
 func _on_rename_submitted(_text: String) -> void:
+	_rename_ignore_focus_exit = false
 	_on_rename_commit()
 
 func _on_rename_commit() -> void:
 	if _rename_index < 0 or not _rename_line.visible:
 		return
+	if _rename_ignore_focus_exit:
+		return
 	var old_path := _map_paths[_rename_index]
 	var new_id := _rename_line.text.strip_edges()
-	_rename_line.visible = false
-	_rename_index = -1
+	_end_rename_ui()
 	if new_id.is_empty():
 		return
 	if WorldModule.sanitize_map_id(new_id) == old_path.get_file().get_basename():
 		return
 	_plugin_call(&"rename_map", [old_path, new_id])
 
-func _cancel_rename() -> void:
+func _end_rename_ui() -> void:
 	if _rename_line != null:
 		_rename_line.visible = false
 	_rename_index = -1
+	_rename_ignore_focus_exit = false
+	if _map_list != null:
+		_map_list.mouse_filter = Control.MOUSE_FILTER_STOP
+
+func _cancel_rename() -> void:
+	_end_rename_ui()
 
 func _on_open_file_pressed() -> void:
 	if _open_dialog == null:
