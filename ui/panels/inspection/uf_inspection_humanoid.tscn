@@ -4,42 +4,40 @@
 [ext_resource type="Texture2D" uid="uid://d3w0c1nm4f2n8" path="res://assets/visuals/parts/portraits/humanoid/preset_pixellab_01.png" id="2_60eld"]
 
 [node name="UfInspectionPanel" unique_id=1540991670 instance=ExtResource("1_tjxo4")]
+offset_right = 398.0
+offset_bottom = 520.0
 
 [node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
 texture = ExtResource("2_60eld")
 
 [node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=981317227]
-offset_left = 140.0
-offset_top = 10.0
-offset_right = 180.0
-offset_bottom = 50.0
+offset_left = 134.5
+offset_top = 46.0
+offset_right = 174.5
+offset_bottom = 86.0
 
 [node name="UfEquipmentLeftHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=311245213]
-offset_left = 44.0
-offset_top = 88.0
-offset_right = 84.0
-offset_bottom = 128.0
+offset_left = 89.79998
+offset_top = 111.0
+offset_right = 129.79999
+offset_bottom = 151.0
 
 [node name="UfEquipmentRightHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=1111039831]
-offset_left = 236.0
-offset_top = 88.0
-offset_right = 276.0
-offset_bottom = 128.0
+offset_left = 187.20001
+offset_top = 122.0
+offset_right = 227.20001
+offset_bottom = 162.0
 
 [node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=384866164]
-offset_left = 140.0
-offset_top = 253.0
-offset_right = 180.0
-offset_bottom = 293.0
+offset_left = 115.5
+offset_top = 192.0
+offset_right = 155.5
+offset_bottom = 232.0
 
 [node name="UfEquipmentBody" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=678117324]
-offset_left = 140.0
-offset_top = 91.0
-offset_right = 180.0
-offset_bottom = 131.0
+offset_left = 134.5
+offset_right = 174.5
 
 [node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=1283183109]
-offset_left = 140.0
-offset_top = 136.0
-offset_right = 180.0
-offset_bottom = 176.0
+offset_left = 134.5
+offset_right = 174.5

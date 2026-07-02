@@ -23,6 +23,12 @@ const _BTN_H := 26
 const _INSPECTION_SCROLL_MIN := Vector2(200, 80)
 const _ITEMS_PANEL_MIN_H := 160
 const _INSPECTION_CHROME_H := 28
+const _COL_LEFT := 0.30
+const _COL_CENTER := 0.40
+const _COL_RIGHT := 0.30
+const _COL_MIN_LEFT := 200
+const _COL_MIN_CENTER := 260
+const _COL_MIN_RIGHT := 200
 
 var _npc: NpcModule
 var _gui: GuiModule
@@ -127,11 +133,22 @@ func _apply_column_splits() -> void:
 	if _cols == null or _cols.size.x < 480:
 		return
 	var total_w := _cols.size.x
-	_cols.split_offset = clampi(int(total_w * 0.24), 220, int(total_w * 0.32))
+	var weight_sum := _COL_LEFT + _COL_CENTER + _COL_RIGHT
+	var left_w := clampi(
+		int(total_w * _COL_LEFT / weight_sum),
+		_COL_MIN_LEFT,
+		total_w - _COL_MIN_CENTER - _COL_MIN_RIGHT - 16,
+	)
+	_cols.split_offset = left_w
 	if _center_right != null:
-		var sep := _cols.get_theme_constant("separation", "HSplitContainer")
-		var inner_w := maxi(total_w - _cols.split_offset - sep, 320)
-		_center_right.split_offset = clampi(int(inner_w * 0.58), 260, int(inner_w * 0.72))
+		var sep_outer := _cols.get_theme_constant("separation", "HSplitContainer")
+		var inner_w := maxi(total_w - left_w - sep_outer, _COL_MIN_CENTER + _COL_MIN_RIGHT)
+		var center_w := clampi(
+			int(total_w * _COL_CENTER / weight_sum),
+			_COL_MIN_CENTER,
+			inner_w - _COL_MIN_RIGHT,
+		)
+		_center_right.split_offset = center_w
 	if _right_split != null and _right_split.size.y > _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
 		_sync_right_vertical_split()
 
@@ -493,7 +510,11 @@ func _rebuild_inspection() -> void:
 	_inspection_panel.show_minimize_button = false
 	_inspection_panel.show_drag_handle = false
 	_inspection_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_inspection_panel.custom_minimum_size = Vector2(240, 0)
+	_inspection_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	if not layout.panel_path.is_empty():
+		_inspection_panel.custom_minimum_size = Vector2(260, 360)
+	else:
+		_inspection_panel.custom_minimum_size = Vector2(240, 300)
 	_inspection_holder.add_child(_inspection_panel)
 	if not _inspection_panel.item_dropped.is_connected(_on_item_dropped):
 		_inspection_panel.item_dropped.connect(_on_item_dropped)

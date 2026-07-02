@@ -16,16 +16,15 @@ const _SECTION_SEP := 8
 const _LABEL_WIDTH := 108
 const _BTN_H := 26
 const _BTN_MIN_W := 88
-const _PREVIEW_H := 96
-const _COL_LEFT := 0.20
+const _SPRITE_PREVIEW_FALLBACK := Vector2(64, 64)
+const _COL_LEFT := 0.30
 const _COL_CENTER := 0.40
-const _COL_RIGHT := 0.20
-const _COL_MIN_LEFT := 200
-const _COL_MIN_CENTER := 280
-const _COL_MIN_RIGHT := 180
-const _CENTER_PREVIEW_RATIO := 0.30
-const _CENTER_PREVIEW_MIN := 108
-const _CENTER_LIST_MIN := 140
+const _COL_RIGHT := 0.30
+const _COL_MIN_LEFT := 160
+const _COL_MIN_CENTER := 200
+const _COL_MIN_RIGHT := 160
+const _CENTER_PREVIEW_CHROME := 52
+const _CENTER_LIST_MIN := 120
 
 var _items: ItemsModule
 var _modifier: ModifierModule
@@ -55,6 +54,7 @@ var _tag_assign_zone: _TAG_ZONE
 var _details_box: VBoxContainer
 var _list_box: VBoxContainer
 var _preview_icon: TextureRect
+var _preview_size_label: Label
 var _cols: HSplitContainer
 var _center_right: HSplitContainer
 var _center_split: VSplitContainer
@@ -147,25 +147,29 @@ func _finalize_layout() -> void:
 	_apply_center_split()
 
 func _apply_column_splits() -> void:
-	if _cols == null or _cols.size.x < 480:
+	if _cols == null or _cols.size.x < 360:
 		return
 	var total_w := _cols.size.x
-	var weight_sum := _COL_LEFT + _COL_CENTER + _COL_RIGHT
-	var left_w := clampi(int(total_w * _COL_LEFT / weight_sum), _COL_MIN_LEFT, total_w - _COL_MIN_CENTER - _COL_MIN_RIGHT - 16)
+	var sep_outer := _cols.get_theme_constant("separation", "HSplitContainer")
+	var left_w := int(round(total_w * _COL_LEFT))
+	var center_w := int(round(total_w * _COL_CENTER))
+	var right_w := maxi(int(round(total_w * _COL_RIGHT)), _COL_MIN_RIGHT)
+	left_w = clampi(left_w, _COL_MIN_LEFT, total_w - center_w - right_w - sep_outer - 4)
 	_cols.split_offset = left_w
 	if _center_right == null:
 		return
-	var sep_outer := _cols.get_theme_constant("separation", "HSplitContainer")
 	var inner_w := maxi(total_w - left_w - sep_outer, _COL_MIN_CENTER + _COL_MIN_RIGHT)
-	var center_w := clampi(int(total_w * _COL_CENTER / weight_sum), _COL_MIN_CENTER, inner_w - _COL_MIN_RIGHT)
+	center_w = clampi(center_w, _COL_MIN_CENTER, inner_w - _COL_MIN_RIGHT)
 	_center_right.split_offset = center_w
 
 func _apply_center_split() -> void:
-	if _center_split == null or _center_split.size.y < _CENTER_PREVIEW_MIN + _CENTER_LIST_MIN + 8:
+	if _center_split == null:
 		return
-	var sep := _center_split.get_theme_constant("separation", "VSplitContainer")
-	var avail := maxi(_center_split.size.y - sep, _CENTER_PREVIEW_MIN + _CENTER_LIST_MIN)
-	var top_h := clampi(int(avail * _CENTER_PREVIEW_RATIO), _CENTER_PREVIEW_MIN, avail - _CENTER_LIST_MIN)
+	var avail := _center_split.size.y
+	if avail < _CENTER_LIST_MIN + 48:
+		return
+	var sprite_h := int(_preview_icon.custom_minimum_size.y) if _preview_icon != null else int(_SPRITE_PREVIEW_FALLBACK.y)
+	var top_h := clampi(_CENTER_PREVIEW_CHROME + sprite_h, 72, avail - _CENTER_LIST_MIN)
 	_center_split.split_offset = top_h
 
 func _build_ui() -> void:
@@ -250,6 +254,7 @@ func _build_left_column(parent: HSplitContainer) -> void:
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.custom_minimum_size.x = 0
 	column.add_theme_constant_override("separation", 4)
 	parent.add_child(column)
 	var header := _section_header("item_editor.block.definition")
@@ -258,7 +263,7 @@ func _build_left_column(parent: HSplitContainer) -> void:
 	left.name = "DefinitionScroll"
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	left.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	column.add_child(left)
 	_details_box = VBoxContainer.new()
@@ -270,6 +275,7 @@ func _build_left_column(parent: HSplitContainer) -> void:
 func _build_center_column(parent: HSplitContainer) -> void:
 	var column := VBoxContainer.new()
 	column.name = "CenterColumn"
+	column.custom_minimum_size.x = 0
 	column.add_theme_constant_override("separation", _PANEL_SEP)
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -295,30 +301,35 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	column.add_child(_center_split)
 	var preview_pane := VBoxContainer.new()
 	preview_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	preview_pane.custom_minimum_size = Vector2(0, _CENTER_PREVIEW_MIN)
+	preview_pane.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_center_split.add_child(preview_pane)
-	var preview_body := _mount_section(preview_pane, "item_editor.block.draft_preview", true)
+	var preview_body := _mount_section(preview_pane, "item_editor.block.draft_preview", false)
+	var preview_row := HBoxContainer.new()
+	preview_row.add_theme_constant_override("separation", 12)
+	preview_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_row.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	preview_body.add_child(preview_row)
 	var preview_frame := PanelContainer.new()
-	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	preview_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	preview_frame.add_theme_stylebox_override("panel", _BLOCK.make_preview_style())
-	preview_body.add_child(preview_frame)
+	preview_row.add_child(preview_frame)
 	var preview_pad := MarginContainer.new()
-	preview_pad.add_theme_constant_override("margin_left", 10)
-	preview_pad.add_theme_constant_override("margin_right", 10)
-	preview_pad.add_theme_constant_override("margin_top", 8)
-	preview_pad.add_theme_constant_override("margin_bottom", 8)
-	preview_pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_pad.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_pad.add_theme_constant_override("margin_left", 6)
+	preview_pad.add_theme_constant_override("margin_right", 6)
+	preview_pad.add_theme_constant_override("margin_top", 6)
+	preview_pad.add_theme_constant_override("margin_bottom", 6)
 	preview_frame.add_child(preview_pad)
 	_preview_icon = TextureRect.new()
-	_preview_icon.custom_minimum_size = Vector2(0, _PREVIEW_H)
-	_preview_icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_preview_icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	preview_pad.add_child(_preview_icon)
+	_preview_icon.custom_minimum_size = _SPRITE_PREVIEW_FALLBACK
+	_preview_icon.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	_preview_icon.stretch_mode = TextureRect.STRETCH_KEEP
+	_preview_pad.add_child(_preview_icon)
+	_preview_size_label = Label.new()
+	_preview_size_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_preview_size_label.add_theme_color_override("font_color", Color(0.58, 0.63, 0.68))
+	_preview_size_label.text = "%d×%d" % [int(_SPRITE_PREVIEW_FALLBACK.x), int(_SPRITE_PREVIEW_FALLBACK.y)]
+	preview_row.add_child(_preview_size_label)
 	var list_pane := VBoxContainer.new()
 	list_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -1047,7 +1058,13 @@ func _section_header(title_key: String) -> VBoxContainer:
 	box.add_theme_constant_override("separation", 4)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	box.add_child(_tracked_label(title_key))
+	var lbl := Label.new()
+	_locale_labels.append({"label": lbl, "key": title_key, "is_button": false})
+	lbl.text = _T(title_key)
+	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
+	lbl.custom_minimum_size = Vector2(0, 18)
+	box.add_child(lbl)
 	box.add_child(HSeparator.new())
 	return box
 
