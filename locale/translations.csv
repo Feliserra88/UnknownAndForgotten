@@ -71,6 +71,12 @@ modifier.dummy.name,Dummy trait,Rasgo dummy
 npc_editor.title,NPC Editor,Editor de PNJ
 npc_editor.details,Details,Detalles
 npc_editor.preview,Preview,Vista previa
+npc_editor.preview.rotate_left,Rotate view left,Girar vista a la izquierda
+npc_editor.preview.rotate_right,Rotate view right,Girar vista a la derecha
+npc_editor.preview.walk,Walk,Caminar
+npc_editor.preview.walk_hint,Play walk animation in current facing,Reproducir animación de caminar en la orientación actual
+npc_editor.preview.stop,Stop,Parar
+npc_editor.preview.stop_hint,Stop walk animation,Detener animación de caminar
 npc_editor.compatible_items,Compatible items,Objetos compatibles
 npc_editor.inspection,Inspection,Inspección
 npc_editor.attributes_total,Total power: %d,Poder total: %d
@@ -89,10 +95,6 @@ npc_editor.attr.willpower,willpower,voluntad
 npc_editor.attr.vitality,vitality,vitalidad
 npc_editor.attr.perception,perception,percepción
 npc_editor.attr.charisma,charisma,carisma
-npc_editor.orient.front,front,frente
-npc_editor.orient.back,back,espalda
-npc_editor.orient.side_left,side_left,izquierda
-npc_editor.orient.side_right,side_right,derecha
 npc_editor.modifier.add,(add...),(añadir...)
 npc_editor.hint.no_archetype,No archetype loaded.,No hay arquetipo cargado.
 npc_editor.hint.no_inspection_layout,No inspection layout.,Sin layout de inspección.

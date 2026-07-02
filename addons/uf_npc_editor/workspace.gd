@@ -4,14 +4,11 @@ extends Control
 
 const _ITEM := preload("res://addons/uf_npc_editor/compatible_item.gd")
 const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
-const _LAYOUT := preload("res://addons/uf_npc_editor/editor_layout.gd")
 const _ITEM_FILTER_LIST := preload("res://addons/uf_item_editor/item_filter_list.gd")
+const _NPC_PREVIEW := preload("res://addons/uf_npc_editor/npc_preview_view.gd")
 const _DEFAULT_ARCHETYPE_ID := &"humanoid"
 const _LOG := "NPC"
 const _ATTR_NAMES: Array[String] = ["strength", "agility", "willpower", "vitality", "perception", "charisma"]
-const _ORIENTATIONS: Array[StringName] = [&"front", &"back", &"side_left", &"side_right"]
-const _PREVIEW_SCALE := 3.0
-const _PREVIEW_VIEWPORT_SIZE := Vector2i(320, 320)
 const _MARGIN := 8
 const _PANEL_SEP := 6
 const _FIELD_SEP := 6
@@ -45,10 +42,7 @@ var _modifier_option: OptionButton
 var _status_label: Label
 var _details_box: VBoxContainer
 var _attr_total_label: Label
-var _preview_host: Control
-var _preview_viewport: SubViewport
-var _preview_camera: Camera2D
-var _appearance: NpcAppearanceController
+var _preview_view: _NPC_PREVIEW
 var _inspection_holder: VBoxContainer
 var _inspection_panel: UfInspectionPanel
 var _item_filter_list: _ITEM_FILTER_LIST
@@ -60,7 +54,6 @@ var _details_scroll: ScrollContainer
 var _inspection_scroll: ScrollContainer
 var _locale_labels: Array[Dictionary] = []
 var _action_buttons: Array[Dictionary] = []
-var _orientation_buttons: Array[Dictionary] = []
 var _localizing: bool = false
 
 func setup() -> void:
@@ -89,7 +82,6 @@ func ensure_ready() -> void:
 
 func sync_layout() -> void:
 	_fit_to_parent()
-	_sync_preview_viewport_size()
 	_finalize_layout()
 
 func _fit_to_parent() -> void:
@@ -125,9 +117,7 @@ func _finalize_layout() -> void:
 	if not is_visible_in_tree():
 		return
 	call_deferred("_apply_column_splits")
-	_sync_preview_viewport_size()
 	_sync_inspection_scroll()
-	_center_preview_rig()
 
 func _apply_column_splits() -> void:
 	if _cols == null:
@@ -163,11 +153,6 @@ func _sync_inspection_scroll() -> void:
 		_INSPECTION_PANEL_MIN.x,
 		maxi(content_h, int(_INSPECTION_PANEL_MIN.y)),
 	)
-
-func _sync_preview_viewport_size() -> void:
-	if _preview_viewport == null:
-		return
-	_preview_viewport.size = _PREVIEW_VIEWPORT_SIZE
 
 func _build_ui() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -285,38 +270,11 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	center.add_child(_tracked_section_label("npc_editor.preview"))
 	center.add_child(HSeparator.new())
 
-	var preview_frame := Panel.new()
-	preview_frame.custom_minimum_size = Vector2(240, 240)
-	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	center.add_child(preview_frame)
-	_preview_host = preview_frame
-
-	var preview_svc := SubViewportContainer.new()
-	preview_svc.stretch = true
-	preview_svc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_preview_host.add_child(preview_svc)
-
-	_preview_viewport = SubViewport.new()
-	_preview_viewport.size = Vector2i(320, 320)
-	_preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	_preview_viewport.handle_input_locally = false
-	_preview_viewport.disable_3d = true
-	_preview_viewport.transparent_bg = true
-	_preview_viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
-	preview_svc.add_child(_preview_viewport)
-
-	_preview_camera = Camera2D.new()
-	_preview_camera.name = "PreviewCamera"
-	_preview_viewport.add_child(_preview_camera)
-
-	var orient := _LAYOUT.create_button_grid(2)
-	center.add_child(orient)
-	for o in _ORIENTATIONS:
-		var b := _LAYOUT.add_grid_button(orient, _BTN_H)
-		b.pressed.connect(_on_orientation_pressed.bind(o))
-		_orientation_buttons.append({"button": b, "key": "npc_editor.orient.%s" % o})
-		b.text = _T("npc_editor.orient.%s" % o)
+	_preview_view = _NPC_PREVIEW.new()
+	_preview_view.set_translate_fn(_T)
+	_preview_view.orientation_changed.connect(_on_preview_orientation_changed)
+	_preview_view.moving_changed.connect(_on_preview_moving_changed)
+	center.add_child(_preview_view)
 
 	center.add_child(_tracked_section_label("npc_editor.compatible_items"))
 	center.add_child(HSeparator.new())
@@ -439,50 +397,13 @@ func _sync_faction_picker() -> void:
 	_faction_option.set_block_signals(false)
 
 func _rebuild_preview() -> void:
-	if _preview_viewport == null:
+	if _preview_view == null or _archetype == null or _instance == null:
 		return
-	_sync_preview_viewport_size()
-	for child in _preview_viewport.get_children():
-		if child == _preview_camera:
-			continue
-		child.free()
-	_appearance = NpcAppearanceController.new()
-	_preview_viewport.add_child(_appearance)
-	_center_preview_rig()
-	_appearance.build_from(_archetype)
-	_appearance.set_orientation(_instance.orientation)
-	_reapply_equipment_visuals()
-	call_deferred("_center_preview_rig")
-	if _appearance.slot_part_ids().is_empty():
+	_preview_view.rebuild(_archetype, _instance.orientation)
+	_preview_view.sync_equipment(_instance, _equipment, _items)
+	var appearance := _preview_view.get_appearance()
+	if appearance != null and appearance.slot_part_ids().is_empty():
 		Log.warn(_LOG, "preview: no rig parts for archetype %s" % _archetype.id)
-
-func _center_preview_rig() -> void:
-	if _preview_viewport == null or _appearance == null:
-		return
-	var vp := Vector2(_PREVIEW_VIEWPORT_SIZE)
-	var anchor := Vector2(vp.x * 0.5, vp.y * 0.62)
-	_appearance.position = anchor
-	_appearance.scale = Vector2(_PREVIEW_SCALE, _PREVIEW_SCALE)
-	if _preview_camera != null:
-		_preview_camera.position = anchor
-		_preview_camera.reset_smoothing()
-
-func _reapply_equipment_visuals() -> void:
-	if _appearance == null or _instance == null:
-		return
-	for slot in _instance.equipment.occupied_slots():
-		var inst := _instance.equipment.get_instance(slot)
-		if inst == null:
-			continue
-		var visual := _equipment.resolve_visual(inst.def_id)
-		if visual != null:
-			_appearance.apply_equipment(slot, visual)
-		else:
-			var icon_tex := _items.resolve_icon(inst)
-			if icon_tex != null:
-				_appearance.set_equipment_texture(slot, icon_tex)
-			else:
-				_appearance.clear_equipment(slot)
 
 func _rebuild_inspection() -> void:
 	for child in _inspection_holder.get_children():
@@ -596,9 +517,6 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		if is_visible_in_tree():
 			call_deferred("_finalize_layout")
-		else:
-			_sync_preview_viewport_size()
-			_center_preview_rig()
 	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
 		call_deferred("sync_layout")
 		if _data_ready:
@@ -630,14 +548,15 @@ func _on_modifier_selected(index: int) -> void:
 		_instance.modifier_ids.append(mid)
 	_modifier_option.select(0)
 
-func _on_orientation_pressed(orientation: StringName) -> void:
-	if _instance == null:
-		return
-	_instance.orientation = orientation
-	if _appearance != null:
-		_appearance.set_orientation(orientation)
+func _on_preview_orientation_changed(orientation: StringName) -> void:
+	if _instance != null:
+		_instance.orientation = orientation
+
+func _on_preview_moving_changed(_moving: bool) -> void:
+	pass
 
 func _on_item_dropped(slot_id: StringName, payload: Dictionary) -> void:
+	var appearance := _preview_view.get_appearance() if _preview_view != null else null
 	var item_id := StringName(payload.get("item_id", &""))
 	var item := _equipment.load_item(item_id)
 	if item == null or item.get_equip_slot() != slot_id:
@@ -646,21 +565,25 @@ func _on_item_dropped(slot_id: StringName, payload: Dictionary) -> void:
 	if not String(from_slot).is_empty() and from_slot != slot_id:
 		_instance.equipment.unequip(from_slot)
 		_inspection_panel.clear_slot(from_slot)
-		_appearance.clear_equipment(from_slot)
+		if appearance != null:
+			appearance.clear_equipment(from_slot)
 	var inst := _items.create_instance(item_id)
 	_instance.equipment.equip(slot_id, inst)
 	var icon_tex := _items.resolve_icon(inst)
 	_inspection_panel.set_slot_item(slot_id, item_id, icon_tex)
 	var visual := _equipment.resolve_visual(item_id)
+	if appearance == null:
+		return
 	if visual != null:
-		_appearance.apply_equipment(slot_id, visual)
+		appearance.apply_equipment(slot_id, visual)
 	elif icon_tex != null:
-		_appearance.set_equipment_texture(slot_id, icon_tex)
+		appearance.set_equipment_texture(slot_id, icon_tex)
 
 func _on_item_removed(slot_id: StringName) -> void:
 	_instance.equipment.unequip(slot_id)
-	if _appearance != null:
-		_appearance.clear_equipment(slot_id)
+	var appearance := _preview_view.get_appearance() if _preview_view != null else null
+	if appearance != null:
+		appearance.clear_equipment(slot_id)
 
 func _on_attribute_changed(value: float, attr_name: String) -> void:
 	_instance.attributes.set(attr_name, AttributesModule.clamp_attribute(int(value)))
@@ -708,14 +631,13 @@ func _refresh_localized_ui() -> void:
 			_rebuild_items()
 			_rebuild_details()
 			_refresh_attribute_total()
+	if _preview_view != null:
+		_preview_view.refresh_localized_controls()
 	_localizing = false
 
 func _refresh_localized_strings() -> void:
 	_I18N.ensure_loaded()
 	for spec in _action_buttons:
-		if spec.has("button") and spec.has("key"):
-			(spec.button as Button).text = _T(spec.key)
-	for spec in _orientation_buttons:
 		if spec.has("button") and spec.has("key"):
 			(spec.button as Button).text = _T(spec.key)
 	for spec in _locale_labels:
