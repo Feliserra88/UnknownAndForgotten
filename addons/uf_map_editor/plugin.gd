@@ -2,7 +2,7 @@
 extends EditorPlugin
 ## Map editor plugin: drives the world / world_gen public API to generate, paint and save field
 ## maps. Procedural work runs on an off-tree scratch WorldModule; results are copied to the
-## dedicated map_editor_workspace scene (independent of world_root).
+## dedicated map_editor_workspace scene (independent of game_session).
 
 const _DockScript := preload("res://addons/uf_map_editor/dock.gd")
 const _HeightOverlay := preload("res://addons/uf_map_editor/height_overlay.gd")
@@ -450,7 +450,7 @@ func _active_world() -> WorldModule:
 		set_dock_status("Use New map or Open map — the plugin opens map_editor_workspace.tscn.")
 		return null
 	if not _is_workspace_root(root):
-		set_dock_status("UF Map Editor requires map_editor_workspace.tscn (not world_root).")
+		set_dock_status("UF Map Editor requires map_editor_workspace.tscn.")
 		return null
 	_map_session.bind_edited_root(root as Node2D)
 	if _map_session.ground_layer == null or not is_instance_valid(_map_session.ground_layer):

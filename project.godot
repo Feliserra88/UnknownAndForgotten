@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="U&F"
-run/main_scene="res://scenes/world/world_root.tscn"
+run/main_scene="res://scenes/game/game_session.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

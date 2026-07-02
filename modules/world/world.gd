@@ -11,7 +11,7 @@ const _WangPainter := preload("res://modules/world/_private/wang_terrain_painter
 const _PlaceholderTileSet := preload("res://modules/world/_private/placeholder_tileset.gd")
 ## Default path for editor-painted tile data (under gitignored `res://local/`).
 const EDITOR_SESSION_MAP_PATH := "res://local/world/maps/editor_session.tscn"
-## Dedicated editor viewport scene for uf_map_editor (not the runtime world_root shell).
+## Dedicated editor viewport scene for uf_map_editor (not the runtime game_session shell).
 const MAP_EDITOR_WORKSPACE_PATH := "res://scenes/world/map_editor_workspace.tscn"
 const LOCAL_MAPS_DIR := "res://local/world/maps"
 const ASSETS_MAPS_DIR := "res://assets/world/maps"

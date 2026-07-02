@@ -11,4 +11,4 @@ Use it for:
 
 Canonical game assets live under `res://assets/` and `res://scenes/`.
 
-**Map editor workflow:** use the **UF Map** dock → **New map** or **Open map** (opens `scenes/world/map_editor_workspace.tscn` automatically). Paint/generate there; **Save map** writes baked tiles to `local/world/maps/`. Copy finished maps to `assets/world/maps/` for git. Runtime play still uses `world_root.tscn`, which can load a baked map via `WorldModule.editor_baked_map` when needed.
+**Map editor workflow:** use the **UF Map** dock → **New map** or **Open map** (opens `scenes/world/map_editor_workspace.tscn` automatically). Paint/generate there; **Save map** writes baked tiles to `local/world/maps/`. Copy finished maps to `assets/world/maps/` for git. Runtime play uses `scenes/game/game_session.tscn` (F5); Bootstrap loads the first local map, or set `GAME_START_MAP_PATH` in `venv.ini`.

@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://divuol5j3s305"]
+
+[ext_resource type="Script" uid="uid://b4ie7dojwspcg" path="res://scenes/game/game_session.gd" id="1_session"]
+[ext_resource type="Script" uid="uid://cmkgpixcxucyh" path="res://modules/world/world.gd" id="2_world"]
+[ext_resource type="Script" uid="uid://dk1kpl8qdsasm" path="res://modules/camera/camera.gd" id="3_camera"]
+[ext_resource type="Script" uid="uid://dgyeua5e1e4e4" path="res://scenes/game/game_bootstrap.gd" id="4_bootstrap"]
+[ext_resource type="Script" uid="uid://cgbigraosu7si" path="res://scenes/game/game_hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://bie1t3witcmic" path="res://scenes/game/version_label.gd" id="6_version"]
+
+[node name="GameSession" type="Node" unique_id=2131217066]
+script = ExtResource("1_session")
+
+[node name="WorldHost" type="Node2D" parent="." unique_id=855886047]
+y_sort_enabled = true
+script = ExtResource("2_world")
+editor_baked_map = ""
+
+[node name="Layers" type="Node2D" parent="WorldHost" unique_id=763864407]
+y_sort_enabled = true
+
+[node name="Ground" type="TileMapLayer" parent="WorldHost/Layers" unique_id=243045247]
+y_sort_enabled = true
+y_sort_origin = 16
+
+[node name="Terrain" type="TileMapLayer" parent="WorldHost/Layers" unique_id=1242326181]
+y_sort_enabled = true
+
+[node name="Objects" type="TileMapLayer" parent="WorldHost/Layers" unique_id=597698361]
+y_sort_enabled = true
+
+[node name="Structures" type="TileMapLayer" parent="WorldHost/Layers" unique_id=178884711]
+y_sort_enabled = true
+
+[node name="Modifiers" type="TileMapLayer" parent="WorldHost/Layers" unique_id=554887951]
+z_index = 1
+
+[node name="Props" type="Node2D" parent="WorldHost/Layers" unique_id=78879547]
+y_sort_enabled = true
+
+[node name="Decor" type="Node2D" parent="WorldHost/Layers" unique_id=317350926]
+y_sort_enabled = true
+
+[node name="Actors" type="Node2D" parent="WorldHost/Layers" unique_id=858974835]
+y_sort_enabled = true
+
+[node name="CameraRig" type="Node2D" parent="WorldHost" unique_id=113872925]
+script = ExtResource("3_camera")
+
+[node name="Camera2D" type="Camera2D" parent="WorldHost/CameraRig" unique_id=1442591233]
+
+[node name="Bootstrap" type="Node" parent="." unique_id=1675082653]
+script = ExtResource("4_bootstrap")
+start_map_path = "uid://cnjguds2eyuxj"
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=432279103]
+script = ExtResource("5_hud")
+
+[node name="VersionLabel" type="Label" parent="Hud" unique_id=1647389523]
+offset_left = 8.0
+offset_top = 6.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+theme_override_font_sizes/font_size = 11
+script = ExtResource("6_version")

@@ -7,7 +7,7 @@ Leyenda: [ ] pendiente · [~] parcial · [x] hecho.
 ## 1. Módulos pendientes
 
 - [ ] **`grid`** (log `GRD`) — pathfinding `AStarGrid2D` + reglas de `z`/`max_climb` sobre la API de `WorldModule`. No leer `TileMapLayer` desde fuera del módulo `world`.
-- [ ] **`player`** (log `PLR`) — extraer input y movimiento por rejilla desde `scenes/world/main_character_controller.gd`. Jugador = NPC + grupo `"player"`.
+- [ ] **`player`** (log `PLR`) — extraer input y movimiento por rejilla desde `scenes/game/player_controller.gd`. Jugador = NPC + grupo `"player"`.
 - [ ] **`faction`** (log `FAC`) — `FactionDef` (Resource) y relaciones entre grupos; separado de arquetipo (ver `npc-entities.mdc`).
 - [ ] **`equipment`** (log `EQP`) — `ItemDef`, `EquipmentVisualDef`, `EquipmentState`.
 - [ ] **`status`** (log `STS`) — `StatusEffectDef`, `MaladyDef`, `TraitDef`.
@@ -24,10 +24,10 @@ Cada nuevo módulo: código de log de 3 letras, `LOG_<MODULO>_LEVEL` en `venv.in
 
 ## 3. Refactors pendientes (deuda de acoplamiento)
 
-- [ ] **Extraer `player`** desde `scenes/world/main_character_controller.gd` a `modules/player/`; la escena solo instancia y cablea.
-- [ ] **Adoptar `AppearanceModule` en escenas** — `main_character_controller.gd` y `world_demo.gd` aún acceden a `body.get_node("MotionPivot/Appearance")`; migrar a `AppearanceModule.set_orientation/set_moving(body, ...)`.
+- [ ] **Extraer `player`** desde `scenes/game/player_controller.gd` a `modules/player/`; la escena solo instancia y cablea.
+- [ ] **Adoptar `AppearanceModule` en escenas** — `player_controller.gd` y `game_bootstrap.gd` aún acceden a `body.get_node("MotionPivot/Appearance")`; migrar a `AppearanceModule.set_orientation/set_moving(body, ...)`.
 - [ ] **Inyectar `npc_base.tscn`** — eliminar la excepción allowlist `modules/npc/` → `res://scenes/npc/npc_base.tscn`: pasar la escena por `NpcArchetype.scene` / config en vez de `preload` en `npc.gd` y `human_factory.gd`.
-- [ ] **Reducir orquestación en escenas demo** — mover la lógica de bootstrap de `world_demo.gd` (generar + spawn + cámara) a un flujo de arranque explícito una vez existan `grid`/`player`.
+- [x] **Reducir orquestación en escenas demo** — `game_bootstrap.gd` + shell persistente `game_session.tscn` (mapa inicial, spawn, cámara, `change_map`).
 - [x] **Fuga por `class_name` a `_private/`** — `PlaceholderTileSet` ya no registra `class_name`; el editor usa `WorldModule.build_tileset()` / `build_modifier_overlay_pack()` / `assign_tile_mapping()`. Lint ampliado (reglas D/E) para prohibir `class_name` en `_private/` y detectar referencias al identificador global.
 
 ## 4. EventBus — ampliar catálogo

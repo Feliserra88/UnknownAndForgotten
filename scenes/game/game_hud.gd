@@ -1,5 +1,5 @@
 extends CanvasLayer
-## HUD for world_root: loads game panels from ui/panels/ and toggles them via Input Map.
+## In-game HUD: loads panels from ui/panels/ and toggles them via Input Map.
 
 const _LOG := "GUI"
 const _DEFAULT_INVENTORY := "res://ui/panels/uf_inventory.tscn"
@@ -19,7 +19,7 @@ func _ready() -> void:
 func _load_inventory_panel() -> void:
 	_inventory = _gui.load_panel(inventory_panel_path)
 	if _inventory == null:
-		Log.warn(_LOG, "world_hud: failed to load %s" % inventory_panel_path)
+		Log.warn(_LOG, "game_hud: failed to load %s" % inventory_panel_path)
 		return
 	add_child(_inventory)
 	_inventory.hide()

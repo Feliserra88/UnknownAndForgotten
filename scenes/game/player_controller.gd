@@ -1,6 +1,6 @@
 extends Node
-## Demo controller: grid-step movement (8-dir) with walk/idle animation per facing.
-## Parent must be an NpcBody under a WorldModule.
+## Grid-step player movement (8-dir) with walk/idle animation per facing.
+## Parent must be an NpcBody under a WorldModule (GameSession / WorldHost).
 
 const _LOG := "NPC"
 
@@ -19,11 +19,11 @@ func _ready() -> void:
 func _bootstrap() -> void:
 	_body = get_parent() as NpcBody
 	if _body == null:
-		Log.warn(_LOG, "main_character_controller: parent is not NpcBody")
+		Log.warn(_LOG, "player_controller: parent is not NpcBody")
 		return
 	_world = _find_world_module(_body)
 	if _world == null:
-		Log.warn(_LOG, "main_character_controller: no WorldModule ancestor")
+		Log.warn(_LOG, "player_controller: no WorldModule ancestor")
 		return
 	_appearance = _body.get_node_or_null("MotionPivot/Appearance") as NpcAppearanceController
 	_step_duration = Config.get_float("NPC_STEP_DURATION", _step_duration)

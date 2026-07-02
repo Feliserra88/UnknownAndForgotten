@@ -47,7 +47,10 @@ const _PATHS := [
 	"res://addons/uf_npc_editor/plugin.gd",
 	"res://addons/uf_npc_editor/workspace.gd",
 	"res://addons/uf_npc_editor/compatible_item.gd",
-	"res://scenes/world/world_hud.gd",
+	"res://scenes/game/game_session.gd",
+	"res://scenes/game/game_bootstrap.gd",
+	"res://scenes/game/game_hud.gd",
+	"res://scenes/game/player_controller.gd",
 ]
 
 func _initialize() -> void:

@@ -335,10 +335,24 @@ res://assets/data/         # Resources de juego (.tres)
 │   ├── equipment/         # EquipmentVisualDef
 │   └── injuries/          # InjuryVisualDef
 res://scenes/npc/          # npc_base.tscn, variantes por PackedScene
-res://scenes/world/        # world_root.tscn (runtime shell), map_editor_workspace.tscn, HUD glue (world_hud.gd)
+res://scenes/game/         # game_session.tscn (runtime shell), bootstrap, HUD, player_controller
+res://scenes/world/        # map_editor_workspace.tscn (solo editor de mapas)
 ```
 
-**Mapas y git:** `world_root.tscn` permanece pequeño en el repositorio (sin tiles baked). **UF Map Editor** abre `scenes/world/map_editor_workspace.tscn` como escena de trabajo propia (no depende de tener `world_root` abierto). Los mapas baked se guardan con `WorldModule.save_baked_map` en `res://local/world/maps/` (WIP, gitignored) o `res://assets/world/maps/` (compartibles). El dock lista ambos directorios, permite New/Open/Save as/Duplicate y carga cualquier `.tscn` baked.
+**Sesión de juego (`game_session.tscn`):** escena principal (`run/main_scene`). Shell persistente mientras se intercambian mapas:
+
+```
+GameSession
+├── WorldHost (WorldModule; capas vacías; mapa vía load_baked_map / world_gen)
+│   ├── Layers (Ground, Terrain, Objects, Structures, Modifiers, Props, Decor, Actors)
+│   └── CameraRig (hijo de WorldHost; camera.gd usa get_parent() → WorldModule)
+├── Bootstrap (mapa inicial, spawn único del jugador, on_map_loaded en change_map)
+└── Hud (CanvasLayer; paneles vía GuiModule)
+```
+
+Mapa inicial: export `start_map_path` en Bootstrap → `GAME_START_MAP_PATH` en `venv.ini` → primer `.tscn` en `local/world/maps/` → `assets/world/maps/` → generación procedural si no hay mapa.
+
+**Mapas y git:** `game_session.tscn` permanece pequeño (sin tiles baked). **UF Map Editor** abre `scenes/world/map_editor_workspace.tscn` como escena de trabajo propia (independiente de la sesión de juego). Los mapas baked se guardan con `WorldModule.save_baked_map` en `res://local/world/maps/` (WIP, gitignored) o `res://assets/world/maps/` (compartibles). El dock lista ambos directorios; **Save map** escribe en `local/` por defecto.
 
 ---
 
