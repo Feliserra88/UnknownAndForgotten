@@ -181,6 +181,7 @@ item_editor.preview.archetype,archetype,arquetipo
 item_editor.block.selectable_items,Selectable items,Items seleccionables
 item_editor.block.actions,Actions,Acciones
 item_editor.block.preview_filters,List display,Visualización de lista
+item_editor.block.items,Items,Items
 item_editor.block.tag_filter,Tag filter,Filtro por etiquetas
 item_editor.field.id,id,id
 item_editor.field.display_name_key,display_name_key,display_name_key

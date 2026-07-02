@@ -1,5 +1,5 @@
 @tool
-extends VBoxContainer
+extends PanelContainer
 ## Tag-filter block + scrollable item list for editor tools (NPC editor, item browser, …).
 
 signal filter_changed(active_tags: Array[StringName])
@@ -7,6 +7,8 @@ signal filter_changed(active_tags: Array[StringName])
 const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
 const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
 const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
+const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _TITLE_KEY := "item_editor.block.items"
 
 var _items: ItemsModule
 var _tag_flow: _TAG_FLOW
@@ -24,20 +26,41 @@ var _empty_message: String = ""
 func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_theme_constant_override("separation", 6)
+	add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
 
-	var filter_wrap := _BLOCK.create("item_editor.block.tag_filter")
-	add_child(filter_wrap.block)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_child(margin)
+
+	var inner := VBoxContainer.new()
+	inner.add_theme_constant_override("separation", 6)
+	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(inner)
+
+	_I18N.ensure_loaded()
+	var header := Label.new()
+	header.text = _I18N.translate_key(_TITLE_KEY)
+	header.add_theme_font_size_override("font_size", 13)
+	header.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
+	header.custom_minimum_size = Vector2(0, 18)
+	inner.add_child(header)
+
 	_tag_flow = _TAG_FLOW.new()
 	_tag_flow.filter_changed.connect(_on_tag_filter_changed)
-	filter_wrap.body.add_child(_tag_flow)
+	inner.add_child(_tag_flow)
 
 	_scroll = ScrollContainer.new()
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	add_child(_scroll)
+	inner.add_child(_scroll)
 
 	_list_box = VBoxContainer.new()
 	_list_box.add_theme_constant_override("separation", 6)
