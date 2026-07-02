@@ -7,6 +7,8 @@ const _COMPACT_H := 22
 const _COMPACT_PAD_H := 6
 const _COMPACT_PAD_V := 2
 const _COMPACT_RADIUS := 10
+const _FILTER_FONT_SIZE := 11
+const _FILTER_BORDER := 1
 
 signal activated(tag_id: StringName)
 signal remove_requested(tag_id: StringName)
@@ -90,10 +92,9 @@ func _update_label_appearance() -> void:
 		Mode.FILTER:
 			if _filter_active:
 				_label.add_theme_color_override("font_color", Color(0.94, 0.97, 1.0))
-				_label.add_theme_font_size_override("font_size", 13)
 			else:
 				_label.add_theme_color_override("font_color", Color(0.52, 0.56, 0.62))
-				_label.add_theme_font_size_override("font_size", 12)
+			_label.add_theme_font_size_override("font_size", _FILTER_FONT_SIZE)
 		Mode.ASSIGNED:
 			_label.add_theme_color_override("font_color", Color(0.9, 0.93, 0.97))
 			_label.add_theme_font_size_override("font_size", 12)
@@ -103,21 +104,20 @@ func _update_label_appearance() -> void:
 
 func _apply_style() -> void:
 	var style := StyleBoxFlat.new()
-	style.set_corner_radius_all(_COMPACT_RADIUS if _mode != Mode.FILTER else 14)
+	style.set_corner_radius_all(_COMPACT_RADIUS)
 	style.content_margin_left = 0
 	style.content_margin_right = 0
 	style.content_margin_top = 0
 	style.content_margin_bottom = 0
 	if _mode == Mode.FILTER:
+		style.set_border_width_all(_FILTER_BORDER)
 		if _filter_active:
 			style.bg_color = _base_color.lightened(0.08)
 			style.bg_color.a = 0.95
 			style.border_color = _base_color.lightened(0.42)
-			style.set_border_width_all(2)
 		else:
 			style.bg_color = Color(0.11, 0.12, 0.14, 0.35)
 			style.border_color = Color(0.34, 0.37, 0.42, 0.9)
-			style.set_border_width_all(1)
 	elif _mode == Mode.ASSIGNED:
 		style.bg_color = _base_color.darkened(0.02)
 		style.bg_color.a = 0.92

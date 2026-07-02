@@ -99,7 +99,7 @@ func get_tags() -> Array[StringName]:
 func set_tags(tags: Array[StringName], emit: bool = false) -> void:
 	var normalized := tags
 	if _items != null:
-		normalized = _items.normalize_tags(tags, _item_category_id)
+		normalized = _items.normalize_tags(tags, &"")
 	_selected_tags = normalized.duplicate()
 	if _built:
 		_refresh_palette()
@@ -138,7 +138,7 @@ func _select_tab_for_category(category_id: StringName) -> void:
 		return
 	if not String(category_id).is_empty():
 		for i in _tab_bar.tab_count:
-			if _tab_bar.get_tab_metadata(i) == category_id:
+			if _group_id_for_tab(i) == category_id:
 				_tab_bar.current_tab = i
 				_refresh_palette()
 				return
@@ -148,7 +148,10 @@ func _select_tab_for_category(category_id: StringName) -> void:
 func _current_group_id() -> StringName:
 	if _tab_bar == null or _tab_bar.tab_count == 0:
 		return &""
-	return _tab_bar.get_tab_metadata(_tab_bar.current_tab)
+	var idx := _tab_bar.current_tab
+	if idx >= 0 and idx < _tab_groups.size():
+		return _tab_groups[idx]
+	return _tab_bar.get_tab_metadata(idx)
 
 func _refresh_palette() -> void:
 	if _palette_flow == null or _items == null:
@@ -196,13 +199,20 @@ func _merge_tab_selection(tab_active: Array[StringName]) -> void:
 	for tid in tab_active:
 		if not next.has(tid):
 			next.append(tid)
-	_selected_tags = _items.normalize_tags(next, _item_category_id) if _items != null else next
+	_selected_tags = _items.normalize_tags(next, &"") if _items != null else next
+
+func _group_id_for_tab(tab_index: int) -> StringName:
+	if tab_index >= 0 and tab_index < _tab_groups.size():
+		return _tab_groups[tab_index]
+	if _tab_bar != null and tab_index >= 0 and tab_index < _tab_bar.tab_count:
+		return _tab_bar.get_tab_metadata(tab_index)
+	return &""
 
 func _update_tab_labels() -> void:
 	if _tab_bar == null:
 		return
 	for i in _tab_bar.tab_count:
-		var group_id: StringName = _tab_bar.get_tab_metadata(i)
+		var group_id := _group_id_for_tab(i)
 		var base := _tab_label(group_id)
 		var count := _count_selected_in_group(group_id)
 		_tab_bar.set_tab_title(i, "%s (%d)" % [base, count] if count > 0 else base)

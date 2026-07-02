@@ -1,0 +1,101 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3 uid="uid://fdtbmqtflfgp"]
+
+[ext_resource type="Script" uid="uid://inn268mkgnoa" path="res://modules/items/weapon_item_data.gd" id="1_cn6xo"]
+[ext_resource type="Script" uid="uid://bd1aglcekj4kb" path="res://modules/items/item_quality_tier_def.gd" id="2_ydkj2"]
+[ext_resource type="Script" uid="uid://t2faobbcwcey" path="res://modules/items/item_def.gd" id="3_mescx"]
+[ext_resource type="Script" uid="uid://oxeq51n7c1fd" path="res://modules/items/item_sprite_ref.gd" id="4_1tvcs"]
+[ext_resource type="Script" uid="uid://bp35fcgkk05cq" path="res://modules/items/item_state_tier_def.gd" id="5_yn6xh"]
+
+[sub_resource type="Resource" id="Resource_enoab"]
+script = ExtResource("1_cn6xo")
+weapon_family = &"long_sword"
+design_type = &"type01"
+attribute_modifier_id = &"blade_basic"
+
+[sub_resource type="Resource" id="Resource_cmiaw"]
+script = ExtResource("2_ydkj2")
+id = &"common"
+display_name_key = "item.quality.common"
+
+[sub_resource type="Resource" id="Resource_2bpqm"]
+script = ExtResource("2_ydkj2")
+id = &"uncommon"
+display_name_key = "item.quality.uncommon"
+stat_multiplier = 1.1
+price_multiplier = 1.25
+
+[sub_resource type="Resource" id="Resource_6vspm"]
+script = ExtResource("2_ydkj2")
+id = &"rare"
+display_name_key = "item.quality.rare"
+stat_multiplier = 1.25
+price_multiplier = 2.0
+
+[sub_resource type="Resource" id="Resource_3wru4"]
+script = ExtResource("2_ydkj2")
+id = &"epic"
+display_name_key = "item.quality.epic"
+stat_multiplier = 1.5
+price_multiplier = 4.0
+
+[sub_resource type="Resource" id="Resource_7x7mq"]
+script = ExtResource("4_1tvcs")
+library_path = "res://assets/visuals/equipment/weapons/long_sword/type01.png"
+
+[sub_resource type="Resource" id="Resource_y7g44"]
+script = ExtResource("5_yn6xh")
+id = &"pristine"
+display_name_key = "item.state.pristine"
+
+[sub_resource type="Resource" id="Resource_yypea"]
+script = ExtResource("5_yn6xh")
+id = &"good"
+display_name_key = "item.state.good"
+sprite_index = 1
+stat_multiplier = 0.95
+price_multiplier = 0.9
+durability_multiplier = 0.95
+
+[sub_resource type="Resource" id="Resource_qh3fp"]
+script = ExtResource("5_yn6xh")
+id = &"worn"
+display_name_key = "item.state.worn"
+sprite_index = 2
+stat_multiplier = 0.85
+price_multiplier = 0.75
+durability_multiplier = 0.8
+
+[sub_resource type="Resource" id="Resource_0ps3j"]
+script = ExtResource("5_yn6xh")
+id = &"rusty"
+display_name_key = "item.state.rusty"
+sprite_index = 3
+stat_multiplier = 0.7
+price_multiplier = 0.5
+durability_multiplier = 0.6
+
+[sub_resource type="Resource" id="Resource_pfoq2"]
+script = ExtResource("5_yn6xh")
+id = &"battered"
+display_name_key = "item.state.battered"
+sprite_index = 4
+stat_multiplier = 0.55
+price_multiplier = 0.35
+durability_multiplier = 0.4
+
+[resource]
+script = ExtResource("3_mescx")
+id = &"long_sword_battered"
+display_name_key = "item.long_sword_type01.name"
+description_key = "item.long_sword_type01.desc"
+category_id = &"weapon"
+tags = Array[StringName]([&"weapon", &"sword", &"long_sword"])
+sprite_ref = SubResource("Resource_7x7mq")
+inventory_size = Vector2i(3, 1)
+weight = 3.5
+base_price = 120.0
+state_tiers = Array[ExtResource("5_yn6xh")]([SubResource("Resource_y7g44"), SubResource("Resource_yypea"), SubResource("Resource_qh3fp"), SubResource("Resource_0ps3j"), SubResource("Resource_pfoq2")])
+quality_tiers = Array[ExtResource("2_ydkj2")]([SubResource("Resource_cmiaw"), SubResource("Resource_2bpqm"), SubResource("Resource_6vspm"), SubResource("Resource_3wru4")])
+default_state_index = 4
+default_quality_index = 2
+category_data = SubResource("Resource_enoab")

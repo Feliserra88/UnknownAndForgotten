@@ -9,6 +9,9 @@ const _CHIP := preload("res://addons/uf_editor_ui/tag_chip.gd")
 const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _FILTER_BTN_H := 22
 const _FLOW_SEP := 4
+const _FILTER_FONT_SIZE := 11
+const _FILTER_RADIUS := 10
+const _FILTER_BORDER := 1
 
 var _mode: int = _CHIP.Mode.FILTER
 var _items: ItemsModule
@@ -140,27 +143,24 @@ func _on_filter_button_toggled(pressed: bool, tag_id: StringName, btn: Button) -
 
 func _apply_filter_button_style(btn: Button, base_color: Color, active: bool) -> void:
 	var style := StyleBoxFlat.new()
-	style.set_corner_radius_all(10)
+	style.set_corner_radius_all(_FILTER_RADIUS)
 	style.content_margin_left = 6
 	style.content_margin_right = 6
 	style.content_margin_top = 2
 	style.content_margin_bottom = 2
+	style.set_border_width_all(_FILTER_BORDER)
 	if active:
 		style.bg_color = base_color.lightened(0.08)
 		style.bg_color.a = 0.95
 		style.border_color = base_color.lightened(0.42)
-		style.set_border_width_all(2)
 		btn.add_theme_color_override("font_color", Color(0.94, 0.97, 1.0))
-		btn.add_theme_font_size_override("font_size", 12)
 	else:
 		style.bg_color = Color(0.11, 0.12, 0.14, 0.35)
 		style.border_color = Color(0.34, 0.37, 0.42, 0.9)
-		style.set_border_width_all(1)
 		btn.add_theme_color_override("font_color", Color(0.52, 0.56, 0.62))
-		btn.add_theme_font_size_override("font_size", 11)
+	btn.add_theme_font_size_override("font_size", _FILTER_FONT_SIZE)
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("pressed", style)
-	btn.add_theme_stylebox_override("hover", style)
 	var hover_style := style.duplicate() as StyleBoxFlat
 	if active:
 		hover_style.bg_color = base_color.lightened(0.14)
