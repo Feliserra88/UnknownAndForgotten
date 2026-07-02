@@ -27,16 +27,30 @@ Godot import: **Nearest** filter, no lossy compression.
 
 **Asymmetric overlays** (wounds, tattoos, one-sided armor) cannot use flip — see §Asymmetry below.
 
-## Offsets
+## Offsets and display scale
 
-| Part | offset | z_index |
-|------|--------|---------|
-| body | (0, 0) | 0 |
-| head | (0, -22) | 2 |
-| arm_left / arm_right | (±13, -2) | 1 |
-| leg_left / leg_right | (±6, 22) | 0 |
+| Part | offset | z_index | `display_size` |
+|------|--------|---------|----------------|
+| body | (0, 0) | 0 | 24×28 |
+| head | (0, -22) | 2 | 18×18 |
+| arm_left / arm_right | (±13, -2) | 1 | 8×20 |
+| leg_left / leg_right | (±6, 22) | 0 | 9×20 |
 
-Tune in `uf_npc_editor` after swapping art.
+`PartVisualDef.display_size` + `resolve_base_scale()` map PixelLab canvas (~32–68 px) to rig size. Tune offsets in `uf_npc_editor` after swapping art.
+
+## PixelLab — no native cutout API
+
+PixelLab has **no modular body-part rig endpoint**. Each `create_8_direction_object` call is independent (pose/animation not shared). See `.cursor/rules/pixellab-character.mdc` for full rules.
+
+### Workflows (preference order)
+
+| ID | Steps | When |
+|----|-------|------|
+| **A** | Crop PNG per slot → `reference_image_base64` → idle → walk | Best pose lock for cutout |
+| **B** | `create_character` + walk → slice parts manually | Best full-body coherence |
+| **C** | 6× `create_8_direction_object` + `style_image_base64` from body | Cheapest; fragile assembly (v1) |
+
+Always **pilot one part** (e.g. `arm_left`, `size=32`) before batch jobs.
 
 ## Pipeline tools
 
@@ -50,26 +64,53 @@ Tune in `uf_npc_editor` after swapping art.
 godot --headless --path . --script res://tools/build_human_cutout_part_defs.gd -- naked
 ```
 
-## PixelLab pipeline
+## PixelLab pipeline (workflow C)
 
-1. `create_8_direction_object` (size=64, view=`low top-down`) per part → idle rotations
-2. Import idle → `{view}_idle.png` (south/north/east only)
-3. `animate_object` mode=v3, `directions=[south,north,east]`, `frame_count=8`, seamless walk
-4. Import walk strips → `{view}_walk.png`
-5. Rebuild defs; tune offsets in editor
+1. **Pilot:** one part → `get_object` → cribar before batch.
+2. `create_8_direction_object` per part (view=`low top-down`) → idle rotations.
+3. Import idle → `{view}_idle.png` (south/north/east only).
+4. **Only after idle approved:** `animate_object` mode=v3, `directions=[south,north,east]`, `frame_count=8`.
+5. Import walk strips → `{view}_walk.png`.
+6. Rebuild defs; tune offsets in editor.
 
-### Prompt base
+### Canvas size per part
 
-> fantasy RPG male humanoid, low top-down isometric pixel art, lineless, basic shading, medium detail, muted earth tones, transparent background, single isolated body part only
+| Part | PixelLab `size` | Why |
+|------|-----------------|-----|
+| body | 48–64 | Torso fills canvas reasonably |
+| head | 32–48 | Smaller than body |
+| arm_* / leg_* | **32** | Avoids boots/gloves filling a 64×64 canvas |
 
-| Part | Extra prompt |
-|------|----------------|
-| body | torso with simple leather loincloth, bare chest, no head/arms/legs |
-| head | male head, short dark hair, no body |
-| arm_left / arm_right | isolated bare skin arm and hand, NO gloves NO bracers NO sleeves |
-| leg_left / leg_right | isolated bare skin leg and bare foot, NO boots NO armor NO wraps |
+With `reference_image_base64` or `style_image_base64`, output size follows the reference image.
+
+### Prompt structure
+
+`[common block] + [part] + [pose] + [negatives]`
+
+**Common block** (same on all 6 parts):
+
+> fantasy RPG male humanoid, low top-down isometric pixel art, lineless, basic shading, medium detail, muted earth tones, transparent background, single isolated body part only, neutral idle standing pose facing camera
+
+| Part | Extra |
+|------|-------|
+| body | bare chest, simple leather loincloth only, no head no arms no legs |
+| head | male head short dark hair only, no neck no torso |
+| arm_* | bare skin upper arm forearm and open hand, limb only |
+| leg_* | bare skin thigh calf and bare foot, limb only |
+
+**Negatives** (always append):
+
+> NO armor NO boots NO gloves NO bracers NO greaves NO sleeves NO clothing except loincloth on torso only
 
 **PixelLab → Godot:** south=`front`, north=`back`, east=`side_right`, west=flip east.
+
+### Pre-flight checklist
+
+- [ ] One part per API call
+- [ ] Canvas matches part (32 for limbs)
+- [ ] Idle cribado before `animate_object`
+- [ ] Walk only 3 directions; `frame_count=4` for tests, `8` for production
+- [ ] Update `curation_status.json` before promoting to `naked/`
 
 ## PixelLab jobs (naked v1, 8-frame walk)
 

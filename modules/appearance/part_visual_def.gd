@@ -16,6 +16,8 @@ extends Resource
 @export_group("Placeholder")
 @export var placeholder_color: Color = Color(0.8, 0.7, 0.6)
 @export var size: Vector2i = Vector2i(16, 16)
+## When set (both axes > 0), base layer scales so one frame matches this size (PixelLab 64–68px → rig space).
+@export var display_size: Vector2i = Vector2i.ZERO
 ## Offset in pixels from the NPC root where this part's slot is anchored.
 @export var offset: Vector2 = Vector2.ZERO
 @export var z_index: int = 0
@@ -57,6 +59,27 @@ func build_sprite_frames() -> SpriteFrames:
 			for i in walk_hframes:
 				sf.add_frame(walk_anim, _atlas(walk_tex, i, fw, fh), 1.0)
 	return sf
+
+## Size of one idle/walk frame in texture pixels (for scaling full-canvas PixelLab parts).
+func reference_frame_size() -> Vector2:
+	for view in CutoutOrientation.all_views():
+		var idle_tex: Texture2D = textures.get(view)
+		if idle_tex != null:
+			return idle_tex.get_size()
+	for view in walk_textures.values():
+		var walk_tex: Texture2D = view
+		if walk_tex != null and walk_hframes > 0:
+			return Vector2(walk_tex.get_width() / float(walk_hframes), walk_tex.get_height())
+	return Vector2(size)
+
+## Scale factor mapping [member reference_frame_size] to [member display_size].
+func resolve_base_scale() -> Vector2:
+	if display_size.x <= 0 or display_size.y <= 0:
+		return Vector2.ONE
+	var frame := reference_frame_size()
+	if frame.x <= 0.0 or frame.y <= 0.0:
+		return Vector2.ONE
+	return Vector2(display_size) / frame
 
 func _atlas(texture: Texture2D, column: int, fw: int, fh: int) -> AtlasTexture:
 	var atlas := AtlasTexture.new()

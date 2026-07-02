@@ -275,6 +275,8 @@ func _build_slot(part: StringName, visual: PartVisualDef) -> void:
 		sprite.texture = _placeholder_texture(visual)
 		base = sprite
 	slot.add_child(base)
+	if visual != null:
+		_apply_part_display_scale(base, visual)
 	var equipment := Sprite2D.new()
 	equipment.name = "EquipmentLayer"
 	equipment.visible = false
@@ -295,6 +297,9 @@ func _build_slot(part: StringName, visual: PartVisualDef) -> void:
 func _clear_children() -> void:
 	for child in get_children():
 		child.queue_free()
+
+func _apply_part_display_scale(layer: Node2D, visual: PartVisualDef) -> void:
+	layer.scale = visual.resolve_base_scale()
 
 func _placeholder_texture(visual: PartVisualDef) -> ImageTexture:
 	var color := visual.placeholder_color if visual != null else Color.GRAY

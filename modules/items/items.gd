@@ -174,10 +174,13 @@ func resolve_icon(instance: ItemInstance, def: ItemDef = null) -> Texture2D:
 	var tier := def.get_state_tier(instance.state_index)
 	if tier != null and tier.icon_override != null:
 		return tier.icon_override
-	if def.sprite_ref != null and def.sprite_ref.is_valid() and tier != null:
-		var tex := load(def.sprite_ref.library_path) as Texture2D
-		if tex != null:
-			return _slice_strip(tex, tier.sprite_index, def.sprite_ref.strip_cell_size)
+	if def.sprite_ref != null and def.sprite_ref.is_valid():
+		return resolve_strip_icon(
+			def.sprite_ref.library_path,
+			instance.state_index,
+			def.state_tiers,
+			_effective_strip_cell_size(def.sprite_ref),
+		)
 	if def.icon != null:
 		return def.icon
 	return null
@@ -226,6 +229,8 @@ func resolve_list_row(
 		"display_name_key": def.display_name_key,
 		"category_id": def.category_id,
 		"icon": icon_tex,
+		"sprite_library_path": def.sprite_ref.library_path if def.sprite_ref != null and def.sprite_ref.is_valid() else "",
+		"strip_state_index": state_idx,
 		"weight": def.weight,
 		"price": resolve_price(preview_inst, def),
 		"durability": instance.durability if instance != null else def.max_durability,
@@ -405,10 +410,29 @@ func _has_modifier_id(defs: Array[ModifierDef], id: StringName) -> bool:
 	return false
 
 func _slice_strip(tex: Texture2D, column: int, cell_size: Vector2i) -> AtlasTexture:
+	var cell := cell_size
+	if cell.x <= 0 or cell.y <= 0:
+		var h := int(tex.get_height())
+		cell = Vector2i(maxi(h, 1), maxi(h, 1))
 	var atlas := AtlasTexture.new()
 	atlas.atlas = tex
-	atlas.region = Rect2(column * cell_size.x, 0, cell_size.x, cell_size.y)
+	var columns := maxi(1, int(tex.get_width() / maxi(cell.x, 1)))
+	column = clampi(column, 0, columns - 1)
+	atlas.region = Rect2(column * cell.x, 0, cell.x, cell.y)
 	return atlas
+
+func _effective_strip_cell_size(sprite_ref: ItemSpriteRef) -> Vector2i:
+	if sprite_ref == null:
+		return Vector2i(64, 64)
+	if sprite_ref.strip_cell_size.x > 0 and sprite_ref.strip_cell_size.y > 0:
+		return sprite_ref.strip_cell_size
+	if sprite_ref.is_valid():
+		var tex := load(sprite_ref.library_path) as Texture2D
+		if tex != null:
+			var h := int(tex.get_height())
+			if h > 0:
+				return Vector2i(h, h)
+	return Vector2i(64, 64)
 
 func _make_state_tier(
 	id: StringName,

@@ -568,7 +568,7 @@ Al curar: `remove_injury(part_id)` restaura base y re-aplica equipo visible.
 
 | Resource | Campos clave |
 |----------|--------------|
-| `PartVisualDef` | `part_id`, `textures` (idle), `walk_textures` + `walk_hframes`/`walk_fps`, `offset`, `z_index` |
+| `PartVisualDef` | `part_id`, `textures` (idle), `walk_textures` + `walk_hframes`/`walk_fps`, `offset`, `z_index`, `display_size` (escala PixelLab → rig) |
 | `EquipmentVisualDef` | `slot`, `base_coverage`, texturas por orientación, `z_offset` |
 | `InjuryVisualDef` | `part_id`, `mode` (`replace`/`overlay`/`hide_part`), visual por orientación |
 | `BodyPartMap` | Lista de `part_id` válidos por arquetipo (humano vs lobo) |
@@ -577,7 +577,7 @@ Ubicación: `res://assets/visuals/parts/`, `res://assets/visuals/equipment/`, `r
 
 **Mapeo runtime 8 vías → cutout 4 vistas** (`CutoutOrientation`): diagonales reutilizan `front`/`back`; `side_left` puede reflejar texturas `side_right` con `flip_h`. Ver `modules/appearance/cutout_orientation.gd`.
 
-**Arte PixelLab (personajes):** regla `pixellab-character.mdc`; pipeline en `assets/visuals/parts/human/male/README.md`.
+**Arte PixelLab (personajes):** regla `pixellab-character.mdc`; pipeline en `assets/visuals/parts/human/male/README.md`. PixelLab **no** expone cutout rig modular: preferir `reference_image_base64` (recorte por slot), o `create_character` + troceo manual; workflow por objetos independientes solo con piloto + cribado (`_pixellab_inbox/`, `curation_status.json`). Canvas por parte: body 48–64 px, extremidades 32 px; `display_size` en `PartVisualDef` alinea lienzo generado al rig.
 
 #### 5.5.5 Panel de inspección (`InspectionLayoutDef` + `UfInspectionPanel`)
 

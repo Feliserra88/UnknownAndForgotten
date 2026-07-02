@@ -7,24 +7,77 @@ alwaysApply: false
 # PixelLab — personajes cutout (U&F)
 
 Documentación MCP: https://api.pixellab.ai/mcp/docs  
+API v2: https://api.pixellab.ai/v2/llms.txt  
 Diseño rig: `docs/GAME_DESIGN.md` §5.4–5.5, `assets/visuals/parts/human/male/README.md`.
+
+## Limitación importante
+
+**PixelLab no tiene API de cutout rig modular.** No existe un endpoint que genere slots anatómicos con esqueleto/pose compartida.
+
+| Herramienta | Cutout modular | Notas |
+|-------------|----------------|-------|
+| `create_8_direction_object` | Parcial | Parte aislada, 8 rotaciones; sin pose compartida entre partes |
+| `style_image_base64` | Estilo | Coherencia visual; **no** garantiza misma pose |
+| `reference_image_base64` | Mejor | Rota **esa imagen exacta** a 8 direcciones — usar recortes del `_dummy` o de un personaje completo |
+| `animate_object` (v3) | Parcial | Walk por parte; cada extremidad anima desde su propio idle |
+| `create_character` + `animate_character` | Cuerpo entero | Personaje coherente; hay que **trocear** manualmente para cutout |
+| `estimate_skeleton` / `animate_with_skeleton` | Solo REST v2 | Esqueleto sobre sprite completo, no capas modulares |
+
+## Workflows (orden de preferencia)
+
+### A — Referencia recortada (recomendado para cutout)
+
+1. Pintar o recortar PNG por slot desde `_dummy/` o arte aprobado.
+2. `create_8_direction_object(reference_image_base64=…)` — pose bloqueada.
+3. Cribar idle → `animate_object` v3 solo si idle OK.
+4. Import → offsets en `uf_npc_editor`.
+
+### B — Personaje completo → troceo
+
+1. `create_character` (mode=`v3`, `size=48`, `view=low top-down`).
+2. `animate_character` walk.
+3. Recortar body/head/arms/legs por frame (Aseprite / script).
+4. Opcional: `reference_image_base64` por recorte para re-exportar rotaciones.
+
+### C — Objetos independientes (más barato, más frágil)
+
+1. Generar **body** sur primero; cribar.
+2. Resto con `style_image_base64` = body sur idle.
+3. **Piloto** (1 parte pequeña) antes de lote completo.
+4. Si montaje incoherente → pasar a workflow A o B.
 
 ## Constantes
 
 | Clave | Valor | Uso |
 |-------|-------|-----|
 | **View** | `low top-down` | Coherente con mapa isométrico 2,5D |
-| **Canvas** | `64` | `create_8_direction_object(size=64)` |
-| **Outline** | `lineless` | Sin contorno duro |
+| **Outline** | `lineless` | Sin contorno duro (`create_character`) |
 | **Vistas juego** | 4 | `front`, `back`, `side_right`, `side_left` (flip de east) |
+| **Walk** | 8 frames @ 8 FPS | `frame_count=8` en v3; import descarta frame ref |
 
-## Herramientas
+## Canvas por parte (`create_8_direction_object`)
+
+Rango API: **32–256** px (default 64). Con `reference_image_base64` o `style_image_base64` el tamaño lo marca la imagen.
+
+| Parte | `display_size` rig | Canvas PixelLab |
+|-------|-------------------|-----------------|
+| body | 24×28 | **48–64** |
+| head | 18×18 | **32–48** |
+| arm_* | 8×20 | **32** |
+| leg_* | 9×20 | **32** |
+
+En 64×64 las extremidades tienden a llenar el lienzo → equipo no deseado (botas, guanteletes). `PartVisualDef.display_size` + `resolve_base_scale()` corrige escala en Godot, **no** pose ni proporciones del sprite.
+
+## Herramientas MCP
 
 | Necesidad | PixelLab | Destino Godot |
 |-----------|----------|---------------|
-| Idle 4-dir por parte anatómica | `create_8_direction_object` | `naked/<part>/{view}_idle.png` |
-| Walk 4-dir por parte | `animate_object` (`mode=v3`, `directions=[south,north,east,west]`) | `{view}_walk.png` (strip) |
-| Coherencia entre partes | `style_image_base64` del torso sur | Tras generar `body` |
+| Idle 4-dir por parte | `create_8_direction_object` | `naked/<part>/{view}_idle.png` |
+| Walk 4-dir por parte | `animate_object` (`mode=v3`, `directions=[south,north,east]`) | `{view}_walk.png` (strip) |
+| Coherencia visual | `style_image_base64` del torso sur | Tras body aprobado |
+| Pose bloqueada | `reference_image_base64` | Recorte del dummy o troceo |
+
+**Walk:** solo 3 direcciones (`south`, `north`, `east`); `west` = flip de `east`. No animar hasta cribar idle.
 
 ## Mapeo PixelLab → Godot
 
@@ -33,22 +86,53 @@ Diseño rig: `docs/GAME_DESIGN.md` §5.4–5.5, `assets/visuals/parts/human/male
 | south | `front` |
 | north | `back` |
 | east | `side_right` |
-| west | (omitir; usar flip de `side_right` para `side_left`) |
+| west | (omitir; flip de `side_right` → `side_left`) |
 
-## Prompt base (fragmento común)
+## Prompts
 
-> fantasy RPG male humanoid, low top-down isometric pixel art, lineless, basic shading, medium detail, muted earth tones, transparent background, single isolated body part only
+Estructura: **`[bloque común] + [parte única] + [pose] + [negativos]`**
 
-Añadir por parte: torso+taparrabos, cabeza, brazo, pierna (ver README).
+### Bloque común (idéntico en las 6 partes)
 
-## Import
+> fantasy RPG male humanoid, low top-down isometric pixel art, lineless, basic shading, medium detail, muted earth tones, transparent background, single isolated body part only, neutral idle standing pose facing camera
 
-1. `get_object(object_id)` cuando `status=completed`.
-2. Manifest JSON → `tools/import_pixellab_cutout_object.gd`.
-3. `tools/build_human_cutout_part_defs.gd -- naked` → actualizar `.tres`.
-4. Ajustar offsets en `uf_npc_editor`.
+### Por parte
+
+| Parte | Añadir |
+|-------|--------|
+| body | bare chest, simple leather loincloth only, no head no arms no legs |
+| head | male head short dark hair only, no neck no torso |
+| arm_* | bare skin upper arm forearm and open hand, limb only |
+| leg_* | bare skin thigh calf and bare foot, limb only |
+
+### Negativos (siempre al final)
+
+> NO armor NO boots NO gloves NO bracers NO greaves NO sleeves NO clothing except loincloth on torso only
+
+## Checklist antes de gastar créditos
+
+- [ ] Una parte por llamada (nunca “full body with arms”).
+- [ ] Canvas acorde (32 limbs, 48–64 body).
+- [ ] Negativos de equipo explícitos.
+- [ ] **Piloto:** 1 parte → `get_object` → cribar antes del lote.
+- [ ] Idle cribado **antes** de `animate_object`.
+- [ ] Walk solo `[south, north, east]`; `frame_count=4` en prueba, `8` en producción.
+- [ ] Cribado manual → `_pixellab_inbox/` → `curation_status.json` → `naked/` solo aprobados.
+
+## Cribado e import
+
+1. Lote crudo en `_pixellab_inbox/vN/`.
+2. `get_object(object_id)` cuando `status=completed` (o `review` → `select_object_frames`).
+3. Manifest JSON → `tools/import_pixellab_cutout.gd`.
+4. `tools/build_human_cutout_part_defs.gd -- naked` → actualizar `.tres`.
+5. Ajustar offsets en `uf_npc_editor`.
+
+Estados cribado: `approved` → `naked/`; `derived` → `derived/`; `reject` → regenerar; `missing` → reencolar.
 
 ## Prohibido
 
-- Mezclar partes en una sola llamada (“full body with arms”) si el objetivo es cutout modular.
+- Mezclar partes en una sola llamada si el objetivo es cutout modular.
+- `animate_object` sobre idle no cribado.
+- Regenerar las 6 partes a la vez sin piloto.
 - Usar `create_isometric_tile` para personajes.
+- Promover a `naked/` sin revisar (PixelLab añade equipo aunque el prompt pida piel desnuda).

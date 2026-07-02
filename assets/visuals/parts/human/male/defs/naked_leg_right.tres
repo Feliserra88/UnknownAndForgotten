@@ -13,4 +13,6 @@ textures = {
 &"front": ExtResource("2_y1jrs"),
 &"side_right": ExtResource("4_j042q")
 }
+size = Vector2i(9, 20)
+display_size = Vector2i(9, 20)
 offset = Vector2(6, 22)

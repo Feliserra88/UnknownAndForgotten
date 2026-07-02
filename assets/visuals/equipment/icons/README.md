@@ -14,7 +14,8 @@ UI placeholders for equipment **slot types** (not specific loot items).
 | helmet | `generic/helmet.png` |
 | bow | `generic/bow.png` |
 | spell | `generic/spell.png` |
-| scroll | `generic/scroll.png` |
+| scroll | `generic/scroll.png` | **Equipment slot** type (scroll slot) — not food |
+| bread_missing | `generic/bread_missing.png` | Missing-art placeholder for food (loud red) |
 | gold_coin | `generic/gold_coin.png` |
 | ring | `generic/ring.png` |
 | potion | `generic/potion.png` (pending) |

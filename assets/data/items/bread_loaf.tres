@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://t2faobbcwcey" path="res://modules/items/item_def.gd" id="1_item"]
 [ext_resource type="Script" uid="uid://cn648v3185cnu" path="res://modules/items/food_item_data.gd" id="2_food"]
 [ext_resource type="Script" uid="uid://bd1aglcekj4kb" path="res://modules/items/item_quality_tier_def.gd" id="3_epmgj"]
-[ext_resource type="Texture2D" uid="uid://dtt3decq7fiku" path="res://assets/visuals/equipment/icons/generic/scroll.png" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assets/visuals/equipment/icons/generic/bread_missing.png" id="3_icon"]
 [ext_resource type="Script" uid="uid://bp35fcgkk05cq" path="res://modules/items/item_state_tier_def.gd" id="5_v07mq"]
 
 [sub_resource type="Resource" id="FoodData"]

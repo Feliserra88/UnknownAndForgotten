@@ -9,12 +9,12 @@ const _WALK_HFRAMES := 8
 const _WALK_FPS := 8.0
 
 const _PART_OFFSETS := {
-	&"body": {"offset": Vector2.ZERO, "z_index": 0},
-	&"head": {"offset": Vector2(0, -22), "z_index": 2},
-	&"arm_left": {"offset": Vector2(-13, -2), "z_index": 1},
-	&"arm_right": {"offset": Vector2(13, -2), "z_index": 1},
-	&"leg_left": {"offset": Vector2(-6, 22), "z_index": 0},
-	&"leg_right": {"offset": Vector2(6, 22), "z_index": 0},
+	&"body": {"offset": Vector2.ZERO, "z_index": 0, "display_size": Vector2i(24, 28)},
+	&"head": {"offset": Vector2(0, -22), "z_index": 2, "display_size": Vector2i(18, 18)},
+	&"arm_left": {"offset": Vector2(-13, -2), "z_index": 1, "display_size": Vector2i(8, 20)},
+	&"arm_right": {"offset": Vector2(13, -2), "z_index": 1, "display_size": Vector2i(8, 20)},
+	&"leg_left": {"offset": Vector2(-6, 22), "z_index": 0, "display_size": Vector2i(9, 20)},
+	&"leg_right": {"offset": Vector2(6, 22), "z_index": 0, "display_size": Vector2i(9, 20)},
 }
 
 const _VIEWS := [&"front", &"back", &"side_right"]
@@ -39,6 +39,8 @@ func _build_def(part_id: StringName, art_root: String, def_prefix: String) -> vo
 	var meta: Dictionary = _PART_OFFSETS[part_id]
 	def.offset = meta["offset"]
 	def.z_index = meta["z_index"]
+	def.display_size = meta.get("display_size", Vector2i.ZERO)
+	def.size = meta.get("display_size", Vector2i(16, 16))
 	def.walk_hframes = _WALK_HFRAMES
 	def.walk_fps = _WALK_FPS
 	var part_dir := "%s/%s" % [art_root, part_id]

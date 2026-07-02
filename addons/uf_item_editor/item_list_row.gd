@@ -7,9 +7,11 @@ signal row_selected(meta: Dictionary)
 const _PAD := 8
 const _ROW_SEP := 10
 const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _ITEMS := preload("res://modules/items/items.gd")
 
 var _meta: Dictionary = {}
 var _selected: bool = false
+var _items: ItemsModule
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -59,12 +61,8 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 	icon_rect.custom_minimum_size = Vector2(52, 52)
 	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var tex: Texture2D = row_data.get("icon")
-	if tex == null and row_data.has("library_path"):
-		var path: String = row_data.get("library_path", "")
-		if ResourceLoader.exists(path):
-			tex = load(path) as Texture2D
-	icon_rect.texture = tex
+	icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon_rect.texture = _resolve_row_icon(row_data, is_sprite_template)
 	row.add_child(icon_rect)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 2)
@@ -133,3 +131,23 @@ func _string_names(arr: Array) -> PackedStringArray:
 	for v in arr:
 		out.append(String(v))
 	return out
+
+func _resolve_row_icon(row_data: Dictionary, is_sprite_template: bool) -> Texture2D:
+	var tex: Texture2D = row_data.get("icon")
+	if tex != null:
+		return tex
+	var path: String = row_data.get("sprite_library_path", "")
+	if path.is_empty():
+		path = row_data.get("library_path", "")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	if is_sprite_template:
+		if _items == null:
+			_items = _ITEMS.new()
+		return _items.resolve_strip_icon(path, int(row_data.get("strip_state_index", 0)))
+	if _items == null:
+		_items = _ITEMS.new()
+	return _items.resolve_strip_icon(
+		path,
+		int(row_data.get("strip_state_index", 0)),
+	)

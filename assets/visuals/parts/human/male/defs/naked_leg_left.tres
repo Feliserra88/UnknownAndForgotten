@@ -21,4 +21,6 @@ walk_textures = {
 &"front": ExtResource("5_l8dl0"),
 &"side_right": ExtResource("7_rtk0y")
 }
+size = Vector2i(9, 20)
+display_size = Vector2i(9, 20)
 offset = Vector2(-6, 22)
