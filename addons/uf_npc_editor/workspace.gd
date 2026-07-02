@@ -276,6 +276,7 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	_item_filter_list.set_title_key("npc_editor.compatible_items")
 	_item_filter_list.setup(_items, &"", _ITEMS_PANEL_MIN_H)
 	_item_filter_list.set_selection_key_fn(_compatible_item_selection_key)
+	_item_filter_list.filter_changed.connect(_on_compatible_list_filter_changed)
 	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.add_child(_item_filter_list)
@@ -460,6 +461,9 @@ func _compatible_item_selection_key(meta: Dictionary) -> String:
 func _update_compatible_list_selection() -> void:
 	if _item_filter_list != null:
 		_item_filter_list.set_selection_key(_item_filter_list.get_selection_key())
+
+func _on_compatible_list_filter_changed(_active_tags: Array[StringName]) -> void:
+	_update_compatible_list_selection()
 
 func _build_compatible_item_row(item: ItemDef) -> Control:
 	var entry := _ITEM.new()

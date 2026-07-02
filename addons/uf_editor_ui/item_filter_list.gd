@@ -3,14 +3,18 @@ extends PanelContainer
 ## Scrollable item list panel for editor tools (NPC editor, item browser, …).
 
 signal item_selected(meta: Dictionary)
+signal filter_changed(active_tags: Array[StringName])
 
 const _BLOCK := preload("res://addons/uf_editor_ui/editor_block.gd")
 const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
+const _TAG_PICKER := preload("res://addons/uf_editor_ui/tag_picker_panel.gd")
 const _TITLE_KEY := "item_editor.block.items"
 
 var _items: ItemsModule
 var _header_label: Label
+var _tag_filter: _TAG_PICKER
 var _title_key: String = _TITLE_KEY
+var _tag_category_id: StringName = &""
 var _scroll: ScrollContainer
 var _list_box: VBoxContainer
 var _built: bool = false
@@ -60,6 +64,13 @@ func _ensure_built() -> void:
 	_BLOCK.style_block_header(_header_label)
 	inner.add_child(_header_label)
 
+	_tag_filter = _TAG_PICKER.new()
+	_tag_filter.set_embedded(true)
+	_tag_filter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tag_filter.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_tag_filter.tags_changed.connect(_on_tag_filter_changed)
+	inner.add_child(_tag_filter)
+
 	_scroll = ScrollContainer.new()
 	_scroll.name = "ItemListScroll"
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -80,10 +91,11 @@ func _ensure_built() -> void:
 	if not _pending_setup.is_empty():
 		_apply_setup(_pending_setup)
 
-## Binds [param items] and sets minimum list height.
-func setup(items: ItemsModule, _tag_category_id: StringName = &"", list_min_height: int = 160) -> void:
+## Binds [param items], optional tag tab category, and minimum list height.
+func setup(items: ItemsModule, tag_category_id: StringName = &"", list_min_height: int = 160) -> void:
 	_pending_setup = {
 		"items": items,
+		"tag_category_id": tag_category_id,
 		"list_min_height": list_min_height,
 	}
 	if _built:
@@ -91,9 +103,13 @@ func setup(items: ItemsModule, _tag_category_id: StringName = &"", list_min_heig
 
 func _apply_setup(options: Dictionary) -> void:
 	_items = options.get("items") as ItemsModule
+	_tag_category_id = options.get("tag_category_id", &"")
 	var list_min_height: int = int(options.get("list_min_height", 160))
 	if _scroll != null:
 		_scroll.custom_minimum_size = Vector2(0, list_min_height)
+	if _tag_filter != null and _items != null:
+		_tag_filter.setup(_items)
+		_tag_filter.set_item_category(_tag_category_id)
 
 ## Sets list query options: [code]archetype_tags[/code], [code]category_id[/code], [code]row_builder[/code], …
 func configure_query(options: Dictionary) -> void:
@@ -114,6 +130,8 @@ func refresh_localized_controls() -> void:
 		return
 	_ensure_built()
 	_refresh_header_label()
+	if _tag_filter != null:
+		_tag_filter.refresh_localized_controls()
 
 func _refresh_header_label() -> void:
 	if _header_label == null:
@@ -127,11 +145,36 @@ func set_archetype_tags(tags: Array) -> void:
 func set_list_populator(callable: Callable) -> void:
 	_list_populator = callable
 
+func set_tag_category(category_id: StringName) -> void:
+	_tag_category_id = category_id
+	if _tag_filter != null:
+		_tag_filter.set_item_category(category_id)
+
+func refresh_tag_picker() -> void:
+	if _tag_filter != null:
+		_tag_filter.refresh()
+
+func reset_tag_filter() -> void:
+	if _tag_filter == null or _items == null:
+		return
+	_filter_tags.clear()
+	_tag_filter.setup(_items)
+	_tag_filter.set_item_category(_tag_category_id)
+	_tag_filter.set_tags([], false)
+	refresh()
+
 func set_filter_tags(tags: Array[StringName]) -> void:
 	_filter_tags = tags.duplicate()
+	if _tag_filter != null:
+		_tag_filter.set_tags(_filter_tags, false)
 
 func get_filter_tags() -> Array[StringName]:
 	return _filter_tags.duplicate()
+
+func _on_tag_filter_changed(tags: Array[StringName]) -> void:
+	_filter_tags = tags.duplicate()
+	refresh()
+	filter_changed.emit(_filter_tags)
 
 func set_selection_key_fn(callable: Callable) -> void:
 	_selection_key_fn = callable

@@ -19,8 +19,12 @@ var _palette_scroll: ScrollContainer
 var _palette_flow: _TAG_FLOW
 var _tab_groups: Array[StringName] = []
 var _suppress_signals: bool = false
+var _embedded: bool = false
 var _built: bool = false
 var _pending_items: ItemsModule = null
+
+func set_embedded(value: bool) -> void:
+	_embedded = value
 
 func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -35,13 +39,15 @@ func _ensure_built() -> void:
 	if _built:
 		return
 	_built = true
-	add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
+	if not _embedded:
+		add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	var pad := 0 if _embedded else 8
+	margin.add_theme_constant_override("margin_left", pad)
+	margin.add_theme_constant_override("margin_right", pad)
+	margin.add_theme_constant_override("margin_top", pad)
+	margin.add_theme_constant_override("margin_bottom", pad)
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	add_child(margin)
@@ -52,9 +58,10 @@ func _ensure_built() -> void:
 	inner.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	margin.add_child(inner)
 
-	_header_label = Label.new()
-	_BLOCK.style_block_header(_header_label)
-	inner.add_child(_header_label)
+	if not _embedded:
+		_header_label = Label.new()
+		_BLOCK.style_block_header(_header_label)
+		inner.add_child(_header_label)
 
 	_tab_bar = TabBar.new()
 	_tab_bar.tab_alignment = TabBar.AlignmentMode.ALIGNMENT_LEFT
@@ -76,7 +83,8 @@ func _ensure_built() -> void:
 	_palette_flow.filter_changed.connect(_on_filter_changed)
 	_palette_scroll.add_child(_palette_flow)
 
-	_refresh_header_label()
+	if not _embedded:
+		_refresh_header_label()
 
 func setup(items: ItemsModule) -> void:
 	_pending_items = items
@@ -114,7 +122,8 @@ func refresh() -> void:
 	_update_tab_labels()
 
 func refresh_localized_controls() -> void:
-	_refresh_header_label()
+	if not _embedded:
+		_refresh_header_label()
 	_update_tab_labels()
 
 func _refresh_header_label() -> void:

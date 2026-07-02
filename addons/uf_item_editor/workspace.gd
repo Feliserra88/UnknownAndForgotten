@@ -122,6 +122,12 @@ func _refresh_tag_pickers(reset_filters: bool = false) -> void:
 			_tag_picker.setup(_items)
 		else:
 			_tag_picker.refresh()
+	if _item_filter_list != null:
+		_item_filter_list.set_tag_category(cat)
+		if reset_filters:
+			_item_filter_list.reset_tag_filter()
+		else:
+			_item_filter_list.refresh_tag_picker()
 
 func _finalize_layout() -> void:
 	if not is_visible_in_tree():
@@ -329,6 +335,7 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	_item_filter_list = _ITEM_FILTER_LIST.new()
 	_item_filter_list.setup(_items, &"", _CENTER_LIST_MIN)
 	_item_filter_list.set_selection_key_fn(_row_selection_key)
+	_item_filter_list.filter_changed.connect(_on_item_list_filter_changed)
 	_item_filter_list.item_selected.connect(_on_row_selected)
 	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -616,19 +623,12 @@ func _configure_item_filter_list() -> void:
 func _rebuild_list() -> void:
 	if _item_filter_list == null:
 		return
-	_apply_list_tag_filter()
 	_configure_item_filter_list()
 	_item_filter_list.refresh()
 	_update_list_selection()
 
-func _apply_list_tag_filter() -> void:
-	if _item_filter_list == null:
-		return
-	var tags: Array[StringName] = []
-	if _tag_picker != null:
-		tags = _tag_picker.get_tags()
-	_item_filter_list.set_filter_tags(tags)
-
+func _on_item_list_filter_changed(_active_tags: Array[StringName]) -> void:
+	_update_list_selection()
 
 func _build_item_editor_row(item: ItemDef) -> Control:
 	var row := _ROW.new()
@@ -777,8 +777,6 @@ func _refresh_preview_summary() -> void:
 func _on_draft_tags_changed(tags: Array[StringName]) -> void:
 	if _draft != null:
 		_draft.tags = _items.normalize_tags(tags, _current_category_id())
-	_apply_list_tag_filter()
-	_rebuild_list()
 	_refresh_preview_panel()
 
 func _on_new_pressed() -> void:
@@ -1071,7 +1069,9 @@ func _refresh_localized_ui() -> void:
 			_tag_picker.refresh_localized_controls()
 		if _item_filter_list != null:
 			_configure_item_filter_list()
-			_apply_list_tag_filter()
+			_item_filter_list.set_tag_category(_current_category_id())
+			_item_filter_list.refresh_tag_picker()
+			_item_filter_list.refresh_localized_controls()
 		if _draft != null:
 			_sync_def_tier_option_menus()
 		_update_art_strip_filter_visibility()
