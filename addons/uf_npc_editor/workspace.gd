@@ -15,6 +15,7 @@ const _STARTER_EQUIPMENT: Array = [
 const _ATTR_NAMES: Array[String] = ["strength", "agility", "willpower", "vitality", "perception", "charisma"]
 const _ORIENTATIONS: Array[StringName] = [&"front", &"back", &"side_left", &"side_right"]
 const _PREVIEW_SCALE := 3.0
+const _PREVIEW_VIEWPORT_SIZE := Vector2i(320, 320)
 const _MARGIN := 8
 const _PANEL_SEP := 6
 const _FIELD_SEP := 6
@@ -176,12 +177,9 @@ func _sync_right_vertical_split() -> void:
 		_inspection_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 func _sync_preview_viewport_size() -> void:
-	if _preview_host == null or _preview_viewport == null:
+	if _preview_viewport == null:
 		return
-	var sz := _preview_host.size
-	if sz.x < 8 or sz.y < 8:
-		return
-	_preview_viewport.size = Vector2i(int(sz.x), int(sz.y))
+	_preview_viewport.size = _PREVIEW_VIEWPORT_SIZE
 
 func _build_ui() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -299,7 +297,7 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	var preview_frame := Panel.new()
 	preview_frame.custom_minimum_size = Vector2(240, 240)
 	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	center.add_child(preview_frame)
 	_preview_host = preview_frame
 
@@ -492,7 +490,7 @@ func _rebuild_preview() -> void:
 func _center_preview_rig() -> void:
 	if _preview_viewport == null or _appearance == null:
 		return
-	var vp := Vector2(_preview_viewport.size)
+	var vp := Vector2(_PREVIEW_VIEWPORT_SIZE)
 	var anchor := Vector2(vp.x * 0.5, vp.y * 0.62)
 	_appearance.position = anchor
 	_appearance.scale = Vector2(_PREVIEW_SCALE, _PREVIEW_SCALE)
