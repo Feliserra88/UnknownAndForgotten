@@ -15,6 +15,8 @@ const _PATHS := [
 	"res://modules/npc/npc_archetype.gd",
 	"res://modules/npc/npc_instance_data.gd",
 	"res://modules/appearance/npc_appearance_controller.gd",
+	"res://modules/appearance/cutout_orientation.gd",
+	"res://modules/appearance/part_visual_def.gd",
 	"res://modules/modifier/modifier_def.gd",
 	"res://modules/modifier/modifier.gd",
 	"res://modules/faction/faction_def.gd",

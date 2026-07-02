@@ -8,6 +8,7 @@ const _LOG := "NPC"
 const _DEFAULT_SCENE := preload("res://scenes/npc/npc_base.tscn")
 const _Human := preload("res://modules/npc/_private/human_factory.gd")
 const _ArchetypeCatalog := preload("res://modules/npc/npc_archetype_catalog.gd")
+const _LEGACY_MALE_SPRITE := preload("res://assets/visuals/characters/human/male/human_male_sprite_anim.tres")
 
 ## Sibling facades injected by callers (e.g. the NPC editor). Optional: spawn works without them.
 var _faction: FactionModule
@@ -65,17 +66,25 @@ func build_human_archetype() -> NpcArchetype:
 func build_random_character(gen_seed: int) -> NpcArchetype:
 	return _Human.build_random_main_character(gen_seed)
 
-## Ensures [param archetype] has a walk sprite sheet when missing (prototype fallback).
+## Prefers cutout rig when part visuals carry art; otherwise falls back to the male sprite sheet.
 func ensure_walk_sprite(archetype: NpcArchetype) -> NpcArchetype:
 	if archetype == null:
 		return null
+	if _archetype_has_cutout_art(archetype):
+		archetype.sprite_anim = null
+		return archetype
 	if archetype.resolve_sprite_anim() == null:
-		archetype.sprite_anim = _Human.build_male_sprite_anim()
+		archetype.sprite_anim = _LEGACY_MALE_SPRITE.duplicate(true)
 	var def := archetype.resolve_sprite_anim()
 	if def != null and _sprite_has_textures(def):
-		# Cutout overrides would show through if the sheet fails to load.
 		archetype.part_visuals.clear()
 	return archetype
+
+static func _archetype_has_cutout_art(archetype: NpcArchetype) -> bool:
+	for visual in archetype.resolve_part_visuals():
+		if visual is PartVisualDef and (visual as PartVisualDef).has_art():
+			return true
+	return false
 
 static func _sprite_has_textures(def: Resource) -> bool:
 	return (

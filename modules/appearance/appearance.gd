@@ -32,3 +32,21 @@ static func set_moving(body: Node, moving: bool) -> void:
 	var controller := find_controller(body)
 	if controller != null:
 		controller.set_moving(moving)
+
+## Applies an equipment visual on [param body]'s cutout rig.
+static func apply_equipment(body: Node, equip_slot: StringName, visual: EquipmentVisualDef) -> void:
+	var controller := find_controller(body)
+	if controller != null:
+		controller.apply_equipment(equip_slot, visual)
+
+## Clears equipment visuals on [param equip_slot] for [param body].
+static func clear_equipment(body: Node, equip_slot: StringName) -> void:
+	var controller := find_controller(body)
+	if controller != null:
+		controller.clear_equipment(equip_slot)
+
+## Syncs orientation and optional equipped visuals from [param instance].
+static func sync_from_instance(body: Node, instance: NpcInstanceData, equipment: EquipmentModule = null) -> void:
+	var controller := find_controller(body)
+	if controller != null:
+		controller.sync_from_instance(instance, equipment)

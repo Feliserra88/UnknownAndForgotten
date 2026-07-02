@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://ctjmjarjm45d7"]
+
+[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1_ircvy"]
+[ext_resource type="Texture2D" uid="uid://dgw10tmtgpr03" path="res://assets/visuals/parts/human/male/loincloth/head/front_idle.png" id="2_qrjun"]
+[ext_resource type="Texture2D" uid="uid://bh421y6kqjsfd" path="res://assets/visuals/parts/human/male/loincloth/head/back_idle.png" id="3_sgkbs"]
+[ext_resource type="Texture2D" uid="uid://cawuq7do4or5f" path="res://assets/visuals/parts/human/male/loincloth/head/side_right_idle.png" id="4_dn4sx"]
+[ext_resource type="Texture2D" uid="uid://dq0sndasfe0g8" path="res://assets/visuals/parts/human/male/loincloth/head/front_walk.png" id="5_57g2l"]
+[ext_resource type="Texture2D" uid="uid://dpr407k1baiph" path="res://assets/visuals/parts/human/male/loincloth/head/back_walk.png" id="6_14uak"]
+[ext_resource type="Texture2D" uid="uid://m74g78mbvwmc" path="res://assets/visuals/parts/human/male/loincloth/head/side_right_walk.png" id="7_7nfhu"]
+
+[resource]
+script = ExtResource("1_ircvy")
+part_id = &"head"
+textures = {
+&"back": ExtResource("3_sgkbs"),
+&"front": ExtResource("2_qrjun"),
+&"side_right": ExtResource("4_dn4sx")
+}
+walk_textures = {
+&"back": ExtResource("6_14uak"),
+&"front": ExtResource("5_57g2l"),
+&"side_right": ExtResource("7_7nfhu")
+}
+offset = Vector2(0, -22)
+z_index = 2

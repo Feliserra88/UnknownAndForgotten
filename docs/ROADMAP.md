@@ -9,7 +9,8 @@ Leyenda: [ ] pendiente · [~] parcial · [x] hecho.
 - [ ] **`grid`** (log `GRD`) — pathfinding `AStarGrid2D` + reglas de `z`/`max_climb` sobre la API de `WorldModule`. No leer `TileMapLayer` desde fuera del módulo `world`.
 - [ ] **`player`** (log `PLR`) — extraer input y movimiento por rejilla desde `scenes/game/player_controller.gd`. Jugador = NPC + grupo `"player"`.
 - [ ] **`faction`** (log `FAC`) — `FactionDef` (Resource) y relaciones entre grupos; separado de arquetipo (ver `npc-entities.mdc`).
-- [ ] **`equipment`** (log `EQP`) — `ItemDef`, `EquipmentVisualDef`, `EquipmentState`.
+- [x] **Humano male cutout (taparrabos v1)** — `PartVisualDef` idle+walk 4 vistas, `CutoutOrientation`, rig en `NpcAppearanceController`, assets en `assets/visuals/parts/human/male/`.
+- [ ] **`equipment`** (log `EQP`) — `ItemDef`, `EquipmentVisualDef`, `EquipmentState` (visual cutout cableado en editor; falta runtime equip desde inventario).
 - [ ] **`status`** (log `STS`) — `StatusEffectDef`, `MaladyDef`, `TraitDef`.
 - [ ] **`combat`** (log `CMB`) — resolución de daño; consumidor natural del `EventBus`.
 

@@ -1,0 +1,54 @@
+---
+description: PixelLab MCP — generación de sprites cutout modulares para NPCs U&F
+globs: assets/visuals/parts/**,assets/visuals/characters/**,modules/appearance/**
+alwaysApply: false
+---
+
+# PixelLab — personajes cutout (U&F)
+
+Documentación MCP: https://api.pixellab.ai/mcp/docs  
+Diseño rig: `docs/GAME_DESIGN.md` §5.4–5.5, `assets/visuals/parts/human/male/README.md`.
+
+## Constantes
+
+| Clave | Valor | Uso |
+|-------|-------|-----|
+| **View** | `low top-down` | Coherente con mapa isométrico 2,5D |
+| **Canvas** | `64` | `create_8_direction_object(size=64)` |
+| **Outline** | `lineless` | Sin contorno duro |
+| **Vistas juego** | 4 | `front`, `back`, `side_right`, `side_left` (flip de east) |
+
+## Herramientas
+
+| Necesidad | PixelLab | Destino Godot |
+|-----------|----------|---------------|
+| Idle 4-dir por parte anatómica | `create_8_direction_object` | `loincloth/<part>/{view}_idle.png` |
+| Walk 4-dir por parte | `animate_object` (`mode=v3`, `directions=[south,north,east,west]`) | `{view}_walk.png` (strip) |
+| Coherencia entre partes | `style_image_base64` del torso sur | Tras generar `body` |
+
+## Mapeo PixelLab → Godot
+
+| PixelLab | Clave `PartVisualDef.textures` |
+|----------|-------------------------------|
+| south | `front` |
+| north | `back` |
+| east | `side_right` |
+| west | (omitir; usar flip de `side_right` para `side_left`) |
+
+## Prompt base (fragmento común)
+
+> fantasy RPG male humanoid, low top-down isometric pixel art, lineless, basic shading, medium detail, muted earth tones, transparent background, single isolated body part only
+
+Añadir por parte: torso+taparrabos, cabeza, brazo, pierna (ver README).
+
+## Import
+
+1. `get_object(object_id)` cuando `status=completed`.
+2. Manifest JSON → `tools/import_pixellab_cutout_object.gd`.
+3. `tools/build_loincloth_part_defs.gd` → actualizar `.tres`.
+4. Ajustar offsets en `uf_npc_editor`.
+
+## Prohibido
+
+- Mezclar partes en una sola llamada (“full body with arms”) si el objetivo es cutout modular.
+- Usar `create_isometric_tile` para personajes.

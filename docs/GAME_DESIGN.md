@@ -491,7 +491,7 @@ NpcRoot (Node2D)                         # y_sort_enabled = true
 | Orden de capas | `z_index`, `y_sort_enabled`, `show_behind_parent` ([Node2D](https://docs.godotengine.org/en/stable/classes/class_node2d.html)) | Casco tapa parte de la cabeza; capa base puede ocultarse parcialmente |
 | Rig animado | `Skeleton2D` + `Bone2D` | Humanoides articulados, cuadrúpedos (pierna herida = swap en slot del hueso) |
 | Desacople de orden | `RemoteTransform2D` | Brazo delante del torso pero colgando del hueso de espalda |
-| Orientación | `AnimationTree` / animaciones por dirección | Cada `PartVisualDef` define 4 vistas: `front`, `back`, `side_left`, `side_right` |
+| Orientación | `AnimationTree` / animaciones por dirección | Cada `PartVisualDef` define 4 vistas: `front`, `back`, `side_left`, `side_right`; idle en `textures`, walk en `walk_textures` (strip horizontal, `walk_hframes`) |
 | Lógica vs visual | Nodo **`NpcAppearanceController`** | Módulo `equipment`/`status` notifica; el controller actualiza capas |
 
 Referencias: [AnimationTree](https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html), [Cutout animation](https://docs.godotengine.org/en/stable/tutorials/animation/cutout_animation.html).
@@ -568,12 +568,16 @@ Al curar: `remove_injury(part_id)` restaura base y re-aplica equipo visible.
 
 | Resource | Campos clave |
 |----------|--------------|
-| `PartVisualDef` | `part_id`, texturas/animaciones por `orientation`, `scene` opcional |
+| `PartVisualDef` | `part_id`, `textures` (idle), `walk_textures` + `walk_hframes`/`walk_fps`, `offset`, `z_index` |
 | `EquipmentVisualDef` | `slot`, `base_coverage`, texturas por orientación, `z_offset` |
 | `InjuryVisualDef` | `part_id`, `mode` (`replace`/`overlay`/`hide_part`), visual por orientación |
 | `BodyPartMap` | Lista de `part_id` válidos por arquetipo (humano vs lobo) |
 
-Ubicación: `res://assets/visuals/parts/`, `res://assets/visuals/equipment/`, `res://assets/visuals/injuries/`.
+Ubicación: `res://assets/visuals/parts/`, `res://assets/visuals/equipment/`, `res://assets/visuals/injuries/`. Humano male cutout: `assets/visuals/parts/human/male/` (ver README).
+
+**Mapeo runtime 8 vías → cutout 4 vistas** (`CutoutOrientation`): diagonales reutilizan `front`/`back`; `side_left` puede reflejar texturas `side_right` con `flip_h`. Ver `modules/appearance/cutout_orientation.gd`.
+
+**Arte PixelLab (personajes):** regla `pixellab-character.mdc`; pipeline en `assets/visuals/parts/human/male/README.md`.
 
 #### 5.5.5 Panel de inspección (`InspectionLayoutDef` + `UfInspectionPanel`)
 

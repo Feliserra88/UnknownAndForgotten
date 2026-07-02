@@ -26,6 +26,6 @@ func _apply() -> void:
 		Log.warn(_LOG, "npc_body missing Appearance controller")
 		return
 	appearance.build_from(_pending_archetype)
-	appearance.sync_from_instance(instance)
+	appearance.sync_from_instance(instance, null)
 	Log.info(_LOG, "spawn", "uid=%d archetype=%s cell=%s" % [instance.uid, instance.archetype_id, instance.grid_cell])
 	_pending_archetype = null

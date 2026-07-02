@@ -7,6 +7,7 @@ extends Node2D
 const _LOG := "APP"
 
 var _slots: Dictionary = {}
+var _equipment_visuals: Dictionary = {}
 var _animated_sprite: AnimatedSprite2D
 var _sprite_def: Resource
 var _orientation: StringName = &"front"
@@ -16,6 +17,7 @@ var _is_moving: bool = false
 func build_from(archetype: NpcArchetype) -> void:
 	_clear_children()
 	_slots.clear()
+	_equipment_visuals.clear()
 	_animated_sprite = null
 	_sprite_def = archetype.resolve_sprite_anim()
 	if _sprite_def != null and _has_any_texture(_sprite_def):
@@ -32,14 +34,53 @@ func build_from(archetype: NpcArchetype) -> void:
 		visuals[v.part_id] = v
 	for part in map.parts:
 		_build_slot(part, visuals.get(part, null))
+	_refresh_cutout_layers()
 
-## Refreshes layers from runtime [param instance] state (orientation, injuries).
-func sync_from_instance(instance: NpcInstanceData) -> void:
-	if _animated_sprite != null:
-		set_orientation(instance.orientation)
+## Refreshes layers from runtime [param instance] state (orientation, equipment).
+func sync_from_instance(instance: NpcInstanceData, equipment: EquipmentModule = null) -> void:
+	if instance == null:
+		return
+	set_orientation(instance.orientation)
+	if _animated_sprite != null or _slots.is_empty() or equipment == null:
+		return
+	for slot_id in instance.equipment.occupied_slots():
+		var inst := instance.equipment.get_instance(slot_id)
+		if inst == null:
+			continue
+		var visual := equipment.resolve_visual(inst.def_id)
+		if visual != null:
+			apply_equipment(slot_id, visual)
+		else:
+			clear_equipment(slot_id)
+
+## Applies [param visual] on the anatomical slot (cutout rig only).
+func apply_equipment(equip_slot: StringName, visual: EquipmentVisualDef) -> void:
+	if visual == null:
+		clear_equipment(equip_slot)
+		return
+	var part_id := visual.slot if not visual.slot.is_empty() else equip_slot
+	_equipment_visuals[part_id] = visual
+	_refresh_cutout_layers()
+
+## Clears equipment visuals on [param equip_slot]'s anatomical part.
+func clear_equipment(equip_slot: StringName) -> void:
+	var part_id := equip_slot
+	for pid in _equipment_visuals.keys():
+		var visual: EquipmentVisualDef = _equipment_visuals[pid]
+		if visual != null and (visual.slot == equip_slot or pid == equip_slot):
+			part_id = pid
+			break
+	_equipment_visuals.erase(part_id)
+	var slot: Dictionary = _slots.get(part_id, {})
+	var layer := slot.get("equipment", null) as CanvasItem
+	if layer != null:
+		layer.visible = false
+		if layer is Sprite2D:
+			(layer as Sprite2D).texture = null
+	_apply_cutout_base(slot, _resolved_view(), _resolved_flip_h())
 
 ## Shows [param tex] on the EquipmentLayer of [param part_id]'s slot (cutout rig only).
-## No-op in sprite-sheet mode or when the part has no slot.
+## Fallback when no EquipmentVisualDef exists. No-op in sprite-sheet mode.
 func set_equipment_texture(part_id: StringName, tex: Texture2D) -> void:
 	var slot: Dictionary = _slots.get(part_id, {})
 	var layer := slot.get("equipment", null) as Sprite2D
@@ -47,13 +88,14 @@ func set_equipment_texture(part_id: StringName, tex: Texture2D) -> void:
 		return
 	layer.texture = tex
 	layer.visible = tex != null
+	layer.flip_h = false
 	if tex != null:
-		var base := slot.get("base", null) as Sprite2D
-		if base != null and base.texture != null:
-			var base_size := base.texture.get_size()
-			var tex_size := tex.get_size()
-			if tex_size.x > 0.0 and tex_size.y > 0.0:
-				layer.scale = Vector2(base_size.x / tex_size.x, base_size.y / tex_size.y)
+		var ref_size := _reference_sprite_size(slot)
+		var tex_size := tex.get_size()
+		if ref_size.x > 0.0 and ref_size.y > 0.0 and tex_size.x > 0.0 and tex_size.y > 0.0:
+			layer.scale = Vector2(ref_size.x / tex_size.x, ref_size.y / tex_size.y)
+		else:
+			layer.scale = Vector2.ONE
 
 ## Hides and clears the EquipmentLayer of [param part_id]'s slot.
 func clear_equipment_texture(part_id: StringName) -> void:
@@ -66,17 +108,19 @@ func slot_part_ids() -> Array:
 ## Sets facing direction and refreshes the active idle or walk animation.
 func set_orientation(orientation: StringName) -> void:
 	_orientation = orientation
-	if _animated_sprite == null or _sprite_def == null:
+	if _animated_sprite != null and _sprite_def != null:
+		_animated_sprite.flip_h = false
+		_refresh_animation()
 		return
-	_animated_sprite.flip_h = false
-	_refresh_animation()
+	_refresh_cutout_layers()
 
 ## Switches between walk loops and idle poses for the active orientation.
 func set_moving(moving: bool) -> void:
 	_is_moving = moving
-	if _animated_sprite == null:
+	if _animated_sprite != null:
+		_refresh_animation()
 		return
-	_refresh_animation()
+	_refresh_cutout_layers()
 
 func _refresh_animation() -> void:
 	if _animated_sprite == null or _sprite_def == null:
@@ -90,6 +134,99 @@ func _refresh_animation() -> void:
 		anim = &"idle_front"
 	if _animated_sprite.animation != anim:
 		_animated_sprite.play(anim)
+
+func _refresh_cutout_layers() -> void:
+	if _slots.is_empty():
+		return
+	var view := _resolved_view()
+	var flip_h := _resolved_flip_h()
+	for part_id in _slots:
+		var slot: Dictionary = _slots[part_id]
+		_apply_cutout_base(slot, view, flip_h)
+		_apply_cutout_equipment(slot, view, flip_h)
+		_apply_cutout_injury(slot, view, flip_h)
+
+func _resolved_view() -> StringName:
+	return CutoutOrientation.resolve(_orientation).get("view", &"front") as StringName
+
+func _resolved_flip_h() -> bool:
+	return bool(CutoutOrientation.resolve(_orientation).get("flip_h", false))
+
+func _apply_cutout_base(slot: Dictionary, view: StringName, flip_h: bool) -> void:
+	if slot.is_empty():
+		return
+	var tex_key := CutoutOrientation.texture_key(view, flip_h)
+	var base: Node = slot.get("base") as Node
+	var visual: PartVisualDef = slot.get("visual") as PartVisualDef
+	var part_id: StringName = slot.get("part_id", &"")
+	var equipment_visual: EquipmentVisualDef = _equipment_visuals.get(part_id) as EquipmentVisualDef
+	var hide_base := (
+		equipment_visual != null
+		and equipment_visual.base_coverage == EquipmentVisualDef.Coverage.FULL
+	)
+	if base is AnimatedSprite2D:
+		var anim_sprite := base as AnimatedSprite2D
+		anim_sprite.visible = not hide_base
+		if hide_base:
+			return
+		anim_sprite.flip_h = flip_h and view == &"side_left"
+		var anim := _cutout_anim_name(tex_key, visual != null and visual.get_walk_texture(tex_key) != null)
+		if not anim_sprite.sprite_frames.has_animation(anim):
+			anim = &"idle_front"
+		if anim_sprite.animation != anim:
+			anim_sprite.play(anim)
+	elif base is Sprite2D:
+		var sprite := base as Sprite2D
+		sprite.visible = not hide_base
+		if hide_base:
+			return
+		sprite.flip_h = flip_h and view == &"side_left"
+		if visual != null:
+			var tex := visual.get_texture(tex_key)
+			if tex != null:
+				sprite.texture = tex
+
+func _apply_cutout_equipment(slot: Dictionary, view: StringName, flip_h: bool) -> void:
+	var layer := slot.get("equipment", null) as Sprite2D
+	if layer == null:
+		return
+	var part_id: StringName = slot.get("part_id", &"")
+	var visual: EquipmentVisualDef = _equipment_visuals.get(part_id) as EquipmentVisualDef
+	if visual == null:
+		return
+	var tex_key := CutoutOrientation.texture_key(view, flip_h)
+	var tex := visual.get_texture(tex_key)
+	layer.texture = tex
+	layer.visible = tex != null
+	layer.flip_h = flip_h and view == &"side_left"
+	layer.scale = Vector2.ONE
+	if tex != null and visual.z_offset != 0:
+		layer.z_index = visual.z_offset
+
+func _apply_cutout_injury(_slot: Dictionary, _view: StringName, _flip_h: bool) -> void:
+	pass
+
+func _cutout_anim_name(tex_key: StringName, has_walk: bool) -> StringName:
+	if _is_moving and has_walk:
+		return StringName("walk_%s" % tex_key)
+	return StringName("idle_%s" % tex_key)
+
+func _reference_sprite_size(slot: Dictionary) -> Vector2:
+	var base: Node = slot.get("base") as Node
+	if base is AnimatedSprite2D:
+		var anim := base as AnimatedSprite2D
+		if anim.sprite_frames != null and not anim.animation.is_empty():
+			var tex := anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
+			if tex != null:
+				return tex.get_size()
+	if base is Sprite2D:
+		var tex := (base as Sprite2D).texture
+		if tex != null:
+			return tex.get_size()
+	var visual: PartVisualDef = slot.get("visual") as PartVisualDef
+	if visual != null:
+		return Vector2(visual.size)
+	return Vector2(16, 16)
 
 func _has_any_texture(def: Resource) -> bool:
 	return (
@@ -120,9 +257,17 @@ func _build_slot(part: StringName, visual: PartVisualDef) -> void:
 	if visual != null:
 		slot.position = visual.offset
 		slot.z_index = visual.z_index
-	var base := Sprite2D.new()
-	base.name = "BaseLayer"
-	base.texture = _placeholder_texture(visual)
+	var base: Node2D
+	if visual != null and visual.has_art():
+		var anim := AnimatedSprite2D.new()
+		anim.name = "BaseLayer"
+		anim.sprite_frames = visual.build_sprite_frames()
+		base = anim
+	else:
+		var sprite := Sprite2D.new()
+		sprite.name = "BaseLayer"
+		sprite.texture = _placeholder_texture(visual)
+		base = sprite
 	slot.add_child(base)
 	var equipment := Sprite2D.new()
 	equipment.name = "EquipmentLayer"
@@ -132,7 +277,14 @@ func _build_slot(part: StringName, visual: PartVisualDef) -> void:
 	injury.name = "InjuryLayer"
 	injury.visible = false
 	slot.add_child(injury)
-	_slots[part] = {"node": slot, "base": base, "equipment": equipment, "injury": injury}
+	_slots[part] = {
+		"node": slot,
+		"base": base,
+		"equipment": equipment,
+		"injury": injury,
+		"visual": visual,
+		"part_id": part,
+	}
 
 func _clear_children() -> void:
 	for child in get_children():

@@ -485,14 +485,21 @@ func _center_preview_rig() -> void:
 	_appearance.position = Vector2(vp.x * 0.5, vp.y * 0.68)
 
 func _reapply_equipment_visuals() -> void:
-	if _appearance == null:
+	if _appearance == null or _instance == null:
 		return
 	for slot in _instance.equipment.occupied_slots():
 		var inst := _instance.equipment.get_instance(slot)
-		if inst != null:
+		if inst == null:
+			continue
+		var visual := _equipment.resolve_visual(inst.def_id)
+		if visual != null:
+			_appearance.apply_equipment(slot, visual)
+		else:
 			var icon_tex := _items.resolve_icon(inst)
 			if icon_tex != null:
 				_appearance.set_equipment_texture(slot, icon_tex)
+			else:
+				_appearance.clear_equipment(slot)
 
 func _rebuild_inspection() -> void:
 	for child in _inspection_holder.get_children():
@@ -692,17 +699,21 @@ func _on_item_dropped(slot_id: StringName, payload: Dictionary) -> void:
 	if not String(from_slot).is_empty() and from_slot != slot_id:
 		_instance.equipment.unequip(from_slot)
 		_inspection_panel.clear_slot(from_slot)
-		_appearance.clear_equipment_texture(from_slot)
+		_appearance.clear_equipment(from_slot)
 	var inst := _items.create_instance(item_id)
 	_instance.equipment.equip(slot_id, inst)
 	var icon_tex := _items.resolve_icon(inst)
 	_inspection_panel.set_slot_item(slot_id, item_id, icon_tex)
-	_appearance.set_equipment_texture(slot_id, icon_tex)
+	var visual := _equipment.resolve_visual(item_id)
+	if visual != null:
+		_appearance.apply_equipment(slot_id, visual)
+	elif icon_tex != null:
+		_appearance.set_equipment_texture(slot_id, icon_tex)
 
 func _on_item_removed(slot_id: StringName) -> void:
 	_instance.equipment.unequip(slot_id)
 	if _appearance != null:
-		_appearance.clear_equipment_texture(slot_id)
+		_appearance.clear_equipment(slot_id)
 
 func _on_attribute_changed(value: float, attr_name: String) -> void:
 	_instance.attributes.set(attr_name, AttributesModule.clamp_attribute(int(value)))
