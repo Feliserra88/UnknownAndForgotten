@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://modules/items/item_def.gd" id="1_item"]
+[ext_resource type="Script" path="res://modules/items/valuable_item_data.gd" id="2_valuable"]
+[ext_resource type="Texture2D" path="res://assets/visuals/equipment/icons/generic/gold_coin.png" id="3_icon"]
+
+[sub_resource type="Resource" id="ValuableData"]
+script = ExtResource("2_valuable")
+stackable = true
+merchant_category = &"currency"
+
+[resource]
+script = ExtResource("1_item")
+id = &"gold_coin"
+display_name_key = "item.gold_coin.name"
+description_key = "item.gold_coin.desc"
+category_id = &"valuable"
+tags = Array[StringName]([&"valuable", &"currency"])
+icon = ExtResource("3_icon")
+inventory_size = Vector2i(1, 1)
+weight = 0.01
+base_price = 1.0
+max_durability = 0.0
+category_data = SubResource("ValuableData")

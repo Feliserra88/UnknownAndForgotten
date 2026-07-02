@@ -63,6 +63,8 @@ const _PATHS := [
 	"res://scenes/game/game_session.gd",
 	"res://scenes/game/game_bootstrap.gd",
 	"res://scenes/game/game_hud.gd",
+	"res://scenes/game/player_inventory_bridge.gd",
+	"res://modules/gui/uf_panel_ingame_inventory.gd",
 	"res://scenes/game/player_controller.gd",
 ]
 

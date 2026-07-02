@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ModifierDef" format=3]
+
+[ext_resource type="Script" path="res://modules/modifier/modifier_def.gd" id="1_modifier"]
+
+[resource]
+script = ExtResource("1_modifier")
+id = &"oiled"
+display_name_key = "modifier.oiled.name"
+kind = 4
+additive = {
+"agility": 1
+}
+tags = Array[StringName]([&"item_modifier"])

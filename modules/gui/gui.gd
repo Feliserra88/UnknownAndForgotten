@@ -19,6 +19,7 @@ const _PANEL_SCRIPTS := {
 	&"tabbed": "res://modules/gui/uf_tabbed_panel.gd",
 	&"inspection": "res://modules/gui/uf_inspection_panel.gd",
 	&"loot": "res://modules/gui/uf_panel_ingame_loot.gd",
+	&"inventory": "res://modules/gui/uf_panel_ingame_inventory.gd",
 }
 
 ## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
@@ -30,6 +31,7 @@ const PANEL_SCENES := {
 	&"tabbed": "res://ui/templates/uf_panel_tabbed.tscn",
 	&"inspection": "res://ui/templates/uf_panel_ingame_inspection.tscn",
 	&"loot": "res://ui/templates/uf_panel_ingame_loot.tscn",
+	&"inventory": "res://ui/panels/uf_inventory.tscn",
 }
 
 const WIDGET_SCENES := {

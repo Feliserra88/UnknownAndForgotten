@@ -37,12 +37,11 @@ func apply_archetype(archetype: NpcArchetype) -> void:
 func effective_attributes(modifier_module: ModifierModule, equipment_module: EquipmentModule = null) -> AttributeSet:
 	if modifier_module == null:
 		return AttributesModule.clone_attributes(attributes)
-	var ids: Array = modifier_ids.duplicate()
+	var result := modifier_module.apply(attributes, modifier_module.resolve(modifier_ids))
 	if equipment_module != null:
-		for mid in equipment_module.attribute_modifier_ids(equipment):
-			if not ids.has(mid):
-				ids.append(mid)
-	return modifier_module.apply(attributes, modifier_module.resolve(ids))
+		var eq_defs := equipment_module.resolve_equipped_modifier_defs(equipment, modifier_module)
+		result = modifier_module.apply(result, eq_defs)
+	return result
 
 ## Returns the localized display name for this instance.
 func get_display_name() -> String:

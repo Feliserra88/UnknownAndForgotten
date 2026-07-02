@@ -61,6 +61,9 @@ func setup(row_data: Dictionary, is_sprite_template: bool = false) -> void:
 				tr(state_key) if not state_key.is_empty() else "-",
 				tr(quality_key) if not quality_key.is_empty() else "-",
 			]))
+		var mods: Array = row_data.get("modifier_ids", [])
+		if not mods.is_empty():
+			info.add_child(_muted_label("mods: %s" % ", ".join(_string_names(mods))))
 	gui_input.connect(_on_gui_input)
 
 func get_meta_data() -> Dictionary:

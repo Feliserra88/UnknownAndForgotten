@@ -1,0 +1,316 @@
+[gd_scene format=3 uid="uid://1q56s35aft6s"]
+
+[ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://coa18t0ye3kc8" path="res://modules/gui/uf_panel_ingame_inventory.gd" id="2_inventory"]
+[ext_resource type="Texture2D" uid="uid://ci5xo6ba54ckv" path="res://assets/ui/icons/art/icon_minus.png" id="3_min"]
+[ext_resource type="Texture2D" uid="uid://b44y6yhdyfhdg" path="res://assets/ui/icons/art/icon_menu.png" id="4_drag"]
+[ext_resource type="Texture2D" uid="uid://dqtye7gq8uagc" path="res://assets/ui/icons/art/icon_close.png" id="5_close"]
+[ext_resource type="Script" uid="uid://ca23lo8efafe6" path="res://modules/gui/widgets/uf_item_slot.gd" id="6_87oft"]
+
+[node name="UfInventoryPanel" type="PanelContainer" unique_id=1125917704]
+custom_minimum_size = Vector2(280, 240)
+theme = ExtResource("1_theme")
+script = ExtResource("2_inventory")
+title_key = "gui.inventory.title"
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1684452602]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Header" type="PanelContainer" parent="Layout" unique_id=2087034115]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"UfPanelHeader"
+
+[node name="Body" type="Control" parent="Layout/Header" unique_id=655481595]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Header/Body" unique_id=739193563]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+text = "gui.inventory.title"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Chrome" type="HBoxContainer" parent="Layout/Header/Body" unique_id=777127338]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -70.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = 24.0
+grow_horizontal = 0
+mouse_filter = 0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="MinimizeButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=763756406]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.minimize"
+focus_mode = 0
+icon = ExtResource("3_min")
+flat = true
+
+[node name="DragHandle" type="Button" parent="Layout/Header/Body/Chrome" unique_id=962430689]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.drag"
+focus_mode = 0
+icon = ExtResource("4_drag")
+flat = true
+
+[node name="CloseButton" type="Button" parent="Layout/Header/Body/Chrome" unique_id=460992951]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.close"
+focus_mode = 0
+icon = ExtResource("5_close")
+flat = true
+
+[node name="MinimizeButton2" type="Button" parent="Layout/Header/Body/Chrome" unique_id=1577823342]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.minimize"
+focus_mode = 0
+icon = ExtResource("3_min")
+flat = true
+
+[node name="DragHandle2" type="Button" parent="Layout/Header/Body/Chrome" unique_id=30587726]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.drag"
+focus_mode = 0
+icon = ExtResource("4_drag")
+flat = true
+
+[node name="CloseButton2" type="Button" parent="Layout/Header/Body/Chrome" unique_id=335307613]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+tooltip_text = "gui.header.close"
+focus_mode = 0
+icon = ExtResource("5_close")
+flat = true
+
+[node name="Title2" type="Label" parent="Layout/Header/Body" unique_id=1400090905]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "gui.inventory.title"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Chrome2" type="HBoxContainer" parent="Layout/Header/Body" unique_id=1245290637]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -70.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = 24.0
+grow_horizontal = 0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Body2" type="Control" parent="Layout/Header" unique_id=688579518]
+layout_mode = 2
+
+[node name="ContentSlot" type="VBoxContainer" parent="Layout" unique_id=1413675089]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="InventoryGrid" type="GridContainer" parent="Layout/ContentSlot" unique_id=1384461410]
+layout_mode = 2
+theme_override_constants/h_separation = 2
+theme_override_constants/v_separation = 2
+columns = 6
+
+[node name="Slot_0" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1212756535]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "0"
+script = ExtResource("6_87oft")
+slot_id = &"0"
+
+[node name="Slot_1" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=88705798]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "1"
+script = ExtResource("6_87oft")
+slot_id = &"1"
+
+[node name="Slot_2" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=427936213]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "2"
+script = ExtResource("6_87oft")
+slot_id = &"2"
+
+[node name="Slot_3" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1348786592]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "3"
+script = ExtResource("6_87oft")
+slot_id = &"3"
+
+[node name="Slot_4" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1119658454]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "4"
+script = ExtResource("6_87oft")
+slot_id = &"4"
+
+[node name="Slot_5" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1645042272]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "5"
+script = ExtResource("6_87oft")
+slot_id = &"5"
+
+[node name="Slot_6" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1824293312]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "6"
+script = ExtResource("6_87oft")
+slot_id = &"6"
+
+[node name="Slot_7" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=191655131]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "7"
+script = ExtResource("6_87oft")
+slot_id = &"7"
+
+[node name="Slot_8" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=2018125647]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "8"
+script = ExtResource("6_87oft")
+slot_id = &"8"
+
+[node name="Slot_9" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=507499564]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "9"
+script = ExtResource("6_87oft")
+slot_id = &"9"
+
+[node name="Slot_10" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=736157759]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "10"
+script = ExtResource("6_87oft")
+slot_id = &"10"
+
+[node name="Slot_11" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=2041898501]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "11"
+script = ExtResource("6_87oft")
+slot_id = &"11"
+
+[node name="Slot_12" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=882250783]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "12"
+script = ExtResource("6_87oft")
+slot_id = &"12"
+
+[node name="Slot_13" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1182814394]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "13"
+script = ExtResource("6_87oft")
+slot_id = &"13"
+
+[node name="Slot_14" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1789714672]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "14"
+script = ExtResource("6_87oft")
+slot_id = &"14"
+
+[node name="Slot_15" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1399558062]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "15"
+script = ExtResource("6_87oft")
+slot_id = &"15"
+
+[node name="Slot_16" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=402435687]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "16"
+script = ExtResource("6_87oft")
+slot_id = &"16"
+
+[node name="Slot_17" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1338741018]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "17"
+script = ExtResource("6_87oft")
+slot_id = &"17"
+
+[node name="Slot_18" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=507942848]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "18"
+script = ExtResource("6_87oft")
+slot_id = &"18"
+
+[node name="Slot_19" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=2145757468]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "19"
+script = ExtResource("6_87oft")
+slot_id = &"19"
+
+[node name="Slot_20" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=947559428]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "20"
+script = ExtResource("6_87oft")
+slot_id = &"20"
+
+[node name="Slot_21" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=232398930]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "21"
+script = ExtResource("6_87oft")
+slot_id = &"21"
+
+[node name="Slot_22" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=1306065097]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "22"
+script = ExtResource("6_87oft")
+slot_id = &"22"
+
+[node name="Slot_23" type="Panel" parent="Layout/ContentSlot/InventoryGrid" unique_id=98130243]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "23"
+script = ExtResource("6_87oft")
+slot_id = &"23"
+
+[node name="Header2" type="PanelContainer" parent="Layout" unique_id=1167111304]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"UfPanelHeader"
+
+[node name="ContentSlot2" type="VBoxContainer" parent="Layout" unique_id=262816114]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Layout2" type="VBoxContainer" parent="." unique_id=2034900979]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

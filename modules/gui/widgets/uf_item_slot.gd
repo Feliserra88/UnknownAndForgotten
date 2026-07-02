@@ -16,10 +16,14 @@ signal slot_activated(slot_id: StringName)
 
 var _icon: TextureRect
 var _item_id: StringName = &""
+var _instance_uid: String = ""
 
 ## Drag payload type for generic items (loot, inventory, …).
+const ITEM_PAYLOAD_TYPE := &"uf_item"
+
+## Returns the opaque drag payload type string for this slot.
 func get_payload_type() -> StringName:
-	return &"uf_item"
+	return ITEM_PAYLOAD_TYPE
 
 func _ready() -> void:
 	_ensure_icon()
@@ -27,6 +31,11 @@ func _ready() -> void:
 
 ## Displays [param item_id] with [param tex] as its icon (empty id clears the slot).
 func set_item(item_id: StringName, tex: Texture2D) -> void:
+	set_instance("", item_id, tex)
+
+## Displays an item instance reference with [param tex] as its icon.
+func set_instance(instance_uid: String, item_id: StringName, tex: Texture2D) -> void:
+	_instance_uid = instance_uid
 	_item_id = item_id
 	_ensure_icon()
 	_icon.texture = tex
@@ -34,8 +43,13 @@ func set_item(item_id: StringName, tex: Texture2D) -> void:
 ## Clears any item shown in this slot.
 func clear_item() -> void:
 	_item_id = &""
+	_instance_uid = ""
 	if _icon != null:
 		_icon.texture = null
+
+## Returns the runtime instance uid carried by this slot, or "" when unset.
+func instance_uid() -> String:
+	return _instance_uid
 
 ## Returns the item id currently shown, or &"" when empty.
 func item_id() -> StringName:
@@ -73,7 +87,15 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.custom_minimum_size = size
 	preview.size = size
 	set_drag_preview(preview)
-	return {"type": String(get_payload_type()), "item_id": _item_id, "from_slot": slot_id}
+	var payload := {
+		"type": String(get_payload_type()),
+		"item_id": _item_id,
+		"from_slot": slot_id,
+		"icon": item_texture(),
+	}
+	if not _instance_uid.is_empty():
+		payload["instance_uid"] = _instance_uid
+	return payload
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	return data is Dictionary and data.get("type", "") == String(get_payload_type())

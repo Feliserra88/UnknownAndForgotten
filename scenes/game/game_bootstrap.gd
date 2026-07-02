@@ -111,6 +111,21 @@ func _ensure_player(cell: Vector2i) -> void:
 	_attach_player_controller(_player)
 	_place_player(cell)
 	Log.info(_LOG, "spawn_player", "cell=%s" % cell)
+	call_deferred("_seed_player_inventory")
+
+func _seed_player_inventory() -> void:
+	if _player == null or _player.instance == null:
+		return
+	var items := ItemsModule.new()
+	var sword := items.create_instance(&"long_sword_type01", 0, 1)
+	sword.modifier_ids = [&"enchanted"]
+	items.add_to_inventory(_player.instance.equipment, sword, _player.instance.uid)
+	var bread := items.create_instance(&"bread_loaf")
+	bread.count = 3
+	items.add_to_inventory(_player.instance.equipment, bread, _player.instance.uid)
+	var coin := items.create_instance(&"gold_coin")
+	coin.count = 10
+	items.add_to_inventory(_player.instance.equipment, coin, _player.instance.uid)
 
 func _place_player(cell: Vector2i) -> void:
 	if _player == null or not is_instance_valid(_player):

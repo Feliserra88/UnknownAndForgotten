@@ -457,6 +457,30 @@ func _rebuild_details() -> void:
 	_details_box.add_child(_body_label(", ".join(factions) if not factions.is_empty() else "(none)"))
 	_details_box.add_child(_section_label("Modifiers"))
 	_append_modifiers_by_kind()
+	_details_box.add_child(_section_label("Equipped items"))
+	_append_equipped_item_stats()
+
+func _append_equipped_item_stats() -> void:
+	if _instance == null:
+		return
+	for slot in _instance.equipment.occupied_slots():
+		var inst := _instance.equipment.get_instance(slot)
+		if inst == null:
+			continue
+		var item := _equipment.load_item(inst.def_id)
+		var name := tr(item.display_name_key) if item != null and not item.display_name_key.is_empty() else String(inst.def_id)
+		_details_box.add_child(_body_label("%s: %s" % [slot, name]))
+		var bonus := _items.resolve_effective_attributes(inst, _modifier)
+		var lines: Array[String] = []
+		for attr in _ATTR_NAMES:
+			var val := int(bonus.get(attr))
+			if val != 0:
+				lines.append("%s %+d" % [attr, val])
+		if lines.is_empty():
+			lines.append("(no stat bonus)")
+		_details_box.add_child(_body_label("  " + ", ".join(lines)))
+		if not inst.modifier_ids.is_empty():
+			_details_box.add_child(_body_label("  mods: %s" % ", ".join(_string_list(inst.modifier_ids))))
 
 func _append_modifiers_by_kind() -> void:
 	var defs := _modifier.resolve(_instance.modifier_ids)

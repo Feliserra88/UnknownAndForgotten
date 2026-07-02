@@ -75,3 +75,12 @@ item.quality.common,Common,Común
 item.quality.uncommon,Uncommon,Poco común
 item.quality.rare,Rare,Raro
 item.quality.epic,Epic,Épico
+item.long_sword_type01.name,Long sword (type 01),Espada larga (tipo 01)
+item.long_sword_type01.desc,A balanced long sword.,Una espada larga equilibrada.
+item.bread_loaf.name,Bread loaf,Pan
+item.bread_loaf.desc,A simple loaf of bread.,Un pan sencillo.
+item.gold_coin.name,Gold coin,Moneda de oro
+item.gold_coin.desc,Standard currency.,Moneda corriente.
+modifier.blade_basic.name,Basic blade,Hoja básica
+modifier.enchanted.name,Enchanted,Encantado
+modifier.oiled.name,Oiled,Aceitado

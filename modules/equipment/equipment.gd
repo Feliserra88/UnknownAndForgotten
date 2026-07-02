@@ -30,15 +30,22 @@ func resolve_visual(item_id: StringName) -> EquipmentVisualDef:
 	var item := load_item(item_id)
 	return item.get_visual() if item != null else null
 
-## Returns the ModifierDef ids granted by equipped instances in [param state].
+## Returns the ModifierDef ids granted by equipped instances in [param state] (unscaled ids only).
 func attribute_modifier_ids(state: EquipmentState) -> Array[StringName]:
-	var out: Array[StringName] = []
-	if state == null:
+	return _items.instance_modifier_ids_from_equipped(state)
+
+## Returns tier-scaled ModifierDefs for all equipped instances.
+func resolve_equipped_modifier_defs(
+	state: EquipmentState,
+	modifier_module: ModifierModule,
+) -> Array[ModifierDef]:
+	var out: Array[ModifierDef] = []
+	if state == null or modifier_module == null:
 		return out
 	for inst in state.equipped_instances():
-		for mid in _items.instance_modifier_ids(inst):
-			if not out.has(mid):
-				out.append(mid)
+		for def in _items.resolve_modifier_defs(inst, modifier_module):
+			if def != null and not _has_modifier_def(out, def.id):
+				out.append(def)
 	return out
 
 ## Returns true when [param instance] can be equipped in [param slot] for [param archetype_tags].
@@ -53,3 +60,9 @@ func can_equip(instance: ItemInstance, slot: StringName, archetype_tags: Array) 
 ## Returns the display icon for an equipped [param instance].
 func resolve_equipped_icon(instance: ItemInstance) -> Texture2D:
 	return _items.resolve_icon(instance)
+
+func _has_modifier_def(defs: Array[ModifierDef], id: StringName) -> bool:
+	for def in defs:
+		if def != null and def.id == id:
+			return true
+	return false

@@ -57,6 +57,15 @@ func add_to_inventory(instance: ItemInstance) -> void:
 		instance.ensure_uid()
 		_inventory.append(instance)
 
+## Removes the instance at [param index] from the portable inventory bag.
+func remove_inventory_at(index: int) -> void:
+	if index >= 0 and index < _inventory.size():
+		_inventory.remove_at(index)
+
+## Replaces the portable inventory with [param instances] (copies of ItemInstance refs).
+func set_inventory(instances: Array) -> void:
+	_inventory = instances.duplicate()
+
 ## Returns a copy of the portable inventory array.
 func inventory_items() -> Array:
 	return _inventory.duplicate()

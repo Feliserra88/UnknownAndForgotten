@@ -113,6 +113,7 @@ func resolve_list_row(
 	target: Variant,
 	preview_state: int = 0,
 	preview_quality: int = 0,
+	preview_modifier_ids: Array = [],
 	modifier_module: ModifierModule = null,
 ) -> Dictionary:
 	var def: ItemDef = null
@@ -131,7 +132,7 @@ func resolve_list_row(
 	)
 	var state_tier := def.get_state_tier(state_idx)
 	var quality_tier := def.get_quality_tier(quality_idx)
-	var mod_ids: Array = instance.modifier_ids if instance != null else []
+	var mod_ids: Array = instance.modifier_ids if instance != null else preview_modifier_ids.duplicate()
 	return {
 		"id": def.id,
 		"display_name_key": def.display_name_key,
@@ -208,6 +209,113 @@ func instance_modifier_ids(instance: ItemInstance) -> Array[StringName]:
 			out.append(mid)
 	return out
 
+## Returns scaled ModifierDefs for [param instance] (state/quality tiers applied to payload modifier).
+func resolve_modifier_defs(instance: ItemInstance, modifier_module: ModifierModule) -> Array[ModifierDef]:
+	var out: Array[ModifierDef] = []
+	if instance == null or modifier_module == null:
+		return out
+	var def := load_def(instance.def_id)
+	if def == null:
+		return out
+	var state_mult := 1.0
+	var quality_mult := 1.0
+	var state_tier := def.get_state_tier(instance.state_index)
+	if state_tier != null:
+		state_mult = state_tier.stat_multiplier
+	var quality_tier := def.get_quality_tier(instance.quality_index)
+	if quality_tier != null:
+		quality_mult = quality_tier.stat_multiplier
+	var tier_mult := state_mult * quality_mult
+	var base_id := def.get_attribute_modifier_id()
+	if not String(base_id).is_empty():
+		var base_def := modifier_module.load_def(base_id)
+		if base_def != null:
+			out.append(_scale_modifier_def(base_def, tier_mult))
+	for mid in instance.modifier_ids:
+		var mod_def := modifier_module.load_def(mid)
+		if mod_def != null and not _has_modifier_id(out, mod_def.id):
+			out.append(mod_def)
+	return out
+
+## Returns attribute bonuses granted by [param instance] alone (empty base AttributeSet).
+func resolve_effective_attributes(
+	instance: ItemInstance,
+	modifier_module: ModifierModule,
+) -> AttributeSet:
+	if instance == null or modifier_module == null:
+		return AttributeSet.new()
+	var defs := resolve_modifier_defs(instance, modifier_module)
+	return modifier_module.apply(AttributeSet.new(), defs)
+
+## Adds [param instance] to [param state] inventory and optionally publishes [GameEvents.INVENTORY_ITEM_ADDED].
+func add_to_inventory(
+	state: EquipmentState,
+	instance: ItemInstance,
+	owner_uid: int = 0,
+	publish_event: bool = true,
+) -> void:
+	if state == null or instance == null:
+		return
+	state.add_to_inventory(instance)
+	if publish_event and not Engine.is_editor_hint():
+		EventBus.publish(GameEvents.INVENTORY_ITEM_ADDED, {
+			"owner_uid": owner_uid,
+			"instance_uid": instance.instance_uid,
+			"def_id": instance.def_id,
+			"count": instance.count,
+		})
+
+## Removes the instance with [param instance_uid] from [param state] inventory; returns true when found.
+func remove_from_inventory(state: EquipmentState, instance_uid: String) -> bool:
+	if state == null or instance_uid.is_empty():
+		return false
+	var items := state.inventory_items()
+	for i in items.size():
+		var inst: ItemInstance = items[i]
+		if inst != null and inst.instance_uid == instance_uid:
+			state.remove_inventory_at(i)
+			return true
+	return false
+
+## Returns the inventory instance with [param instance_uid], or null.
+func find_instance(state: EquipmentState, instance_uid: String) -> ItemInstance:
+	if state == null or instance_uid.is_empty():
+		return null
+	for inst in state.inventory_items():
+		if inst is ItemInstance and (inst as ItemInstance).instance_uid == instance_uid:
+			return inst
+	return null
+
+## Returns total carried weight for portable inventory entries in [param state].
+func inventory_total_weight(state: EquipmentState) -> float:
+	var total := 0.0
+	if state == null:
+		return total
+	for inst in state.inventory_items():
+		if inst is ItemInstance:
+			var def := load_def((inst as ItemInstance).def_id)
+			if def != null:
+				total += def.weight * maxi((inst as ItemInstance).count, 1)
+	return total
+
+func _scale_modifier_def(source: ModifierDef, multiplier: float) -> ModifierDef:
+	var scaled := source.duplicate(true) as ModifierDef
+	var additive: Dictionary = {}
+	for key in scaled.additive:
+		additive[key] = int(round(float(scaled.additive[key]) * multiplier))
+	scaled.additive = additive
+	var multiplicative: Dictionary = {}
+	for key in scaled.multiplicative:
+		multiplicative[key] = float(scaled.multiplicative[key]) * multiplier
+	scaled.multiplicative = multiplicative
+	return scaled
+
+func _has_modifier_id(defs: Array[ModifierDef], id: StringName) -> bool:
+	for def in defs:
+		if def != null and def.id == id:
+			return true
+	return false
+
 func _slice_strip(tex: Texture2D, column: int, cell_size: Vector2i) -> AtlasTexture:
 	var atlas := AtlasTexture.new()
 	atlas.atlas = tex
@@ -243,6 +351,17 @@ func _make_quality_tier(
 	tier.stat_multiplier = stat_mult
 	tier.price_multiplier = price_mult
 	return tier
+
+## Returns combined ModifierDef ids from every equipped instance (for display lists).
+func instance_modifier_ids_from_equipped(state: EquipmentState) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if state == null:
+		return out
+	for inst in state.equipped_instances():
+		for mid in instance_modifier_ids(inst):
+			if not out.has(mid):
+				out.append(mid)
+	return out
 
 func _open_dir(dir_path: String) -> DirAccess:
 	var dir := DirAccess.open(dir_path)
