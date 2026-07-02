@@ -36,6 +36,7 @@ func _init() -> void:
 	margin.add_theme_constant_override("margin_bottom", 8)
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.clip_contents = true
 	add_child(margin)
 
 	var inner := VBoxContainer.new()
@@ -130,6 +131,7 @@ func refresh() -> void:
 					var ctrl := row as Control
 					ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 					_list_box.add_child(ctrl)
+		_sync_scroll_area()
 		return
 	var defs := _query_defs()
 	if defs.is_empty():
@@ -179,6 +181,19 @@ func _add_empty_row() -> void:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
 	_list_box.add_child(label)
+	_sync_scroll_area()
+
+func _sync_scroll_area() -> void:
+	if _list_box != null:
+		_list_box.queue_sort()
+	if _scroll != null:
+		call_deferred("_deferred_sync_scroll_area")
+
+func _deferred_sync_scroll_area() -> void:
+	if _scroll == null or not is_instance_valid(_scroll):
+		return
+	_scroll.update_minimum_size()
+	_scroll.queue_sort()
 
 func _on_tag_filter_changed(active_tags: Array[StringName]) -> void:
 	refresh()

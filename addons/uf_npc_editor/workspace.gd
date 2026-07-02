@@ -275,6 +275,8 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 
 	_item_filter_list = _ITEM_FILTER_LIST.new()
 	_item_filter_list.setup(_items, &"", _ITEMS_PANEL_MIN_H)
+	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.add_child(_item_filter_list)
 	return center
 
