@@ -753,7 +753,7 @@ func _populate_item_modifiers() -> void:
 		_modifier_option.add_item(_T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id))
 		_modifier_option.set_item_metadata(_modifier_option.item_count - 1, def.id)
 
-func _refresh_preview_summary() -> void:
+func _refresh_preview_panel() -> void:
 	_refresh_preview_icon()
 	_refresh_preview_summary()
 

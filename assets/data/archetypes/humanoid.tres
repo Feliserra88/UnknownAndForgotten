@@ -9,12 +9,12 @@
 [ext_resource type="Script" uid="uid://ch8mgg15xpnfw" path="res://modules/npc/npc_archetype.gd" id="7_ap67b"]
 [ext_resource type="Script" uid="uid://7wl2cr2yd8j1" path="res://modules/equipment/equipment_slot_map.gd" id="8_eqmap"]
 [ext_resource type="Resource" uid="uid://80rbw4orj42n" path="res://assets/visuals/parts/humanoid_inspection_layout.tres" id="9_layout"]
-[ext_resource type="Resource" uid="uid://dd1mp5fu85rnl" path="res://assets/visuals/parts/human/male/defs/dummy_body.tres" id="10_body"]
-[ext_resource type="Resource" uid="uid://ctjmjarjm45d7" path="res://assets/visuals/parts/human/male/defs/dummy_head.tres" id="11_head"]
-[ext_resource type="Resource" uid="uid://b4gop4t4ucfdh" path="res://assets/visuals/parts/human/male/defs/dummy_arm_left.tres" id="12_arm_l"]
-[ext_resource type="Resource" uid="uid://brnkaet8g22xe" path="res://assets/visuals/parts/human/male/defs/dummy_arm_right.tres" id="13_arm_r"]
-[ext_resource type="Resource" uid="uid://di5tp7kmbyvuo" path="res://assets/visuals/parts/human/male/defs/dummy_leg_left.tres" id="14_leg_l"]
-[ext_resource type="Resource" uid="uid://cqrdelkv5eh0b" path="res://assets/visuals/parts/human/male/defs/dummy_leg_right.tres" id="15_leg_r"]
+[ext_resource type="Resource" uid="uid://cd0pa8i4vo41y" path="res://assets/visuals/parts/human/male/defs/naked_body.tres" id="10_body"]
+[ext_resource type="Resource" uid="uid://bv22em1rbavci" path="res://assets/visuals/parts/human/male/defs/naked_head.tres" id="11_head"]
+[ext_resource type="Resource" uid="uid://biphk8drnp2cx" path="res://assets/visuals/parts/human/male/defs/naked_arm_left.tres" id="12_arm_l"]
+[ext_resource type="Resource" uid="uid://bhskucbxndfik" path="res://assets/visuals/parts/human/male/defs/naked_arm_right.tres" id="13_arm_r"]
+[ext_resource type="Resource" uid="uid://b81v7ikf1aw4l" path="res://assets/visuals/parts/human/male/defs/naked_leg_left.tres" id="14_leg_l"]
+[ext_resource type="Resource" uid="uid://c5ll7mxcocjga" path="res://assets/visuals/parts/human/male/defs/naked_leg_right.tres" id="15_leg_r"]
 
 [sub_resource type="Resource" id="Resource_lbqoq"]
 script = ExtResource("1_cbgoy")

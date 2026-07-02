@@ -66,8 +66,8 @@ godot --headless --path . --script res://tools/build_human_cutout_part_defs.gd -
 |------|----------------|
 | body | torso with simple leather loincloth, bare chest, no head/arms/legs |
 | head | male head, short dark hair, no body |
-| arm_left / arm_right | isolated arm + hand |
-| leg_left / leg_right | isolated leg + foot |
+| arm_left / arm_right | isolated bare skin arm and hand, NO gloves NO bracers NO sleeves |
+| leg_left / leg_right | isolated bare skin leg and bare foot, NO boots NO armor NO wraps |
 
 **PixelLab → Godot:** south=`front`, north=`back`, east=`side_right`, west=flip east.
 
@@ -91,6 +91,36 @@ Symmetric base body uses **flip** for west (`side_left`). Overlays that break sy
 
 Plan this when adding injury/equipment layers that are not mirrorable.
 
-## `_dummy` set
+## Cribado manual (neutral base)
+
+PixelLab a veces añade **equipo** (guanteletes, botas, etc.) aunque el prompt pida piel desnuda. **No promover a `naked/` sin revisar.**
+
+### Flujo
+
+1. Lote crudo en `_pixellab_inbox/v1/` (copia de referencia).
+2. Revisar cada PNG; actualizar `curation_status.json` (`approved` | `derived` | `reject` | `missing`).
+3. **Aprobado** → `naked/<part>/`
+4. **Derivado** (sirve para equipo/variante) → `derived/equipment_ref/`
+5. **Huecos** → regenerar solo esa parte con prompt estricto (nuevo object_id).
+6. `build_human_cutout_part_defs.gd` cuando `naked/` esté completo.
+
+### Sospechas lote v1 (pre-cribado)
+
+| Parte | Riesgo |
+|-------|--------|
+| body, head | Probablemente OK (taparrabos / cabeza neutra) |
+| arm_left, arm_right | Previews con bracer/guante — **revisar todo el set** |
+| leg_left, leg_right | Previews con bota/greba — **revisar todo el set** |
+| leg_right walk | **Faltan 3 PNG** (job PixelLab falló en cola) |
+
+### Prompts regeneración (más estrictos)
+
+Añadir siempre: `NO armor NO boots NO gloves NO bracers NO clothing except loincloth on torso`
+
+| Part | Prompt extra |
+|------|----------------|
+| arm_* | bare skin arm and open hand only, NO gloves NO bracers NO sleeves |
+| leg_* | bare skin leg and bare foot only, NO boots NO greaves NO wraps |
+
 
 Legacy coloured rectangles for editor/tests. **Not final art.** Kept so the project runs before PixelLab import completes.

@@ -1,22 +1,24 @@
 [gd_resource type="Resource" script_class="PartVisualDef" format=3]
 
-[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_i5lj4"]
-[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/front_idle.png" id="2_h4nc3"]
-[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/back_idle.png" id="3_00eda"]
-[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/side_right_idle.png" id="4_mdmh8"]
-[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/front_walk.png" id="5_lowp0"]
-[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/back_walk.png" id="6_l8dl0"]
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_h4nc3"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/front_idle.png" id="2_00eda"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/back_idle.png" id="3_mdmh8"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/side_right_idle.png" id="4_lowp0"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/front_walk.png" id="5_l8dl0"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/back_walk.png" id="6_bp6m8"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/leg_left/side_right_walk.png" id="7_rtk0y"]
 
 [resource]
-script = ExtResource("1_i5lj4")
+script = ExtResource("1_h4nc3")
 part_id = &"leg_left"
 textures = {
-&"back": ExtResource("3_00eda"),
-&"front": ExtResource("2_h4nc3"),
-&"side_right": ExtResource("4_mdmh8")
+&"back": ExtResource("3_mdmh8"),
+&"front": ExtResource("2_00eda"),
+&"side_right": ExtResource("4_lowp0")
 }
 walk_textures = {
-&"back": ExtResource("6_l8dl0"),
-&"front": ExtResource("5_lowp0")
+&"back": ExtResource("6_bp6m8"),
+&"front": ExtResource("5_l8dl0"),
+&"side_right": ExtResource("7_rtk0y")
 }
 offset = Vector2(-6, 22)
