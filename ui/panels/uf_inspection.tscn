@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://1u12p8pj2baq"]
+
+[ext_resource type="PackedScene" uid="uid://1ro8v8hbpg1g" path="res://ui/templates/uf_panel_ingame.tscn" id="1_bix6e"]
+
+[node name="UfPanelIngame" unique_id=1509646719 instance=ExtResource("1_bix6e")]

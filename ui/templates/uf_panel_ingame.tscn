@@ -38,13 +38,14 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Chrome" type="HBoxContainer" parent="Layout/Header/Body" unique_id=1713058300]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -70.0
-offset_top = 2.0
-offset_right = -4.0
-offset_bottom = 24.0
+offset_left = -85.0
+offset_top = -36.0
+offset_right = 39.0
+offset_bottom = 4.0
 grow_horizontal = 0
 mouse_filter = 0
 theme_override_constants/separation = 2

@@ -1,10 +1,10 @@
-# Equipment & loot icons
+# Equipment slot icons (`icons/`)
 
 Pixel art inventory icons, dark medieval fantasy, `top-down`, 64×64.
 
-## Batch A — generic slot icons (`generic/`)
+## Generic slot icons (`generic/`)
 
-UI placeholders for equipment **slot types** (not specific items).
+UI placeholders for equipment **slot types** (not specific loot items).
 
 | id | File |
 |----|------|
@@ -21,11 +21,14 @@ UI placeholders for equipment **slot types** (not specific items).
 
 **Tool:** `create_1_direction_object` (size 64, view top-down).
 
-## Batch B — loot weapons (`loot/`)
+## Loot item sprites (sibling folders)
 
-See `loot/README.md`. Structure: `loot/<weapon>/type01..type16/icon.png`.
+Concrete loot art lives next to this folder — not under `icons/`:
 
-Quality variants (`pristine` … `battered`) are added per type when curated.
+| Folder | Content |
+|--------|---------|
+| `../weapons/` | Weapon sprites (`type01`…`type16` per category) — see `../weapons/README.md` |
+| `../shields/` | Shield sprites — see `../shields/README.md` |
 
 ## Jobs
 
