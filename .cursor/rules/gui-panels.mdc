@@ -14,7 +14,8 @@ Ver `docs/GAME_DESIGN.md` §10. Basado en controles Godot (`Control`, contenedor
 - **Movible** solo vía asa/barra de arrastre (`DragHandle` + `gui_input`); no arrastrar desde contenido interactivo.
 - Especializaciones **no** reimplementan drag ni chrome común del padre.
 - Widgets atómicos en `res://ui/widgets/` (`UfButton`, `UfGridContainer`, `UfList`, `UfLayoutRegion`…); sin lógica de dominio.
-- Paneles de dominio en `res://ui/domain/`; artistas los componen instanciando `ui/panels/` + `ui/widgets/` (§10.9).
+- Plantillas base en `res://ui/templates/` (`uf_panel`, `uf_tabbed_panel`, …).
+- Paneles de juego en `res://ui/panels/`; artistas los componen instanciando `ui/templates/` + `ui/widgets/` (§10.9).
 - Herramientas de editor opcionales en `res://addons/uf_gui_tools/` (`EditorPlugin`); ver norma general `editor-artist-tools.mdc`.
 - Texto visible → claves + `tr()` (`label_key`, `title_key`).
 

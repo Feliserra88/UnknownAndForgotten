@@ -1,8 +1,8 @@
 extends CanvasLayer
-## HUD for world_root: loads domain panels from ui/domain/ and toggles them via Input Map.
+## HUD for world_root: loads game panels from ui/panels/ and toggles them via Input Map.
 
 const _LOG := "GUI"
-const _DEFAULT_INVENTORY := "res://ui/domain/inventory_panel.tscn"
+const _DEFAULT_INVENTORY := "res://ui/panels/uf_inventory.tscn"
 
 @export var inventory_panel_path: String = _DEFAULT_INVENTORY
 

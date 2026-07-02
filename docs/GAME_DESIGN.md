@@ -935,18 +935,19 @@ Contenedores anidados para layouts complejos (patrón recomendado por Godot para
 ```
 res://ui/
 ├── theme/                    # Theme global
+├── templates/                # Escenas base reutilizables (plantillas)
+│   ├── uf_panel.tscn         # Padre: movible + chrome mínimo
+│   ├── uf_tabbed_panel.tscn
+│   ├── uf_dialog_panel.tscn  # Aceptar / Cancelar
+│   ├── uf_info_panel.tscn    # Informativo + cerrar
+│   └── uf_inspection_panel.tscn
 ├── widgets/                  # Elementos atómicos reutilizables
 │   ├── uf_button.tscn
 │   ├── uf_grid_container.tscn
 │   ├── uf_list.tscn
 │   └── …
-├── panels/                   # Escenas base de panel
-│   ├── uf_panel.tscn         # Padre: movible + chrome mínimo
-│   ├── uf_tabbed_panel.tscn
-│   ├── uf_dialog_panel.tscn  # Aceptar / Cancelar
-│   └── uf_info_panel.tscn    # Informativo + cerrar
-└── domain/                   # Paneles de juego (componen panels + widgets)
-    ├── inventory_panel.tscn
+└── panels/                   # Paneles de juego concretos (componen templates + widgets)
+    ├── uf_inventory.tscn
     ├── status_panel.tscn
     ├── skills_panel.tscn
     └── spells_panel.tscn
@@ -954,7 +955,7 @@ res://ui/
 
 Scripts de módulo en `res://modules/gui/` (fachada pública) con implementación en `_private/` según arquitectura.
 
-**Implementación actual:** los tipos base son scripts con `class_name` en `res://modules/gui/` (paneles) y `res://modules/gui/widgets/` (widgets); construyen su estructura (Header/ContentSlot) por código de forma idempotente. En `res://ui/` viven el `theme/` y los paneles de dominio generados (`domain/`). El plugin `uf_gui_tools` compone `UfPanel` + widgets y los guarda como `PackedScene` en `ui/domain/`, reutilizables como assets.
+**Implementación actual:** los tipos base son scripts con `class_name` en `res://modules/gui/` (paneles) y `res://modules/gui/widgets/` (widgets); construyen su estructura (Header/ContentSlot) por código de forma idempotente. En `res://ui/` viven el `theme/`, las plantillas en `templates/`, los widgets en `widgets/` y los paneles de juego en `panels/`. El plugin `uf_gui_tools` compone `UfPanel` + widgets y los guarda como `PackedScene` en `ui/panels/`, reutilizables como assets.
 
 ### 10.4 Clase base `UfPanel`
 
@@ -1070,17 +1071,17 @@ Los artistas pueden montar paneles concretos (inventario, hechizos, etc.) **a ma
 
 | Mecanismo Godot | Uso para artistas |
 |-----------------|-------------------|
-| **Escena instanciada / heredada** | Duplicar `uf_panel.tscn` o `uf_tabbed_panel.tscn` → guardar en `ui/domain/` como `inventory_panel.tscn` |
+| **Escena instanciada / heredada** | Duplicar `uf_panel.tscn` o `uf_tabbed_panel.tscn` desde `ui/templates/` → guardar en `ui/panels/` como `uf_inventory.tscn` |
 | **`class_name` + `@icon`** en `UfPanel`, widgets | Nodos aparecen en el diálogo “Añadir nodo” con icono |
 | **`@tool`** en scripts base | Previsualización en editor (layout, asa de arrastre) |
 | **`Theme`** en `ui/theme/` | Estilo unificado; artista retoca una vez, aplica a todos los widgets |
 
 Flujo típico del artista:
 
-1. Instanciar `uf_panel.tscn` (o `uf_tabbed_panel.tscn`).
-2. Dentro de `ContentSlot`, instanciar `UfGridContainer`, `UfList`, `UfButton`, etc.
+1. Instanciar `uf_panel.tscn` (o `uf_tabbed_panel.tscn`) desde `res://ui/templates/`.
+2. Dentro de `ContentSlot`, instanciar `UfGridContainer`, `UfList`, `UfButton`, etc. desde `res://ui/widgets/`.
 3. Ajustar layout con contenedores Godot (arrastrar en el editor 2D).
-4. Guardar en `res://ui/domain/inventory_panel.tscn`.
+4. Guardar en `res://ui/panels/uf_inventory.tscn` (u otro nombre descriptivo).
 5. El programador enlaza el panel al módulo de dominio (`equipment`, etc.) — **sin** mover nodos a mano en código.
 
 #### Plugins de editor (`addons/`)
@@ -1089,7 +1090,7 @@ Ubicación: `res://addons/uf_gui_tools/` (plugin del proyecto, activable en *Pro
 
 | Herramienta | API Godot | Propósito |
 |-------------|-----------|-----------|
-| **Plantillas de panel** | `EditorPlugin` + menú contextual | “Crear panel → Inventario / Hechizos / Estado” instanciando escena base en `ui/domain/` |
+| **Plantillas de panel** | `EditorPlugin` + menú contextual | “Crear panel → Inventario / Hechizos / Estado” instanciando escena base desde `ui/templates/` y guardando en `ui/panels/` |
 | **Dock de biblioteca UI** | `EditorPlugin.add_dock()` | Paleta con widgets `Uf*` para arrastrar o instanciar |
 | **Nodos registrados** | `@tool` + `class_name` + `@icon` | `UfPanel`, `UfGridContainer` en el árbol de nodos |
 | **Inspector custom** | `EditorInspectorPlugin` | Editar `title_key`, `label_key` con selector de claves de locale |
@@ -1105,14 +1106,14 @@ func _enter_tree() -> void:
 	add_tool_menu_item("Create UF Inventory Panel", _create_inventory_panel)
 
 func _create_inventory_panel() -> void:
-	var panel := preload("res://ui/panels/uf_panel.tscn").instantiate()
+	var panel := preload("res://ui/templates/uf_panel.tscn").instantiate()
 	# Abrir como escena nueva o insertar en escena activa (EditorInterface)
 ```
 
 #### Reglas para herramientas de artista
 
-- Las herramientas **solo generan/componen escenas** con nodos ya definidos en `ui/panels/` y `ui/widgets/`; no duplican lógica del módulo `gui`.
-- Paneles creados por artistas → **`res://ui/domain/`**; bases reutilizables → **`ui/panels/`**, **`ui/widgets/`**.
+- Las herramientas **solo generan/componen escenas** con nodos ya definidos en `ui/templates/` y `ui/widgets/`; no duplican lógica del módulo `gui`.
+- Paneles de juego creados por artistas → **`res://ui/panels/`**; plantillas reutilizables → **`ui/templates/`**, widgets atómicos → **`ui/widgets/`**.
 - Scripts `@tool` del editor **no** van en builds de juego salvo que sean también runtime; preferir carpeta `addons/` separada.
 - Toda cadena visible que el artista escriba en inspector → **`title_key` / `label_key`**, nunca texto final en español en la escena.
 

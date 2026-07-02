@@ -4,5 +4,5 @@
 
 [node name="UfGridContainer" type="GridContainer" unique_id=743921275]
 size_flags_horizontal = 3
-columns = 4
+columns = 2
 script = ExtResource("1_grid")

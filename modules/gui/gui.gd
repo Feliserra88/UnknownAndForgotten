@@ -2,12 +2,13 @@
 class_name GuiModule
 extends Node
 ## Public facade for game UI (see docs/GAME_DESIGN.md section 10). Creates movable UfPanel
-## instances, loads saved domain panel assets and applies the shared theme. Domain panels built
-## by the uf_gui_tools plugin are saved as PackedScene assets under res://ui/domain/.
+## instances, loads saved game panel assets and applies the shared theme. Panels built
+## by the uf_gui_tools plugin are saved as PackedScene assets under res://ui/panels/.
 
 const _LOG := "GUI"
 const THEME_PATH := "res://ui/theme/uf_theme.tres"
-const DOMAIN_DIR := "res://ui/domain"
+const PANELS_DIR := "res://ui/panels"
+const TEMPLATES_DIR := "res://ui/templates"
 
 ## Maps a panel kind to the script that implements it.
 const _PANEL_SCRIPTS := {
@@ -20,11 +21,11 @@ const _PANEL_SCRIPTS := {
 
 ## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
 const PANEL_SCENES := {
-	&"panel": "res://ui/panels/uf_panel.tscn",
-	&"info": "res://ui/panels/uf_info_panel.tscn",
-	&"dialog": "res://ui/panels/uf_dialog_panel.tscn",
-	&"tabbed": "res://ui/panels/uf_tabbed_panel.tscn",
-	&"inspection": "res://ui/panels/uf_inspection_panel.tscn",
+	&"panel": "res://ui/templates/uf_panel.tscn",
+	&"info": "res://ui/templates/uf_info_panel.tscn",
+	&"dialog": "res://ui/templates/uf_dialog_panel.tscn",
+	&"tabbed": "res://ui/templates/uf_tabbed_panel.tscn",
+	&"inspection": "res://ui/templates/uf_inspection_panel.tscn",
 }
 
 const WIDGET_SCENES := {
@@ -114,7 +115,7 @@ func _palette_entries(scene_map: Dictionary) -> Array:
 		})
 	return entries
 
-## Loads a saved domain panel PackedScene from [param path] and returns a fresh instance, or null.
+## Loads a saved game panel PackedScene from [param path] and returns a fresh instance, or null.
 func load_panel(path: String) -> UfPanel:
 	if not ResourceLoader.exists(path):
 		Log.warn(_LOG, "load_panel: missing %s" % path)

@@ -41,7 +41,7 @@ func _build() -> void:
 	add_child(HSeparator.new())
 	_title_label("Batch create asset")
 	var batch_hint := Label.new()
-	batch_hint.text = "Or compose via checkboxes and save a domain panel under res://ui/domain/."
+	batch_hint.text = "Or compose via checkboxes and save a game panel under res://ui/panels/."
 	batch_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(batch_hint)
 

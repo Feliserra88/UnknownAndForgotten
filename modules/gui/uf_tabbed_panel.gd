@@ -1,5 +1,5 @@
 @tool
-@icon("res://ui/panels/icons/tabbed.svg")
+@icon("res://ui/templates/icons/tabbed.svg")
 class_name UfTabbedPanel
 extends UfPanel
 ## Panel hosting a TabContainer inside the content slot; tabs are added via [method add_tab]

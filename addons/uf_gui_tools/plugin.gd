@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 ## GUI tools plugin: composes domain panels through the gui module public API (UfPanel + Uf*
-## widgets) and saves them as reusable PackedScene assets under res://ui/domain/
+## widgets) and saves them as reusable PackedScene assets under res://ui/panels/
 ## (see docs/GAME_DESIGN.md section 10.9). No domain logic is duplicated here.
 
 const _DockScript := preload("res://addons/uf_gui_tools/dock.gd")
@@ -24,7 +24,7 @@ func _exit_tree() -> void:
 	_gui = null
 
 ## Builds a domain panel of [param kind] with [param title_key] and the widget ids in
-## [param widgets], then saves it as res://ui/domain/<panel_id>.tscn. Returns the saved path or "".
+## [param widgets], then saves it as res://ui/panels/<panel_id>.tscn. Returns the saved path or "".
 func create_domain_panel(panel_id: String, kind: StringName, title_key: String, widgets: Array) -> String:
 	var clean_id := panel_id.strip_edges()
 	if clean_id.is_empty():
@@ -53,14 +53,14 @@ func _build_widget(id: String) -> Control:
 	return widget
 
 func _save_panel(panel: UfPanel, panel_id: String) -> String:
-	DirAccess.make_dir_recursive_absolute(GuiModule.DOMAIN_DIR)
+	DirAccess.make_dir_recursive_absolute(GuiModule.PANELS_DIR)
 	_set_owner_recursive(panel, panel)
 	var scene := PackedScene.new()
 	var pack_result := scene.pack(panel)
 	if pack_result != OK:
 		set_dock_status("Pack failed (%d)." % pack_result)
 		return ""
-	var path := "%s/%s.tscn" % [GuiModule.DOMAIN_DIR, panel_id]
+	var path := "%s/%s.tscn" % [GuiModule.PANELS_DIR, panel_id]
 	var save_result := ResourceSaver.save(scene, path)
 	if save_result != OK:
 		set_dock_status("Save failed (%d)." % save_result)

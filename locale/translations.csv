@@ -38,6 +38,7 @@ gui.inventory.title,Inventory,Inventario
 gui.inspection.title,Inspection,InspecciÃ³n
 gui.sample.label,Sample Label,Etiqueta de ejemplo
 gui.sample.button,Sample Button,BotÃ³n de ejemplo
+gui.placeholder.list_item,List item,Elemento de lista
 faction.dummy.name,Dummy faction,FacciÃ³n dummy
 modifier.dummy.name,Dummy trait,Rasgo dummy
 item.equipo_humano_cabeza_dummy.name,Dummy head (human),Cabeza dummy (humano)

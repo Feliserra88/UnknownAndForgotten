@@ -100,7 +100,7 @@ Key principle: `npc` stays loosely coupled — it references factions/modifiers/
 
 - `modules/gui/uf_inspection_panel.gd` — `class_name UfInspectionPanel extends UfInfoPanel`: `build_from_layout(layout: InspectionLayoutDef)` creates a background `TextureRect` inside a `UfLayoutRegion` + one `UfEquipmentSlot` per layout slot. Signals: `slot_activated(slot_id)`, `item_dropped(slot_id, payload)`, `item_removed(slot_id)`. No domain types imported.
 - `modules/gui/widgets/uf_equipment_slot.gd` — `class_name UfEquipmentSlot extends Panel`: square cell, shows an icon; implements `_get_drag_data` / `_can_drop_data` / `_drop_data` with an opaque payload dict; emits the panel signals. Mirrors the drag pattern in [addons/uf_gui_tools/palette_item.gd](addons/uf_gui_tools/palette_item.gd).
-- Scenes/icons: `ui/panels/uf_inspection_panel.tscn`, `ui/widgets/uf_equipment_slot.tscn` (+ icons). Register in [modules/gui/gui.gd](modules/gui/gui.gd) (`_PANEL_SCRIPTS`, `WIDGET_SCENES`, palette).
+- Scenes/icons: `ui/templates/uf_inspection_panel.tscn`, `ui/widgets/uf_equipment_slot.tscn` (+ icons). Register in [modules/gui/gui.gd](modules/gui/gui.gd) (`_PANEL_SCRIPTS`, `WIDGET_SCENES`, palette).
 
 ## Editor plugin `addons/uf_npc_editor/`
 

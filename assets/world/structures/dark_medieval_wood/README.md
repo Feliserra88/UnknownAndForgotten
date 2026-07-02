@@ -17,12 +17,12 @@ dark_medieval_wood/
 │   ├── floor_rotten.tres
 │   └── art/*.png                        # PNG seamless (PixelLab thin tile)
 └── pieces/
-    ├── wall_straight.tres               # StructurePieceDef
-    ├── wall_corner.tres
-    ├── door_closed.tres
-    ├── window_shuttered.tres
-    ├── roof_slope.tres                  # sin textura hasta tener arte bueno
-    └── art/*.png                        # PNG vertical (PixelLab map_object)
+	├── wall_straight.tres               # StructurePieceDef
+	├── wall_corner.tres
+	├── door_closed.tres
+	├── window_shuttered.tres
+	├── roof_slope.tres                  # sin textura hasta tener arte bueno
+	└── art/*.png                        # PNG vertical (PixelLab map_object)
 ```
 
 **Regla:** cada `.tres` vive junto a su categoría; el PNG va en `art/` del mismo nivel. No usar `art/pieces/` suelto ni mezclar PNG con `.tres` en la misma carpeta.
