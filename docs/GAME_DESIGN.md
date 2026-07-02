@@ -921,7 +921,7 @@ La UI del juego se organiza en **paneles movibles** y **widgets reutilizables**,
 | Necesidad | API Godot |
 |-----------|-----------|
 | Layout | `VBoxContainer`, `HBoxContainer`, `GridContainer`, `MarginContainer`, `ScrollContainer` |
-| Panel con fondo | `PanelContainer` + `Theme` / StyleBox |
+| Panel con fondo | `PanelContainer` + `Theme` / `StyleBoxTexture` (nine-patch con `texture_margin_*`) o `StyleBoxFlat` |
 | Pestañas | `TabContainer` (hijo de panel especializado) |
 | Listas | `ItemList`, `Tree` o widget custom sobre `ScrollContainer` |
 | Botones | `Button`, `TextureButton` |
@@ -1058,7 +1058,7 @@ El panel se suscribe a datos del módulo `equipment` / `NpcInstanceData` vía AP
 - Toda ventana de juego es un **`UfPanel`** o subclase.
 - Arrastre solo desde **asa/barra** definida, no desde todo el panel (evita conflictos con clics en contenido).
 - Nuevos paneles (mapa, diálogo NPC, crafteo…) → extender base o componer widgets existentes.
-- Estilos centralizados en **`Theme`**; evitar StyleBox duplicados por escena.
+- Estilos centralizados en **`Theme`** (`res://ui/theme/uf_theme.tres`); marco con sprites vía **`StyleBoxTexture`** y márgenes nine-patch (`ui/theme/panel_frame.*` placeholder); evitar StyleBox duplicados por escena.
 - Identificadores en **inglés**; textos en `res://locale/`.
 
 ### 10.9 Herramientas de editor para GUI

@@ -20,10 +20,11 @@ var _structure_piece: OptionButton
 var _layer: OptionButton
 var _mode: OptionButton
 var _preset_path: LineEdit
-var _map_name: LineEdit
 var _map_list: ItemList
+var _map_list_panel: Control
+var _rename_line: LineEdit
+var _rename_index: int = -1
 var _open_dialog: EditorFileDialog
-var _save_dialog: EditorFileDialog
 var _status: Label
 
 func setup(plugin: EditorPlugin) -> void:
@@ -52,24 +53,34 @@ func _build() -> void:
 
 	_title("UF Map Editor")
 	var hint := Label.new()
-	hint.text = "New/Open map opens map_editor_workspace.tscn automatically. Baked tiles live under res://local/world/maps/ (gitignored) or res://assets/world/maps/."
+	hint.text = "New maps are saved under res://local/world/maps/. Double-click a list entry to rename. Move finished maps to res://assets/world/maps/ manually."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_add(hint)
 
 	_separator()
 	_title("Maps")
-	_map_name = _line("editor_session")
+	_map_list_panel = Control.new()
+	_map_list_panel.custom_minimum_size = Vector2(0, 88)
+	_map_list_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_add(_map_list_panel)
+
 	_map_list = ItemList.new()
-	_map_list.custom_minimum_size = Vector2(0, 88)
-	_map_list.item_activated.connect(_on_map_activated)
-	_add(_map_list)
+	_map_list.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_map_list.item_activated.connect(_on_map_rename_begin)
+	_map_list_panel.add_child(_map_list)
+
+	_rename_line = LineEdit.new()
+	_rename_line.visible = false
+	_rename_line.focus_exited.connect(_on_rename_commit)
+	_rename_line.text_submitted.connect(_on_rename_submitted)
+	_map_list_panel.add_child(_rename_line)
 
 	var map_grid := _grid()
 	_grid_button(map_grid, "Refresh list", _on_refresh_maps_pressed)
 	_grid_button(map_grid, "New map", _on_new_map_pressed)
+	_grid_button(map_grid, "Open map", _on_open_selected_pressed)
 	_grid_button(map_grid, "Open file…", _on_open_file_pressed)
 	_grid_button(map_grid, "Save map", _on_save_current_pressed)
-	_grid_button(map_grid, "Save as…", _on_save_as_pressed)
 	_grid_button(map_grid, "Duplicate", _on_duplicate_pressed)
 	_add(map_grid)
 
@@ -79,12 +90,6 @@ func _build() -> void:
 	_open_dialog.add_filter("*.tscn", "Baked map scene")
 	_open_dialog.file_selected.connect(_on_open_dialog_selected)
 	add_child(_open_dialog)
-	_save_dialog = EditorFileDialog.new()
-	_save_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
-	_save_dialog.access = EditorFileDialog.ACCESS_RESOURCES
-	_save_dialog.add_filter("*.tscn", "Baked map scene")
-	_save_dialog.file_selected.connect(_on_save_dialog_selected)
-	add_child(_save_dialog)
 
 	_separator()
 	_title("Area / seed")
@@ -160,6 +165,7 @@ func _build() -> void:
 func refresh_map_browser() -> void:
 	if _map_list == null:
 		return
+	_cancel_rename()
 	var paths: Variant = _plugin_call(&"list_maps")
 	if paths == null:
 		return
@@ -208,17 +214,52 @@ func _on_refresh_maps_pressed() -> void:
 	refresh_map_browser()
 
 func _on_new_map_pressed() -> void:
-	_plugin_call(&"new_map", [_map_name.text, _region()])
+	_plugin_call(&"new_map", [_region()])
 
 func _on_open_selected_pressed() -> void:
 	var path := _selected_map_path()
 	if path.is_empty():
-		set_status("Double-click a map in the list, or use Open file…")
+		set_status("Select a map, then Open map.")
 		return
 	_plugin_call(&"open_map", [path])
 
-func _on_map_activated(_index: int) -> void:
-	_on_open_selected_pressed()
+func _on_map_rename_begin(index: int) -> void:
+	if index < 0 or index >= _map_paths.size():
+		return
+	_rename_index = index
+	_rename_line.text = _map_paths[index].get_file().get_basename()
+	_rename_line.visible = true
+	call_deferred("_position_rename_line", index)
+	_rename_line.grab_focus()
+	_rename_line.select_all()
+
+func _position_rename_line(index: int) -> void:
+	if _map_list == null or _rename_line == null:
+		return
+	var rect := _map_list.get_item_rect(index, true)
+	_rename_line.position = rect.position
+	_rename_line.size = rect.size
+
+func _on_rename_submitted(_text: String) -> void:
+	_on_rename_commit()
+
+func _on_rename_commit() -> void:
+	if _rename_index < 0 or not _rename_line.visible:
+		return
+	var old_path := _map_paths[_rename_index]
+	var new_id := _rename_line.text.strip_edges()
+	_rename_line.visible = false
+	_rename_index = -1
+	if new_id.is_empty():
+		return
+	if WorldModule.sanitize_map_id(new_id) == old_path.get_file().get_basename():
+		return
+	_plugin_call(&"rename_map", [old_path, new_id])
+
+func _cancel_rename() -> void:
+	if _rename_line != null:
+		_rename_line.visible = false
+	_rename_index = -1
 
 func _on_open_file_pressed() -> void:
 	if _open_dialog == null:
@@ -232,22 +273,12 @@ func _on_open_dialog_selected(path: String) -> void:
 func _on_save_current_pressed() -> void:
 	_plugin_call(&"save_current_map")
 
-func _on_save_as_pressed() -> void:
-	if _save_dialog == null:
-		return
-	_save_dialog.current_dir = WorldModule.LOCAL_MAPS_DIR
-	_save_dialog.current_file = "%s.tscn" % WorldModule.sanitize_map_id(_map_name.text)
-	_save_dialog.popup_centered_ratio(0.55)
-
-func _on_save_dialog_selected(path: String) -> void:
-	_plugin_call(&"save_map_as", [path])
-
 func _on_duplicate_pressed() -> void:
 	var source := _selected_map_path()
 	if source.is_empty():
 		set_status("Select a map to duplicate.")
 		return
-	_plugin_call(&"duplicate_map", [source, _map_name.text])
+	_plugin_call(&"duplicate_map", [source])
 
 func _on_prepare_pressed() -> void:
 	_plugin_call(&"prepare_field_map", [_region()])
@@ -257,9 +288,6 @@ func _on_generate_pressed() -> void:
 
 func _on_save_preset_pressed() -> void:
 	_plugin_call(&"save_preset", [_preset_path.text, _region(), int(_seed.value), int(_water.value), int(_path.value)])
-
-func _on_save_map_pressed() -> void:
-	_plugin_call(&"save_map", [_map_name.text])
 
 func _on_tile_selected(index: int) -> void:
 	if index < 0 or index >= _tile_ids.size():
@@ -414,7 +442,6 @@ func _make_option(items: Array) -> OptionButton:
 func _line(value: String) -> LineEdit:
 	var line := LineEdit.new()
 	line.text = value
-	line.placeholder_text = "Map id (filename without .tscn)"
 	_add(line)
 	return line
 

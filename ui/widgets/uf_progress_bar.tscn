@@ -1,10 +1,9 @@
-[gd_scene format=3 uid="uid://uf_progress_bar_widget"]
+[gd_scene format=3 uid="uid://davv6wmgpv4hf"]
 
-[ext_resource type="Script" path="res://modules/gui/widgets/uf_progress_bar.gd" id="1_progress"]
+[ext_resource type="Script" uid="uid://gmsrj043ymph" path="res://modules/gui/widgets/uf_progress_bar.gd" id="1_progress"]
 
-[node name="UfProgressBar" type="ProgressBar"]
+[node name="UfProgressBar" type="ProgressBar" unique_id=1096444901]
 custom_minimum_size = Vector2(0, 20)
 size_flags_horizontal = 3
 value = 50.0
-show_percentage = true
 script = ExtResource("1_progress")

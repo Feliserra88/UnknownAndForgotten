@@ -806,6 +806,59 @@ static func sanitize_map_id(map_id: String) -> String:
 			out += c
 	return out if not out.is_empty() else "untitled"
 
+## Returns an unused map id under [member LOCAL_MAPS_DIR] (e.g. map_001).
+static func suggest_unused_local_map_id(prefix: String = "map") -> String:
+	var used: Dictionary = {}
+	for path in list_baked_map_paths():
+		if path.begins_with(LOCAL_MAPS_DIR):
+			used[path.get_file().get_basename()] = true
+	var n := 1
+	while n < 10000:
+		var id := "%s_%03d" % [prefix, n]
+		if not used.has(id):
+			return id
+		n += 1
+	return "%s_%d" % [prefix, Time.get_ticks_msec()]
+
+## Returns an unused map id for duplicating [param source_path] in the same folder.
+static func suggest_duplicate_map_id(source_path: String) -> String:
+	var dir := source_path.get_base_dir()
+	var base := source_path.get_file().get_basename()
+	var used: Dictionary = {}
+	for path in list_baked_map_paths():
+		if path.get_base_dir() == dir:
+			used[path.get_file().get_basename()] = true
+	for suffix in ["_copy", "_2", "_3", "_4", "_5"]:
+		var candidate := sanitize_map_id("%s%s" % [base, suffix])
+		if not used.has(candidate):
+			return candidate
+	return suggest_unused_local_map_id(base)
+
+## Renames a baked map (and its height resource) within the same directory. Returns the new path or "".
+static func rename_baked_map(source_path: String, new_map_id: String) -> String:
+	if source_path.is_empty() or not ResourceLoader.exists(source_path):
+		return ""
+	var new_name := sanitize_map_id(new_map_id)
+	var dest_path := "%s/%s.tscn" % [source_path.get_base_dir(), new_name]
+	if dest_path == source_path:
+		return source_path
+	if ResourceLoader.exists(dest_path):
+		return ""
+	var err := DirAccess.rename_absolute(
+		ProjectSettings.globalize_path(source_path),
+		ProjectSettings.globalize_path(dest_path),
+	)
+	if err != OK:
+		return ""
+	var src_height := "%s_height.tres" % source_path.get_basename()
+	var dst_height := "%s_height.tres" % dest_path.get_basename()
+	if ResourceLoader.exists(src_height):
+		DirAccess.rename_absolute(
+			ProjectSettings.globalize_path(src_height),
+			ProjectSettings.globalize_path(dst_height),
+		)
+	return dest_path
+
 ## Baked map scene path in [member LOCAL_MAPS_DIR] for [param map_id].
 static func map_path_in_local(map_id: String) -> String:
 	return "%s/%s.tscn" % [LOCAL_MAPS_DIR, sanitize_map_id(map_id)]

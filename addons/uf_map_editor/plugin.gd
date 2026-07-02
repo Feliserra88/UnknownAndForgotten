@@ -82,8 +82,8 @@ func list_maps() -> PackedStringArray:
 func get_current_map_path() -> String:
 	return _current_map_path
 
-func new_map(map_id: String, region: Rect2i) -> void:
-	var path := WorldModule.map_path_in_local(map_id)
+func new_map(region: Rect2i) -> void:
+	var path := WorldModule.map_path_in_local(WorldModule.suggest_unused_local_map_id())
 	_run_with_workspace(func() -> void:
 		_current_map_path = path
 		_session_tilesets_refreshed = false
@@ -132,29 +132,31 @@ func save_current_map() -> void:
 	if world == null:
 		return
 	if _current_map_path.is_empty():
-		set_dock_status("No map path — use Save map as or New map first.")
+		set_dock_status("No map open — use New map first.")
 		return
 	_save_map_to_path(world, _current_map_path)
 
-func save_map_as(map_path: String) -> void:
-	if map_path.is_empty():
-		set_dock_status("Enter a destination path.")
-		return
-	var world := _active_world()
-	if world == null:
-		return
-	_current_map_path = map_path
-	_set_scene_editor_baked_map(map_path)
-	_save_map_to_path(world, map_path)
-
-func save_map(map_name: String) -> void:
-	save_map_as(WorldModule.map_path_in_local(map_name))
-
-func duplicate_map(source_path: String, dest_map_id: String) -> void:
+func rename_map(source_path: String, new_map_id: String) -> void:
 	if source_path.is_empty():
-		set_dock_status("Select a source map to duplicate.")
+		set_dock_status("Select a map to rename.")
 		return
-	var dest_path := WorldModule.map_path_in_local(dest_map_id)
+	var new_path := WorldModule.rename_baked_map(source_path, new_map_id)
+	if new_path.is_empty():
+		set_dock_status("Rename failed (invalid name or file already exists).")
+		return
+	if _current_map_path == source_path:
+		_current_map_path = new_path
+		_set_scene_editor_baked_map(new_path)
+		get_editor_interface().mark_scene_as_unsaved()
+	set_dock_status("Renamed to: %s" % new_path)
+	_refresh_map_browser()
+
+func duplicate_map(source_path: String) -> void:
+	if source_path.is_empty():
+		set_dock_status("Select a map to duplicate.")
+		return
+	var dest_id := WorldModule.suggest_duplicate_map_id(source_path)
+	var dest_path := "%s/%s.tscn" % [source_path.get_base_dir(), WorldModule.sanitize_map_id(dest_id)]
 	var err := WorldModule.duplicate_baked_map(source_path, dest_path)
 	if err == OK:
 		set_dock_status("Duplicated to: %s" % dest_path)

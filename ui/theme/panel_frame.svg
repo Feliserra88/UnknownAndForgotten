@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Nine-patch placeholder: 8px border regions (corners / edges / center). -->
+  <rect x="8" y="8" width="32" height="32" fill="#142830"/>
+  <rect x="8" y="0" width="32" height="8" fill="#2d4a5c"/>
+  <rect x="8" y="40" width="32" height="8" fill="#2d4a5c"/>
+  <rect x="0" y="8" width="8" height="32" fill="#2d4a5c"/>
+  <rect x="40" y="8" width="8" height="32" fill="#2d4a5c"/>
+  <rect x="0" y="0" width="8" height="8" fill="#5a8aaa"/>
+  <rect x="40" y="0" width="8" height="8" fill="#5a8aaa"/>
+  <rect x="0" y="40" width="8" height="8" fill="#5a8aaa"/>
+  <rect x="40" y="40" width="8" height="8" fill="#5a8aaa"/>
+  <circle cx="4" cy="4" r="2" fill="#8ec8e8"/>
+  <circle cx="44" cy="4" r="2" fill="#8ec8e8"/>
+  <circle cx="4" cy="44" r="2" fill="#8ec8e8"/>
+  <circle cx="44" cy="44" r="2" fill="#8ec8e8"/>
+  <rect x="12" y="3" width="4" height="2" fill="#4a7090"/>
+  <rect x="20" y="3" width="4" height="2" fill="#4a7090"/>
+  <rect x="28" y="3" width="4" height="2" fill="#4a7090"/>
+  <rect x="36" y="3" width="4" height="2" fill="#4a7090"/>
+  <rect x="12" y="43" width="4" height="2" fill="#4a7090"/>
+  <rect x="20" y="43" width="4" height="2" fill="#4a7090"/>
+  <rect x="28" y="43" width="4" height="2" fill="#4a7090"/>
+  <rect x="36" y="43" width="4" height="2" fill="#4a7090"/>
+</svg>

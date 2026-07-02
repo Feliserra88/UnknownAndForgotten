@@ -2,15 +2,17 @@
 
 [ext_resource type="PackedScene" uid="uid://bfjegus0sscb7" path="res://ui/templates/uf_panel.tscn" id="1_3xc7p"]
 [ext_resource type="PackedScene" uid="uid://cq6x5t7kwoxn1" path="res://ui/widgets/uf_button.tscn" id="2_v000x"]
+[ext_resource type="Texture2D" uid="uid://dqtye7gq8uagc" path="res://assets/ui/icons/art/icon_close.png" id="3_fjwg4"]
 
 [node name="UfPanel" unique_id=2146928545 instance=ExtResource("1_3xc7p")]
 
-[node name="Header" parent="Layout" parent_id_path=PackedInt32Array(2012620682) index="0" unique_id=854176094]
-clip_contents = true
+[node name="Title" parent="Layout/Header" parent_id_path=PackedInt32Array(854176094) index="0" unique_id=1209277961]
+text = "LabelTitle"
 
-[node name="UfButton" parent="Layout/Header" index="1" unique_id=306293943 instance=ExtResource("2_v000x")]
+[node name="UfButton" parent="Layout/Header" parent_id_path=PackedInt32Array(854176094) index="1" unique_id=306293943 instance=ExtResource("2_v000x")]
 custom_minimum_size = Vector2(20, 20)
 custom_maximum_size = Vector2(20, 20)
 layout_mode = 2
 text = "gui.header.close"
+icon = ExtResource("3_fjwg4")
 label_key = "gui.header.close"

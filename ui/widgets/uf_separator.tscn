@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://uf_separator_widget"]
+[gd_scene format=3 uid="uid://b7jmknl0b1dws"]
 
-[ext_resource type="Script" path="res://modules/gui/widgets/uf_separator.gd" id="1_separator"]
+[ext_resource type="Script" uid="uid://b0qspc15r5qqv" path="res://modules/gui/widgets/uf_separator.gd" id="1_separator"]
 
-[node name="UfSeparator" type="HSeparator"]
+[node name="UfSeparator" type="HSeparator" unique_id=598287196]
 size_flags_horizontal = 3
 script = ExtResource("1_separator")
