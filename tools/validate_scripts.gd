@@ -58,6 +58,7 @@ const _PATHS := [
 	"res://addons/uf_gui_tools/widget_palette.gd",
 	"res://addons/uf_npc_editor/plugin.gd",
 	"res://addons/uf_npc_editor/workspace.gd",
+	"res://addons/uf_npc_editor/editor_i18n.gd",
 	"res://addons/uf_npc_editor/compatible_item.gd",
 	"res://addons/uf_item_editor/plugin.gd",
 	"res://addons/uf_item_editor/workspace.gd",

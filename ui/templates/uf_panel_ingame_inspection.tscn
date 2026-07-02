@@ -104,44 +104,68 @@ stretch_mode = 5
 
 [node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=981317227 instance=ExtResource("8_se78u")]
 layout_mode = 0
+offset_left = 140.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 50.0
+tooltip_text = "head"
 layout_center_anchored = true
 layout_center_norm = Vector2(0, -0.4)
-tooltip_text = "head"
 slot_id = &"head"
 
 [node name="UfEquipmentLeftHand" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=311245213 instance=ExtResource("8_se78u")]
 layout_mode = 0
+offset_left = 44.0
+offset_top = 88.0
+offset_right = 84.0
+offset_bottom = 128.0
+tooltip_text = "arm_left"
 layout_center_anchored = true
 layout_center_norm = Vector2(-0.3, -0.14)
-tooltip_text = "arm_left"
 slot_id = &"arm_left"
 
 [node name="UfEquipmentRightHand" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=1111039831 instance=ExtResource("8_se78u")]
 layout_mode = 0
+offset_left = 236.0
+offset_top = 88.0
+offset_right = 276.0
+offset_bottom = 128.0
+tooltip_text = "arm_right"
 layout_center_anchored = true
 layout_center_norm = Vector2(0.3, -0.14)
-tooltip_text = "arm_right"
 slot_id = &"arm_right"
 
 [node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=384866164 instance=ExtResource("8_se78u")]
 layout_mode = 0
+offset_left = 140.0
+offset_top = 253.0
+offset_right = 180.0
+offset_bottom = 293.0
+tooltip_text = "feet"
 layout_center_anchored = true
 layout_center_norm = Vector2(0, 0.41)
-tooltip_text = "feet"
 slot_id = &"feet"
 
 [node name="UfEquipmentBody" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=678117324 instance=ExtResource("8_se78u")]
 layout_mode = 0
+offset_left = 140.0
+offset_top = 91.0
+offset_right = 180.0
+offset_bottom = 131.0
+tooltip_text = "body"
 layout_center_anchored = true
 layout_center_norm = Vector2(0, -0.13)
-tooltip_text = "body"
 slot_id = &"body"
 
 [node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=1283183109 instance=ExtResource("8_se78u")]
 layout_mode = 0
+offset_left = 140.0
+offset_top = 136.0
+offset_right = 180.0
+offset_bottom = 176.0
+tooltip_text = "belt"
 layout_center_anchored = true
 layout_center_norm = Vector2(0, 0.02)
-tooltip_text = "belt"
 slot_id = &"belt"
 
 [node name="UfList" parent="Layout/ContentSlot" unique_id=880794120 instance=ExtResource("9_jblaq")]

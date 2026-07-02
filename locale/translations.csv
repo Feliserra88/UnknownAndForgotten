@@ -70,7 +70,43 @@ npc_editor.title,NPC Editor,Editor de PNJ
 npc_editor.details,Details,Detalles
 npc_editor.preview,Preview,Vista previa
 npc_editor.compatible_items,Compatible items,Objetos compatibles
+npc_editor.inspection,Inspection,Inspección
 npc_editor.attributes_total,Total power: %d,Poder total: %d
+npc_editor.toolbar.archetype,Archetype,Arquetipo
+npc_editor.toolbar.faction,Faction,Facción
+npc_editor.toolbar.modifier,Modifier,Modificador
+npc_editor.action.save_todo,Save (TODO),Guardar (TODO)
+npc_editor.section.base_attributes,Base attributes,Atributos base
+npc_editor.section.vitals,Vitals,Vitales
+npc_editor.section.factions,Factions,Facciones
+npc_editor.section.modifiers,Modifiers,Modificadores
+npc_editor.section.equipped_items,Equipped items,Equipo equipado
+npc_editor.attr.strength,strength,fuerza
+npc_editor.attr.agility,agility,agilidad
+npc_editor.attr.willpower,willpower,voluntad
+npc_editor.attr.vitality,vitality,vitalidad
+npc_editor.attr.perception,perception,percepción
+npc_editor.attr.charisma,charisma,carisma
+npc_editor.orient.front,front,frente
+npc_editor.orient.back,back,espalda
+npc_editor.orient.side_left,side_left,izquierda
+npc_editor.orient.side_right,side_right,derecha
+npc_editor.modifier.add,(add...),(añadir...)
+npc_editor.hint.no_archetype,No archetype loaded.,No hay arquetipo cargado.
+npc_editor.hint.no_inspection_layout,No inspection layout.,Sin layout de inspección.
+npc_editor.hint.inspection_build_failed,Failed to build inspection panel.,No se pudo crear el panel de inspección.
+npc_editor.hint.no_items_for_tags,No items for tags: %s,Sin objetos para etiquetas: %s
+npc_editor.hint.none,(none),(ninguna)
+npc_editor.hint.no_stat_bonus,(no stat bonus),(sin bonus de atributos)
+npc_editor.detail.id,id: %s,id: %s
+npc_editor.detail.tags,tags: %s,etiquetas: %s
+npc_editor.detail.health_energy,health: %.0f  energy: %.0f,vida: %.0f  energía: %.0f
+npc_editor.detail.slot_item,%s: %s,%s: %s
+npc_editor.detail.mods,mods: %s,mods: %s
+npc_editor.status.catalog_stats,Archetypes: %d | Items: %d,Arquetipos: %d | Objetos: %d
+npc_editor.status.no_archetypes,No archetypes in catalog,No hay arquetipos en el catálogo
+npc_editor.status.load_failed,Failed to load: %s,No se pudo cargar: %s
+npc_editor.status.loaded,Loaded %s — %d items,Cargado %s — %d objetos
 item.category.weapon,Weapon,Arma
 item.category.armor,Armor,Armadura
 item.category.food,Food,Comida
@@ -119,6 +155,12 @@ item_editor.toolbar.category,Category,Categoría
 item_editor.status.ready,Ready,Listo
 item_editor.status.state_tiers_reset,State tiers reset,Tiers de estado restablecidos
 item_editor.status.quality_tiers_reset,Quality tiers reset,Tiers de calidad restablecidos
+item_editor.status.nothing_to_delete,Nothing to delete,Nada que borrar
+item_editor.status.delete_failed,Delete failed: %s,Error al borrar: %s
+item_editor.status.id_required,id is required,el id es obligatorio
+item_editor.status.save_failed,Save failed (%s),Error al guardar (%s)
+item_editor.filter.all,(all),(todos)
+item_editor.filter.none,(none),(ninguno)
 item_editor.block.definition,Item definition,Definición del item
 item_editor.block.properties,Core properties,Propiedades base
 item_editor.block.tags,Tags,Etiquetas
@@ -130,6 +172,8 @@ item_editor.block.armor_payload,Armor data,Datos de armadura
 item_editor.block.food_payload,Food data,Datos de comida
 item_editor.block.valuable_payload,Valuable data,Datos de valioso
 item_editor.block.browse,Browse,Explorar
+item_editor.block.draft_preview,Draft preview,Vista previa del borrador
+item_editor.block.selectable_items,Selectable items,Items seleccionables
 item_editor.block.actions,Actions,Acciones
 item_editor.block.preview_filters,List preview,Previsualización de lista
 item_editor.block.tag_filter,Tag filter,Filtro por etiquetas

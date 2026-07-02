@@ -9,11 +9,23 @@ const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
 const _TAG_ZONE := preload("res://addons/uf_item_editor/tag_assign_zone.gd")
 const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
 const _LOG := "ITM"
-const _MARGIN := 12
-const _PANEL_SEP := 10
-const _FIELD_SEP := 8
-const _SECTION_SEP := 14
-const _LABEL_WIDTH := 132
+const _MARGIN := 8
+const _PANEL_SEP := 6
+const _FIELD_SEP := 6
+const _SECTION_SEP := 8
+const _LABEL_WIDTH := 108
+const _BTN_H := 26
+const _BTN_MIN_W := 88
+const _PREVIEW_H := 96
+const _COL_LEFT := 0.20
+const _COL_CENTER := 0.40
+const _COL_RIGHT := 0.20
+const _COL_MIN_LEFT := 200
+const _COL_MIN_CENTER := 280
+const _COL_MIN_RIGHT := 180
+const _CENTER_PREVIEW_RATIO := 0.30
+const _CENTER_PREVIEW_MIN := 108
+const _CENTER_LIST_MIN := 140
 
 var _items: ItemsModule
 var _modifier: ModifierModule
@@ -45,6 +57,7 @@ var _list_box: VBoxContainer
 var _preview_icon: TextureRect
 var _cols: HSplitContainer
 var _center_right: HSplitContainer
+var _center_split: VSplitContainer
 var _id_field: LineEdit
 var _name_key_field: LineEdit
 var _desc_key_field: LineEdit
@@ -131,17 +144,29 @@ func _refresh_tag_pickers() -> void:
 
 func _finalize_layout() -> void:
 	_apply_column_splits()
+	_apply_center_split()
 
 func _apply_column_splits() -> void:
 	if _cols == null or _cols.size.x < 480:
 		return
 	var total_w := _cols.size.x
-	_cols.split_offset = clampi(int(total_w * 0.28), 240, int(total_w * 0.36))
+	var weight_sum := _COL_LEFT + _COL_CENTER + _COL_RIGHT
+	var left_w := clampi(int(total_w * _COL_LEFT / weight_sum), _COL_MIN_LEFT, total_w - _COL_MIN_CENTER - _COL_MIN_RIGHT - 16)
+	_cols.split_offset = left_w
 	if _center_right == null:
 		return
-	var sep := _cols.get_theme_constant("separation", "HSplitContainer")
-	var inner_w := maxi(total_w - _cols.split_offset - sep, 320)
-	_center_right.split_offset = clampi(int(inner_w * 0.70), 300, int(inner_w * 0.82))
+	var sep_outer := _cols.get_theme_constant("separation", "HSplitContainer")
+	var inner_w := maxi(total_w - left_w - sep_outer, _COL_MIN_CENTER + _COL_MIN_RIGHT)
+	var center_w := clampi(int(total_w * _COL_CENTER / weight_sum), _COL_MIN_CENTER, inner_w - _COL_MIN_RIGHT)
+	_center_right.split_offset = center_w
+
+func _apply_center_split() -> void:
+	if _center_split == null or _center_split.size.y < _CENTER_PREVIEW_MIN + _CENTER_LIST_MIN + 8:
+		return
+	var sep := _center_split.get_theme_constant("separation", "VSplitContainer")
+	var avail := maxi(_center_split.size.y - sep, _CENTER_PREVIEW_MIN + _CENTER_LIST_MIN)
+	var top_h := clampi(int(avail * _CENTER_PREVIEW_RATIO), _CENTER_PREVIEW_MIN, avail - _CENTER_LIST_MIN)
+	_center_split.split_offset = top_h
 
 func _build_ui() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -192,6 +217,7 @@ func _on_parent_resized() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_apply_column_splits()
+		_apply_center_split()
 	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
 		call_deferred("sync_layout")
 	elif what == NOTIFICATION_TRANSLATION_CHANGED:
@@ -208,11 +234,11 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	panel.add_child(bar)
 	bar.add_child(_tracked_label("item_editor.toolbar.category"))
 	_category_option = OptionButton.new()
-	_category_option.custom_minimum_size = Vector2(160, 30)
+	_category_option.custom_minimum_size = Vector2(140, _BTN_H)
 	_category_option.item_selected.connect(_on_category_changed)
 	bar.add_child(_category_option)
 	_save_btn = Button.new()
-	_save_btn.custom_minimum_size = Vector2(96, 30)
+	_save_btn.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
 	_save_btn.pressed.connect(_on_save_pressed)
 	_action_buttons.append({"button": _save_btn, "key": "item_editor.action.save"})
 	bar.add_child(_save_btn)
@@ -221,18 +247,20 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	bar.add_child(spacer)
 
 func _build_left_column(parent: HSplitContainer) -> void:
-	var col_wrap := _BLOCK.create("item_editor.block.definition")
-	_register_block_title(col_wrap)
-	col_wrap.block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col_wrap.block.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	parent.add_child(col_wrap.block)
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 4)
+	parent.add_child(column)
+	var header := _section_header("item_editor.block.definition")
+	column.add_child(header)
 	var left := ScrollContainer.new()
 	left.name = "DefinitionScroll"
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	left.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	col_wrap.body.add_child(left)
+	column.add_child(left)
 	_details_box = VBoxContainer.new()
 	_details_box.add_theme_constant_override("separation", _PANEL_SEP)
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -240,19 +268,17 @@ func _build_left_column(parent: HSplitContainer) -> void:
 	_rebuild_details_form()
 
 func _build_center_column(parent: HSplitContainer) -> void:
-	var browse_wrap := _BLOCK.create("item_editor.block.browse")
-	_register_block_title(browse_wrap)
-	browse_wrap.block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	browse_wrap.block.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	parent.add_child(browse_wrap.block)
-	var center: VBoxContainer = browse_wrap.body as VBoxContainer
-	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var column := VBoxContainer.new()
+	column.name = "CenterColumn"
+	column.add_theme_constant_override("separation", _PANEL_SEP)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	parent.add_child(column)
 	var browse_bar := HBoxContainer.new()
 	browse_bar.add_theme_constant_override("separation", _FIELD_SEP)
-	center.add_child(browse_bar)
+	column.add_child(browse_bar)
 	_back_to_saved_btn = Button.new()
-	_back_to_saved_btn.custom_minimum_size = Vector2(0, 30)
+	_back_to_saved_btn.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
 	_back_to_saved_btn.visible = false
 	_back_to_saved_btn.pressed.connect(_on_back_to_saved_pressed)
 	_action_buttons.append({"button": _back_to_saved_btn, "key": "item_editor.action.back_to_saved"})
@@ -263,37 +289,66 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	_browse_hint.add_theme_color_override("font_color", Color(0.62, 0.67, 0.72))
 	browse_bar.add_child(_browse_hint)
 	_set_browse_mode(&"saved", false)
-	var preview_panel := PanelContainer.new()
-	preview_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	preview_panel.add_theme_stylebox_override("panel", _BLOCK.make_panel_style())
-	center.add_child(preview_panel)
+	_center_split = VSplitContainer.new()
+	_center_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_center_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(_center_split)
+	var preview_pane := VBoxContainer.new()
+	preview_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_pane.custom_minimum_size = Vector2(0, _CENTER_PREVIEW_MIN)
+	_center_split.add_child(preview_pane)
+	var preview_body := _mount_section(preview_pane, "item_editor.block.draft_preview", true)
+	var preview_frame := PanelContainer.new()
+	preview_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_frame.add_theme_stylebox_override("panel", _BLOCK.make_preview_style())
+	preview_body.add_child(preview_frame)
+	var preview_pad := MarginContainer.new()
+	preview_pad.add_theme_constant_override("margin_left", 10)
+	preview_pad.add_theme_constant_override("margin_right", 10)
+	preview_pad.add_theme_constant_override("margin_top", 8)
+	preview_pad.add_theme_constant_override("margin_bottom", 8)
+	preview_pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_pad.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_frame.add_child(preview_pad)
 	_preview_icon = TextureRect.new()
-	_preview_icon.custom_minimum_size = Vector2(0, 112)
+	_preview_icon.custom_minimum_size = Vector2(0, _PREVIEW_H)
 	_preview_icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_preview_icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	preview_panel.add_child(_preview_icon)
+	preview_pad.add_child(_preview_icon)
+	var list_pane := VBoxContainer.new()
+	list_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list_pane.custom_minimum_size = Vector2(0, _CENTER_LIST_MIN)
+	_center_split.add_child(list_pane)
+	var list_body := _mount_section(list_pane, "item_editor.block.selectable_items", true)
 	var scroll := ScrollContainer.new()
 	scroll.name = "BrowseListScroll"
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	center.add_child(scroll)
+	list_body.add_child(scroll)
 	_list_box = VBoxContainer.new()
 	_list_box.add_theme_constant_override("separation", 6)
 	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_list_box)
 
 func _build_right_column(parent: HSplitContainer) -> void:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	parent.add_child(column)
 	var right := ScrollContainer.new()
 	right.name = "SidebarScroll"
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	right.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	parent.add_child(right)
+	column.add_child(right)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", _PANEL_SEP)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -302,10 +357,8 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	var actions_wrap := _BLOCK.create("item_editor.block.actions")
 	_register_block_title(actions_wrap)
 	box.add_child(actions_wrap.block)
-	var actions := GridContainer.new()
-	actions.columns = 2
-	actions.add_theme_constant_override("h_separation", _FIELD_SEP)
-	actions.add_theme_constant_override("v_separation", _FIELD_SEP)
+	var actions := VBoxContainer.new()
+	actions.add_theme_constant_override("separation", 4)
 	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	actions_wrap.body.add_child(actions)
 	for spec in [
@@ -316,11 +369,12 @@ func _build_right_column(parent: HSplitContainer) -> void:
 		["item_editor.action.delete", _on_delete_pressed],
 	]:
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(0, 30)
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		btn.pressed.connect(spec[1])
 		_action_buttons.append({"button": btn, "key": spec[0]})
 		actions.add_child(btn)
+	_section_gap(box)
 	var filters_wrap := _BLOCK.create("item_editor.block.preview_filters")
 	_register_block_title(filters_wrap)
 	box.add_child(filters_wrap.block)
@@ -332,6 +386,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	_quality_option.item_selected.connect(_on_preview_quality_changed)
 	_modifier_option = _add_filter_row(filters_wrap.body, _T("item_editor.field.preview_modifier"))
 	_modifier_option.item_selected.connect(_on_preview_modifier_changed)
+	_section_gap(box)
 	var tag_filter_wrap := _BLOCK.create("item_editor.block.tag_filter")
 	_register_block_title(tag_filter_wrap)
 	box.add_child(tag_filter_wrap.block)
@@ -339,6 +394,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	filter_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tag_filter_wrap.body.add_child(filter_hint)
 	_tag_filter_flow = _TAG_FLOW.new()
+	_tag_filter_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_filter_flow.filter_changed.connect(func(_t: Array[StringName]) -> void: _rebuild_list())
 	tag_filter_wrap.body.add_child(_tag_filter_flow)
 
@@ -361,6 +417,7 @@ func _rebuild_details_form() -> void:
 	_durability_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.max_durability"), 0, 9999, 1)
 	_grid_w_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.grid_w"), 1, 8, 1)
 	_grid_h_field = _add_spin_field_to(props_wrap.body, _T("item_editor.field.grid_h"), 1, 8, 1)
+	_section_gap(_details_box)
 	var tags_wrap := _BLOCK.create("item_editor.block.tags")
 	_register_block_title(tags_wrap)
 	_details_box.add_child(tags_wrap.block)
@@ -368,12 +425,15 @@ func _rebuild_details_form() -> void:
 	palette_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tags_wrap.body.add_child(palette_hint)
 	_tag_palette_flow = _TAG_FLOW.new()
+	_tag_palette_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_palette_flow.palette_tag_selected.connect(_on_palette_tag_selected)
 	tags_wrap.body.add_child(_tag_palette_flow)
 	_tag_assign_zone = _TAG_ZONE.new()
+	_tag_assign_zone.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_assign_zone.setup(_items)
 	_tag_assign_zone.tags_changed.connect(_on_draft_tags_changed)
 	tags_wrap.body.add_child(_tag_assign_zone)
+	_section_gap(_details_box)
 	var tiers_wrap := _BLOCK.create("item_editor.block.tiers")
 	_register_block_title(tiers_wrap)
 	_details_box.add_child(tiers_wrap.block)
@@ -382,7 +442,7 @@ func _rebuild_details_form() -> void:
 	tiers_wrap.body.add_child(_tracked_label("item_editor.block.state_tiers"))
 	tiers_wrap.body.add_child(_tier_state_box)
 	var reset_state := Button.new()
-	reset_state.custom_minimum_size = Vector2(0, 30)
+	reset_state.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
 	reset_state.pressed.connect(_on_reset_state_tiers)
 	_locale_labels.append({"label": reset_state, "key": "item_editor.action.reset_state_tiers", "is_button": true})
 	tiers_wrap.body.add_child(reset_state)
@@ -391,10 +451,11 @@ func _rebuild_details_form() -> void:
 	tiers_wrap.body.add_child(_tracked_label("item_editor.block.quality_tiers"))
 	tiers_wrap.body.add_child(_tier_quality_box)
 	var reset_quality := Button.new()
-	reset_quality.custom_minimum_size = Vector2(0, 30)
+	reset_quality.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
 	reset_quality.pressed.connect(_on_reset_quality_tiers)
 	_locale_labels.append({"label": reset_quality, "key": "item_editor.action.reset_quality_tiers", "is_button": true})
 	tiers_wrap.body.add_child(reset_quality)
+	_section_gap(_details_box)
 	var weapon_wrap := _BLOCK.create("item_editor.block.weapon_payload")
 	_register_block_title(weapon_wrap)
 	_details_box.add_child(weapon_wrap.block)
@@ -408,6 +469,7 @@ func _rebuild_details_form() -> void:
 		_weapon_slot_option.set_item_metadata(_weapon_slot_option.item_count - 1, slot)
 	_weapon_hands_field = _add_spin_field_to(_weapon_section, _T("item_editor.field.hands"), 1, 2, 1)
 	_weapon_modifier_field = _add_line_field_to(_weapon_section, _T("item_editor.field.attribute_modifier_id"))
+	_section_gap(_details_box)
 	var armor_wrap := _BLOCK.create("item_editor.block.armor_payload")
 	_register_block_title(armor_wrap)
 	_details_box.add_child(armor_wrap.block)
@@ -418,6 +480,7 @@ func _rebuild_details_form() -> void:
 		_armor_slot_option.add_item(String(slot), -1)
 		_armor_slot_option.set_item_metadata(_armor_slot_option.item_count - 1, slot)
 	_armor_modifier_field = _add_line_field_to(_armor_section, _T("item_editor.field.attribute_modifier_id"))
+	_section_gap(_details_box)
 	var food_wrap := _BLOCK.create("item_editor.block.food_payload")
 	_register_block_title(food_wrap)
 	_details_box.add_child(food_wrap.block)
@@ -429,6 +492,7 @@ func _rebuild_details_form() -> void:
 	_food_stackable.button_pressed = true
 	_locale_labels.append({"label": _food_stackable, "key": "item_editor.field.stackable", "is_button": true})
 	_food_section.add_child(_food_stackable)
+	_section_gap(_details_box)
 	var valuable_wrap := _BLOCK.create("item_editor.block.valuable_payload")
 	_register_block_title(valuable_wrap)
 	_details_box.add_child(valuable_wrap.block)
@@ -462,7 +526,7 @@ func _populate_weapon_families() -> void:
 	if _family_option == null:
 		return
 	_family_option.clear()
-	_family_option.add_item("(all)", -1)
+	_family_option.add_item(_T("item_editor.filter.all"), -1)
 	_family_option.set_item_metadata(0, &"")
 	var seen: Dictionary = {}
 	for entry in _items.list_sprite_templates(&"weapon"):
@@ -641,7 +705,7 @@ func _populate_item_modifiers() -> void:
 	if _modifier_option == null:
 		return
 	_modifier_option.clear()
-	_modifier_option.add_item("(none)", -1)
+	_modifier_option.add_item(_T("item_editor.filter.none"), -1)
 	_modifier_option.set_item_metadata(0, &"")
 	for def in _modifier.list_by_kind(ModifierDef.Kind.ITEM):
 		_modifier_option.add_item(_T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id))
@@ -760,11 +824,11 @@ func _on_edit_pressed() -> void:
 
 func _on_delete_pressed() -> void:
 	if _draft == null or String(_draft.id).is_empty():
-		_set_status("Nothing to delete")
+		_set_status(_T("item_editor.status.nothing_to_delete"))
 		return
 	var path := "res://assets/data/items/%s.tres" % _draft.id
 	if DirAccess.remove_absolute(path) != OK:
-		_set_status("Delete failed: %s" % path)
+		_set_status(_T("item_editor.status.delete_failed") % path)
 		return
 	_draft = null
 	_selected_list_key = ""
@@ -777,11 +841,11 @@ func _on_save_pressed() -> void:
 		_draft = _items.create_blank_def(_current_category_id())
 	_apply_form_to_draft()
 	if String(_draft.id).is_empty():
-		_set_status("id is required")
+		_set_status(_T("item_editor.status.id_required"))
 		return
 	var err := _items.save_def(_draft)
 	if err != OK:
-		_set_status("Save failed (%s)" % err)
+		_set_status(_T("item_editor.status.save_failed") % err)
 		return
 	_rebuild_list()
 	_selected_list_key = _draft_selection_key()
@@ -894,7 +958,7 @@ func _sync_form_from_draft() -> void:
 
 func _add_line_field(placeholder: String) -> LineEdit:
 	var field := LineEdit.new()
-	field.custom_minimum_size = Vector2(0, 30)
+	field.custom_minimum_size = Vector2(0, _BTN_H)
 	_add_form_row(_details_box, placeholder, field)
 	return field
 
@@ -903,13 +967,13 @@ func _add_spin_field(label_text: String, min_v: float, max_v: float, step: float
 
 func _add_line_field_to(parent: Control, placeholder: String) -> LineEdit:
 	var field := LineEdit.new()
-	field.custom_minimum_size = Vector2(0, 30)
+	field.custom_minimum_size = Vector2(0, _BTN_H)
 	_add_form_row(parent, placeholder, field)
 	return field
 
 func _add_option_field_to(parent: Control, label_text: String) -> OptionButton:
 	var opt := OptionButton.new()
-	opt.custom_minimum_size = Vector2(0, 30)
+	opt.custom_minimum_size = Vector2(0, _BTN_H)
 	_add_form_row(parent, label_text, opt)
 	return opt
 
@@ -918,13 +982,13 @@ func _add_spin_field_to(parent: Control, label_text: String, min_v: float, max_v
 	spin.min_value = min_v
 	spin.max_value = max_v
 	spin.step = step
-	spin.custom_minimum_size = Vector2(0, 30)
+	spin.custom_minimum_size = Vector2(0, _BTN_H)
 	_add_form_row(parent, label_text, spin)
 	return spin
 
 func _add_filter_row(parent: Control, label_text: String) -> OptionButton:
 	var opt := OptionButton.new()
-	opt.custom_minimum_size = Vector2(0, 30)
+	opt.custom_minimum_size = Vector2(0, _BTN_H)
 	_add_form_row(parent, label_text, opt)
 	return opt
 
@@ -943,6 +1007,7 @@ func _add_form_row(parent: Control, label_text: String, field: Control) -> void:
 	row.add_child(field)
 
 func _section_gap(parent: Control) -> void:
+	parent.add_child(HSeparator.new())
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, _SECTION_SEP)
 	parent.add_child(gap)
@@ -976,6 +1041,24 @@ func _register_block_title(wrap: Dictionary) -> void:
 	var key: String = wrap.get("title_key", "")
 	if header is Label and not key.is_empty():
 		_locale_labels.append({"label": header, "key": key, "is_button": false})
+
+func _section_header(title_key: String) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	box.add_child(_tracked_label(title_key))
+	box.add_child(HSeparator.new())
+	return box
+
+func _mount_section(parent: Control, title_key: String, expand_vertical: bool) -> VBoxContainer:
+	var wrap := _BLOCK.create(title_key, expand_vertical)
+	_register_block_title(wrap)
+	wrap.block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if expand_vertical:
+		wrap.block.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	parent.add_child(wrap.block)
+	return wrap.body
 
 func _T(key: String) -> String:
 	return _I18N.translate_key(key)

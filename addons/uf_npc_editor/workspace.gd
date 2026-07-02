@@ -3,6 +3,7 @@ extends Control
 ## NPC editor workspace (debug skeleton). Three columns: details, rig preview, inspection + item list.
 
 const _ITEM := preload("res://addons/uf_npc_editor/compatible_item.gd")
+const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
 const _DEFAULT_ARCHETYPE_ID := &"humanoid"
 const _LOG := "NPC"
 const _STARTER_EQUIPMENT: Array = [
@@ -13,13 +14,15 @@ const _STARTER_EQUIPMENT: Array = [
 ]
 const _ATTR_NAMES: Array[String] = ["strength", "agility", "willpower", "vitality", "perception", "charisma"]
 const _ORIENTATIONS: Array[StringName] = [&"front", &"back", &"side_left", &"side_right"]
-const _MARGIN := 12
-const _PANEL_SEP := 10
-const _FIELD_SEP := 8
-const _SECTION_SEP := 14
+const _MARGIN := 8
+const _PANEL_SEP := 6
+const _FIELD_SEP := 6
+const _SECTION_SEP := 8
 const _LABEL_WIDTH := 96
-const _INSPECTION_SCROLL_MIN := Vector2(200, 100)
-const _ITEMS_PANEL_MIN_H := 180
+const _BTN_H := 26
+const _INSPECTION_SCROLL_MIN := Vector2(200, 80)
+const _ITEMS_PANEL_MIN_H := 160
+const _INSPECTION_CHROME_H := 28
 
 var _npc: NpcModule
 var _gui: GuiModule
@@ -51,6 +54,10 @@ var _right_split: VSplitContainer
 var _details_scroll: ScrollContainer
 var _inspection_scroll: ScrollContainer
 var _items_scroll: ScrollContainer
+var _locale_labels: Array[Dictionary] = []
+var _action_buttons: Array[Dictionary] = []
+var _orientation_buttons: Array[Dictionary] = []
+var _localizing: bool = false
 
 func setup() -> void:
 	_npc = NpcModule.new()
@@ -63,12 +70,18 @@ func setup() -> void:
 	_items = ItemsModule.new()
 	_npc.set_facades(_faction, _modifier, _equipment)
 	_build_ui()
+	_refresh_localized_strings()
 
 func ensure_ready() -> void:
+	_fit_to_parent()
 	if not _data_ready:
 		call_deferred("_bootstrap_data")
-	elif _archetype != null:
-		call_deferred("_rebuild_all")
+	else:
+		_refresh_localized_ui()
+		if _archetype != null:
+			call_deferred("_rebuild_all")
+	_finalize_layout()
+	call_deferred("_finalize_layout")
 
 func sync_layout() -> void:
 	_fit_to_parent()
@@ -87,9 +100,9 @@ func _bootstrap_data() -> void:
 	_populate_factions()
 	_populate_modifiers()
 	var item_count := _equipment.list_items().size()
-	_set_status("Archetypes: %d | Items: %d" % [_archetype_paths.size(), item_count])
+	_set_status(_T("npc_editor.status.catalog_stats") % [_archetype_paths.size(), item_count])
 	if _archetype_paths.is_empty():
-		_set_status("No archetypes in catalog")
+		_set_status(_T("npc_editor.status.no_archetypes"))
 		return
 	var idx := 0
 	for i in _archetype_paths.size():
@@ -107,6 +120,7 @@ func _bootstrap_data() -> void:
 func _finalize_layout() -> void:
 	_apply_column_splits()
 	_sync_preview_viewport_size()
+	_sync_right_vertical_split()
 	_center_preview_rig()
 
 func _apply_column_splits() -> void:
@@ -119,10 +133,28 @@ func _apply_column_splits() -> void:
 		var inner_w := maxi(total_w - _cols.split_offset - sep, 320)
 		_center_right.split_offset = clampi(int(inner_w * 0.58), 260, int(inner_w * 0.72))
 	if _right_split != null and _right_split.size.y > _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
-		var sep := _right_split.get_theme_constant("separation", "VSplitContainer")
-		var avail := _right_split.size.y - sep
-		var max_top := avail - _ITEMS_PANEL_MIN_H
-		_right_split.split_offset = clampi(int(avail * 0.42), _INSPECTION_SCROLL_MIN.y, max_top)
+		_sync_right_vertical_split()
+
+func _sync_right_vertical_split() -> void:
+	if _right_split == null or _inspection_holder == null:
+		return
+	_inspection_holder.update_minimum_size()
+	var content_h := int(_inspection_holder.get_combined_minimum_size().y)
+	if content_h < 8 and _inspection_panel != null:
+		content_h = int(_inspection_panel.get_combined_minimum_size().y)
+	var sep := _right_split.get_theme_constant("separation", "VSplitContainer")
+	var avail := _right_split.size.y - sep
+	if avail < _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
+		return
+	var top_h := clampi(
+		content_h + _INSPECTION_CHROME_H,
+		_INSPECTION_SCROLL_MIN.y,
+		avail - _ITEMS_PANEL_MIN_H,
+	)
+	_right_split.split_offset = top_h
+	if _inspection_scroll != null:
+		_inspection_scroll.custom_minimum_size.y = maxi(content_h, 1)
+		_inspection_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 func _sync_preview_viewport_size() -> void:
 	if _preview_host == null or _preview_viewport == null:
@@ -193,21 +225,21 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	bar.add_theme_constant_override("separation", _FIELD_SEP)
 	panel.add_child(bar)
 
-	bar.add_child(_toolbar_label("Archetype"))
+	bar.add_child(_tracked_label("npc_editor.toolbar.archetype"))
 	_archetype_option = _toolbar_option()
-	_archetype_option.custom_minimum_size = Vector2(180, 30)
+	_archetype_option.custom_minimum_size = Vector2(180, _BTN_H)
 	_archetype_option.item_selected.connect(_on_archetype_selected)
 	bar.add_child(_archetype_option)
 
-	bar.add_child(_toolbar_label("Faction"))
+	bar.add_child(_tracked_label("npc_editor.toolbar.faction"))
 	_faction_option = _toolbar_option()
-	_faction_option.custom_minimum_size = Vector2(150, 30)
+	_faction_option.custom_minimum_size = Vector2(150, _BTN_H)
 	_faction_option.item_selected.connect(_on_faction_selected)
 	bar.add_child(_faction_option)
 
-	bar.add_child(_toolbar_label("Modifier"))
+	bar.add_child(_tracked_label("npc_editor.toolbar.modifier"))
 	_modifier_option = _toolbar_option()
-	_modifier_option.custom_minimum_size = Vector2(150, 30)
+	_modifier_option.custom_minimum_size = Vector2(150, _BTN_H)
 	_modifier_option.item_selected.connect(_on_modifier_selected)
 	bar.add_child(_modifier_option)
 
@@ -216,9 +248,9 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	bar.add_child(spacer)
 
 	var save := Button.new()
-	save.text = "Save (TODO)"
 	save.disabled = true
-	save.custom_minimum_size = Vector2(100, 30)
+	save.custom_minimum_size = Vector2(100, _BTN_H)
+	_action_buttons.append({"button": save, "key": "npc_editor.action.save_todo"})
 	bar.add_child(save)
 
 func _build_left_column(parent: HSplitContainer) -> void:
@@ -242,7 +274,8 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(center)
 
-	center.add_child(_section_label("Preview"))
+	center.add_child(_tracked_section_label("npc_editor.preview"))
+	center.add_child(HSeparator.new())
 
 	var preview_frame := Panel.new()
 	preview_frame.custom_minimum_size = Vector2(240, 240)
@@ -269,9 +302,10 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	center.add_child(orient)
 	for o in _ORIENTATIONS:
 		var b := Button.new()
-		b.text = String(o)
-		b.custom_minimum_size = Vector2(80, 30)
+		b.custom_minimum_size = Vector2(64, _BTN_H)
 		b.pressed.connect(_on_orientation_pressed.bind(o))
+		_orientation_buttons.append({"button": b, "key": "npc_editor.orient.%s" % o})
+		b.text = _T("npc_editor.orient.%s" % o)
 		orient.add_child(b)
 
 func _build_right_column(parent: HSplitContainer) -> void:
@@ -281,17 +315,27 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	parent.add_child(right)
 	_right_split = right
 
+	var top_inspection := VBoxContainer.new()
+	top_inspection.add_theme_constant_override("separation", _FIELD_SEP)
+	top_inspection.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_inspection.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	right.add_child(top_inspection)
+
+	top_inspection.add_child(_tracked_section_label("npc_editor.inspection"))
+	top_inspection.add_child(HSeparator.new())
+
 	var inspection_scroll := ScrollContainer.new()
-	inspection_scroll.custom_minimum_size = _INSPECTION_SCROLL_MIN
+	inspection_scroll.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, 0)
 	inspection_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	inspection_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inspection_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	inspection_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	inspection_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	right.add_child(inspection_scroll)
+	top_inspection.add_child(inspection_scroll)
 	_inspection_scroll = inspection_scroll
 	_inspection_holder = VBoxContainer.new()
 	_inspection_holder.add_theme_constant_override("separation", _FIELD_SEP)
 	_inspection_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inspection_holder.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	inspection_scroll.add_child(_inspection_holder)
 
 	var items_panel := VBoxContainer.new()
@@ -300,7 +344,8 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	items_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(items_panel)
-	items_panel.add_child(_section_label(tr("npc_editor.compatible_items")))
+	items_panel.add_child(_tracked_section_label("npc_editor.compatible_items"))
+	items_panel.add_child(HSeparator.new())
 
 	var items_scroll := ScrollContainer.new()
 	items_scroll.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, 80)
@@ -324,19 +369,19 @@ func _populate_archetypes() -> void:
 		var archetype := load(path) as NpcArchetype
 		if archetype == null:
 			continue
-		var label := archetype.get_display_name()
+		var label := _archetype_display_name(archetype)
 		_archetype_option.add_item(label if not label.is_empty() else String(archetype.id))
 
 func _populate_factions() -> void:
 	_faction_option.clear()
 	for def in _faction.list_catalog_defs():
-		var label := tr(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id)
+		var label := _T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id)
 		_faction_option.add_item(label)
 		_faction_option.set_item_metadata(_faction_option.item_count - 1, def.id)
 
 func _populate_modifiers() -> void:
 	_modifier_option.clear()
-	_modifier_option.add_item("(add...)")
+	_modifier_option.add_item(_T("npc_editor.modifier.add"))
 	_modifier_option.set_item_metadata(0, &"")
 	for def in _modifier.list_defs():
 		_modifier_option.add_item(String(def.id))
@@ -345,7 +390,7 @@ func _populate_modifiers() -> void:
 func _load_archetype(path: String) -> void:
 	_archetype = load(path) as NpcArchetype
 	if _archetype == null:
-		_set_status("Failed to load: %s" % path)
+		_set_status(_T("npc_editor.status.load_failed") % path)
 		return
 	_instance = NpcInstanceData.new()
 	_instance.apply_archetype(_archetype)
@@ -353,7 +398,7 @@ func _load_archetype(path: String) -> void:
 	_apply_starter_loadout()
 	_sync_faction_picker()
 	_rebuild_all()
-	_set_status("Loaded %s — %d items" % [_archetype.id, _count_compatible_items()])
+	_set_status(_T("npc_editor.status.loaded") % [_archetype.id, _count_compatible_items()])
 
 func _rebuild_all() -> void:
 	if _archetype == null or _instance == null:
@@ -363,6 +408,7 @@ func _rebuild_all() -> void:
 	_rebuild_items()
 	_rebuild_details()
 	call_deferred("_refresh_scroll_areas")
+	call_deferred("_sync_right_vertical_split")
 	call_deferred("_finalize_layout")
 
 func _refresh_scroll_areas() -> void:
@@ -436,11 +482,11 @@ func _rebuild_inspection() -> void:
 		child.queue_free()
 	var layout := _archetype.resolve_inspection_layout()
 	if layout == null:
-		_inspection_holder.add_child(_body_label("No inspection layout."))
+		_inspection_holder.add_child(_body_label(_T("npc_editor.hint.no_inspection_layout")))
 		return
 	_inspection_panel = _gui.create_inspection_panel_for_archetype(_archetype)
 	if _inspection_panel == null:
-		_inspection_holder.add_child(_body_label("Failed to build inspection panel."))
+		_inspection_holder.add_child(_body_label(_T("npc_editor.hint.inspection_build_failed")))
 		return
 	_inspection_panel.draggable = false
 	_inspection_panel.show_close_button = false
@@ -463,7 +509,7 @@ func _rebuild_items() -> void:
 	for child in _items_box.get_children():
 		child.queue_free()
 	if _archetype == null:
-		_items_box.add_child(_body_label("No archetype loaded."))
+		_items_box.add_child(_body_label(_T("npc_editor.hint.no_archetype")))
 		return
 	var tags := _archetype.resolve_tags()
 	var items: Array[ItemDef] = []
@@ -475,27 +521,27 @@ func _rebuild_items() -> void:
 	items.sort_custom(func(a: ItemDef, b: ItemDef) -> bool:
 		return String(a.id) < String(b.id))
 	if items.is_empty():
-		_items_box.add_child(_body_label("No items for tags: %s" % ", ".join(_string_list(tags))))
+		_items_box.add_child(_body_label(_T("npc_editor.hint.no_items_for_tags") % ", ".join(_string_list(tags))))
 		return
 	for item in items:
 		var entry := _ITEM.new()
 		entry.custom_minimum_size = Vector2(0, 36)
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_items_box.add_child(entry)
-		var label := tr(item.display_name_key) if not item.display_name_key.is_empty() else String(item.id)
+		var label := _T(item.display_name_key) if not item.display_name_key.is_empty() else String(item.id)
 		entry.setup(item.id, label, item.icon)
 
 func _rebuild_details() -> void:
 	for child in _details_box.get_children():
 		child.queue_free()
 	if _archetype == null or _instance == null:
-		_details_box.add_child(_body_label("No archetype loaded."))
+		_details_box.add_child(_body_label(_T("npc_editor.hint.no_archetype")))
 		return
-	_details_box.add_child(_section_label(_archetype.get_display_name()))
-	_details_box.add_child(_body_label("id: %s" % _archetype.id))
-	_details_box.add_child(_body_label("tags: %s" % ", ".join(_string_list(_archetype.resolve_tags()))))
+	_details_box.add_child(_section_label(_archetype_display_name(_archetype)))
+	_details_box.add_child(_body_label(_T("npc_editor.detail.id") % _archetype.id))
+	_details_box.add_child(_body_label(_T("npc_editor.detail.tags") % ", ".join(_string_list(_archetype.resolve_tags()))))
 	_section_gap(_details_box)
-	_details_box.add_child(_section_label("Base attributes"))
+	_details_box.add_child(_section_label(_T("npc_editor.section.base_attributes")))
 	_attr_total_label = Label.new()
 	_attr_total_label.add_theme_color_override("font_color", Color(0.75, 0.82, 0.7))
 	_details_box.add_child(_attr_total_label)
@@ -503,17 +549,17 @@ func _rebuild_details() -> void:
 	for attr in _ATTR_NAMES:
 		_details_box.add_child(_attribute_row(attr))
 	_section_gap(_details_box)
-	_details_box.add_child(_section_label("Vitals"))
-	_details_box.add_child(_body_label("health: %.0f  energy: %.0f" % [_instance.vitals.health, _instance.vitals.energy]))
+	_details_box.add_child(_section_label(_T("npc_editor.section.vitals")))
+	_details_box.add_child(_body_label(_T("npc_editor.detail.health_energy") % [_instance.vitals.health, _instance.vitals.energy]))
 	_section_gap(_details_box)
-	_details_box.add_child(_section_label("Factions"))
+	_details_box.add_child(_section_label(_T("npc_editor.section.factions")))
 	var factions := _string_list(_instance.faction_ids)
-	_details_box.add_child(_body_label(", ".join(factions) if not factions.is_empty() else "(none)"))
+	_details_box.add_child(_body_label(", ".join(factions) if not factions.is_empty() else _T("npc_editor.hint.none")))
 	_section_gap(_details_box)
-	_details_box.add_child(_section_label("Modifiers"))
+	_details_box.add_child(_section_label(_T("npc_editor.section.modifiers")))
 	_append_modifiers_by_kind()
 	_section_gap(_details_box)
-	_details_box.add_child(_section_label("Equipped items"))
+	_details_box.add_child(_section_label(_T("npc_editor.section.equipped_items")))
 	_append_equipped_item_stats()
 
 func _append_equipped_item_stats() -> void:
@@ -524,8 +570,8 @@ func _append_equipped_item_stats() -> void:
 		if inst == null:
 			continue
 		var item := _equipment.load_item(inst.def_id)
-		var name := tr(item.display_name_key) if item != null and not item.display_name_key.is_empty() else String(inst.def_id)
-		_details_box.add_child(_body_label("%s: %s" % [slot, name]))
+		var name := _T(item.display_name_key) if item != null and not item.display_name_key.is_empty() else String(inst.def_id)
+		_details_box.add_child(_body_label(_T("npc_editor.detail.slot_item") % [slot, name]))
 		var bonus := _items.resolve_effective_attributes(inst, _modifier)
 		var lines: Array[String] = []
 		for attr in _ATTR_NAMES:
@@ -533,15 +579,15 @@ func _append_equipped_item_stats() -> void:
 			if val != 0:
 				lines.append("%s %+d" % [attr, val])
 		if lines.is_empty():
-			lines.append("(no stat bonus)")
+			lines.append(_T("npc_editor.hint.no_stat_bonus"))
 		_details_box.add_child(_body_label("  " + ", ".join(lines)))
 		if not inst.modifier_ids.is_empty():
-			_details_box.add_child(_body_label("  mods: %s" % ", ".join(_string_list(inst.modifier_ids))))
+			_details_box.add_child(_body_label("  " + _T("npc_editor.detail.mods") % ", ".join(_string_list(inst.modifier_ids))))
 
 func _append_modifiers_by_kind() -> void:
 	var defs := _modifier.resolve(_instance.modifier_ids)
 	for def in defs:
-		var name := tr(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id)
+		var name := _T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id)
 		_details_box.add_child(_body_label("• %s (%s)" % [name, def.id]))
 
 func _attribute_row(attr_name: String) -> Control:
@@ -549,7 +595,7 @@ func _attribute_row(attr_name: String) -> Control:
 	row.add_theme_constant_override("separation", _FIELD_SEP)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var label := Label.new()
-	label.text = attr_name
+	label.text = _T("npc_editor.attr.%s" % attr_name)
 	label.custom_minimum_size = Vector2(_LABEL_WIDTH, 0)
 	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(label)
@@ -557,7 +603,7 @@ func _attribute_row(attr_name: String) -> Control:
 	spin.min_value = AttributesModule.ATTR_MIN
 	spin.max_value = AttributesModule.ATTR_MAX
 	spin.step = 1
-	spin.custom_minimum_size = Vector2(0, 30)
+	spin.custom_minimum_size = Vector2(0, _BTN_H)
 	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spin.value = int(_instance.attributes.get(attr_name))
 	spin.value_changed.connect(_on_attribute_changed.bind(attr_name))
@@ -570,7 +616,7 @@ func _refresh_attribute_total() -> void:
 	var total := 0
 	for attr in _ATTR_NAMES:
 		total += int(_instance.attributes.get(attr))
-	_attr_total_label.text = tr("npc_editor.attributes_total") % total
+	_attr_total_label.text = _T("npc_editor.attributes_total") % total
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
@@ -578,6 +624,11 @@ func _notification(what: int) -> void:
 		_center_preview_rig()
 	elif what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree():
 		call_deferred("sync_layout")
+		if _data_ready:
+			call_deferred("_refresh_localized_ui")
+	elif what == NOTIFICATION_TRANSLATION_CHANGED:
+		if _data_ready:
+			_refresh_localized_ui()
 
 # --- Signal handlers ---------------------------------------------------------
 
@@ -638,12 +689,62 @@ func _on_attribute_changed(value: float, attr_name: String) -> void:
 
 # --- UI helpers --------------------------------------------------------------
 
-func _toolbar_label(text: String) -> Label:
+func _T(key: String) -> String:
+	return _I18N.translate_key(key)
+
+func _tracked_label(key: String) -> Label:
 	var label := Label.new()
-	label.text = text
+	_locale_labels.append({"label": label, "key": key, "is_button": false})
+	label.text = _T(key)
 	label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return label
+
+func _tracked_section_label(key: String) -> Label:
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", Color(0.72, 0.84, 1.0))
+	label.custom_minimum_size = Vector2(0, 24)
+	_locale_labels.append({"label": label, "key": key, "is_button": false})
+	label.text = _T(key)
+	return label
+
+func _archetype_display_name(archetype: NpcArchetype) -> String:
+	if archetype == null:
+		return ""
+	if not archetype.display_name_key.is_empty():
+		return _T(archetype.display_name_key)
+	return String(archetype.id)
+
+func _refresh_localized_ui() -> void:
+	if _localizing:
+		return
+	_localizing = true
+	_refresh_localized_strings()
+	if _data_ready:
+		_populate_archetypes()
+		_populate_factions()
+		_populate_modifiers()
+		if _archetype != null:
+			_rebuild_items()
+			_rebuild_details()
+			_refresh_attribute_total()
+	_localizing = false
+
+func _refresh_localized_strings() -> void:
+	_I18N.ensure_loaded()
+	for spec in _action_buttons:
+		if spec.has("button") and spec.has("key"):
+			(spec.button as Button).text = _T(spec.key)
+	for spec in _orientation_buttons:
+		if spec.has("button") and spec.has("key"):
+			(spec.button as Button).text = _T(spec.key)
+	for spec in _locale_labels:
+		var node: Node = spec.label
+		if not is_instance_valid(node):
+			continue
+		if node is Label:
+			(node as Label).text = _T(spec.key)
 
 func _toolbar_option() -> OptionButton:
 	var opt := OptionButton.new()
@@ -667,6 +768,7 @@ func _body_label(text: String) -> Label:
 	return label
 
 func _section_gap(parent: Control) -> void:
+	parent.add_child(HSeparator.new())
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, _SECTION_SEP)
 	parent.add_child(gap)

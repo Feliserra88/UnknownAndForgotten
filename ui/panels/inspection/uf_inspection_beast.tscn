@@ -9,19 +9,37 @@
 texture = ExtResource("3_silhouette")
 
 [node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=981317227]
-tooltip_text = "head"
+offset_left = 140.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 50.0
 
 [node name="UfEquipmentLeftHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=311245213]
-tooltip_text = "arm_left"
+offset_left = 44.0
+offset_top = 88.0
+offset_right = 84.0
+offset_bottom = 128.0
 
 [node name="UfEquipmentRightHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=1111039831]
-tooltip_text = "arm_right"
+offset_left = 236.0
+offset_top = 88.0
+offset_right = 276.0
+offset_bottom = 128.0
 
 [node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=384866164]
-tooltip_text = "feet"
+offset_left = 140.0
+offset_top = 253.0
+offset_right = 180.0
+offset_bottom = 293.0
 
 [node name="UfEquipmentBody" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=678117324]
-tooltip_text = "body"
+offset_left = 140.0
+offset_top = 91.0
+offset_right = 180.0
+offset_bottom = 131.0
 
 [node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=1283183109]
-tooltip_text = "belt"
+offset_left = 140.0
+offset_top = 136.0
+offset_right = 180.0
+offset_bottom = 176.0

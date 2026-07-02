@@ -9,43 +9,37 @@
 texture = ExtResource("3_silhouette")
 
 [node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=981317227]
-offset_left = 228.0
-offset_top = 96.0
-offset_right = 268.0
-offset_bottom = 136.0
-tooltip_text = "head"
+offset_left = 140.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 50.0
 
 [node name="UfEquipmentLeftHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=311245213]
-offset_left = 217.0
-offset_top = 166.0
-offset_right = 257.0
-offset_bottom = 206.0
-tooltip_text = "arm_left"
+offset_left = 44.0
+offset_top = 88.0
+offset_right = 84.0
+offset_bottom = 128.0
 
 [node name="UfEquipmentRightHand" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="3" unique_id=1111039831]
-offset_left = 167.0
-offset_top = 175.0
-offset_right = 207.0
-offset_bottom = 215.0
-tooltip_text = "arm_right"
+offset_left = 236.0
+offset_top = 88.0
+offset_right = 276.0
+offset_bottom = 128.0
 
 [node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="4" unique_id=384866164]
-offset_left = 113.0
-offset_top = 169.0
-offset_right = 153.0
-offset_bottom = 209.0
-tooltip_text = "feet"
+offset_left = 140.0
+offset_top = 253.0
+offset_right = 180.0
+offset_bottom = 293.0
 
 [node name="UfEquipmentBody" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="5" unique_id=678117324]
-offset_left = 188.0
-offset_top = 120.0
-offset_right = 228.0
-offset_bottom = 160.0
-tooltip_text = "body"
+offset_left = 140.0
+offset_top = 91.0
+offset_right = 180.0
+offset_bottom = 131.0
 
 [node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="6" unique_id=1283183109]
-offset_left = 138.0
-offset_top = 114.0
-offset_right = 178.0
-offset_bottom = 154.0
-tooltip_text = "belt"
+offset_left = 140.0
+offset_top = 136.0
+offset_right = 180.0
+offset_bottom = 176.0
