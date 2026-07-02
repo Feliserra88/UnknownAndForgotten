@@ -12,8 +12,32 @@ const _SpriteLibrary := preload("res://modules/items/_private/sprite_library.gd"
 const _TagCatalog := preload("res://modules/items/_private/tag_catalog.gd")
 
 ## Returns every ItemDef, optionally filtered by category_id, tag or equip_slot.
+## Optional [code]exclude_placeholders[/code] skips dev-only dummy catalog entries.
 func list_defs(filter: Dictionary = {}) -> Array[ItemDef]:
-	return _Catalog.list_filtered(filter)
+	var exclude_placeholders: bool = filter.get("exclude_placeholders", false)
+	var query := filter.duplicate()
+	query.erase("exclude_placeholders")
+	var out: Array[ItemDef] = []
+	for item in _Catalog.list_filtered(query):
+		if exclude_placeholders and is_placeholder_def(item):
+			continue
+		out.append(item)
+	return out
+
+## True for dev-only placeholder ItemDef assets (id suffix, dummy tag on item or archetype allow-list).
+static func is_placeholder_def(item: ItemDef) -> bool:
+	if item == null:
+		return true
+	if String(item.id).ends_with("_dummy"):
+		return true
+	const PLACEHOLDER_TAG := &"dummy"
+	for raw in item.tags:
+		if StringName(String(raw)) == PLACEHOLDER_TAG:
+			return true
+	for raw in item.allowed_archetype_tags:
+		if StringName(String(raw)) == PLACEHOLDER_TAG:
+			return true
+	return false
 
 ## Returns the ItemDef for [param id], or null when missing.
 func load_def(id: StringName) -> ItemDef:

@@ -68,16 +68,6 @@ faction.bandit.name,Bandit,Bandido
 faction.chaos.name,Chaos,Caos
 faction.undead.name,Undead,No muertos
 modifier.dummy.name,Dummy trait,Rasgo dummy
-item.equipo_humano_cabeza_dummy.name,Dummy head (human),Cabeza dummy (humano)
-item.equipo_humano_cuerpo_dummy.name,Dummy body (human),Cuerpo dummy (humano)
-item.equipo_humano_brazo_izq_dummy.name,Dummy left arm (human),Brazo izq. dummy (humano)
-item.equipo_humano_brazo_der_dummy.name,Dummy right arm (human),Brazo der. dummy (humano)
-item.equipo_humano_cinturon_dummy.name,Dummy belt (human),CinturÃ³n dummy (humano)
-item.equipo_humano_cuello_dummy.name,Dummy neck (human),Cuello dummy (humano)
-item.equipo_humano_anillo_1_dummy.name,Dummy ring 1 (human),Anillo 1 dummy (humano)
-item.equipo_humano_anillo_2_dummy.name,Dummy ring 2 (human),Anillo 2 dummy (humano)
-item.equipo_humano_pies_dummy.name,Dummy feet (human),Pies dummy (humano)
-item.equipo_humano_espalda_dummy.name,Dummy back (human),Espalda dummy (humano)
 npc_editor.title,NPC Editor,Editor de PNJ
 npc_editor.details,Details,Detalles
 npc_editor.preview,Preview,Vista previa

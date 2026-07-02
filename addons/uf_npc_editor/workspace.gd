@@ -5,14 +5,9 @@ extends Control
 const _ITEM := preload("res://addons/uf_npc_editor/compatible_item.gd")
 const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
 const _LAYOUT := preload("res://addons/uf_npc_editor/editor_layout.gd")
+const _ITEM_FILTER_LIST := preload("res://addons/uf_item_editor/item_filter_list.gd")
 const _DEFAULT_ARCHETYPE_ID := &"humanoid"
 const _LOG := "NPC"
-const _STARTER_EQUIPMENT: Array = [
-	[&"head", &"equipo_humano_cabeza_dummy"],
-	[&"body", &"equipo_humano_cuerpo_dummy"],
-	[&"arm_left", &"equipo_humano_brazo_izq_dummy"],
-	[&"arm_right", &"equipo_humano_brazo_der_dummy"],
-]
 const _ATTR_NAMES: Array[String] = ["strength", "agility", "willpower", "vitality", "perception", "charisma"]
 const _ORIENTATIONS: Array[StringName] = [&"front", &"back", &"side_left", &"side_right"]
 const _PREVIEW_SCALE := 3.0
@@ -56,14 +51,13 @@ var _preview_camera: Camera2D
 var _appearance: NpcAppearanceController
 var _inspection_holder: VBoxContainer
 var _inspection_panel: UfInspectionPanel
-var _items_box: VBoxContainer
+var _item_filter_list: _ITEM_FILTER_LIST
 var _cols: HBoxContainer
 var _col_left: Control
 var _col_center: Control
 var _col_right: Control
 var _details_scroll: ScrollContainer
 var _inspection_scroll: ScrollContainer
-var _items_scroll: ScrollContainer
 var _locale_labels: Array[Dictionary] = []
 var _action_buttons: Array[Dictionary] = []
 var _orientation_buttons: Array[Dictionary] = []
@@ -327,18 +321,9 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	center.add_child(_tracked_section_label("npc_editor.compatible_items"))
 	center.add_child(HSeparator.new())
 
-	var items_scroll := ScrollContainer.new()
-	items_scroll.custom_minimum_size = Vector2(0, _ITEMS_PANEL_MIN_H)
-	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	items_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	items_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	center.add_child(items_scroll)
-	_items_scroll = items_scroll
-	_items_box = VBoxContainer.new()
-	_items_box.add_theme_constant_override("separation", 6)
-	_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	items_scroll.add_child(_items_box)
+	_item_filter_list = _ITEM_FILTER_LIST.new()
+	_item_filter_list.setup(_items, &"", _ITEMS_PANEL_MIN_H)
+	center.add_child(_item_filter_list)
 	return center
 
 func _build_right_column(parent: HBoxContainer) -> Control:
@@ -404,7 +389,6 @@ func _load_archetype(path: String) -> void:
 	_instance = NpcInstanceData.new()
 	_instance.apply_archetype(_archetype)
 	_npc.assemble(_instance)
-	_apply_starter_loadout()
 	_sync_faction_picker()
 	_rebuild_all()
 	_set_status(_T("npc_editor.status.loaded") % [_archetype.id, _count_compatible_items()])
@@ -421,26 +405,25 @@ func _rebuild_all() -> void:
 	call_deferred("_finalize_layout")
 
 func _refresh_scroll_areas() -> void:
-	for scroll in [_details_scroll, _inspection_scroll, _items_scroll]:
+	for scroll in [_details_scroll, _inspection_scroll]:
 		if scroll != null:
 			scroll.update_minimum_size()
+	if _item_filter_list != null:
+		var item_scroll := _item_filter_list.get_scroll()
+		if item_scroll != null:
+			item_scroll.update_minimum_size()
 
 func _count_compatible_items() -> int:
+	if _item_filter_list != null:
+		return _item_filter_list.count_matching()
+	if _archetype == null:
+		return 0
 	var tags := _archetype.resolve_tags()
 	var count := 0
-	for item in _equipment.list_items():
-		if item == null:
-			continue
-		if item.allows_archetype(tags):
+	for item in _items.list_defs({"exclude_placeholders": true}):
+		if item != null and item.allows_archetype(tags):
 			count += 1
 	return count
-
-func _apply_starter_loadout() -> void:
-	if _archetype == null or _archetype.id != _DEFAULT_ARCHETYPE_ID:
-		return
-	for pair in _STARTER_EQUIPMENT:
-		var inst := _items.create_instance(pair[1])
-		_instance.equipment.equip(pair[0], inst)
 
 func _sync_faction_picker() -> void:
 	if _faction_option == null or _instance == null:
@@ -531,30 +514,34 @@ func _rebuild_inspection() -> void:
 			_inspection_panel.set_slot_item(slot, inst.def_id, icon_tex)
 
 func _rebuild_items() -> void:
-	for child in _items_box.get_children():
-		child.queue_free()
+	if _item_filter_list == null:
+		return
 	if _archetype == null:
-		_items_box.add_child(_body_label(_T("npc_editor.hint.no_archetype")))
+		_item_filter_list.configure_query({
+			"archetype_tags": [],
+			"exclude_placeholders": true,
+			"empty_message": _T("npc_editor.hint.no_archetype"),
+			"row_builder": Callable(),
+		})
+		_item_filter_list.refresh()
 		return
 	var tags := _archetype.resolve_tags()
-	var items: Array[ItemDef] = []
-	for item in _equipment.list_items():
-		if item == null:
-			continue
-		if item.allows_archetype(tags):
-			items.append(item)
-	items.sort_custom(func(a: ItemDef, b: ItemDef) -> bool:
-		return String(a.id) < String(b.id))
-	if items.is_empty():
-		_items_box.add_child(_body_label(_T("npc_editor.hint.no_items_for_tags") % ", ".join(_string_list(tags))))
-		return
-	for item in items:
-		var entry := _ITEM.new()
-		entry.custom_minimum_size = Vector2(0, 36)
-		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_items_box.add_child(entry)
-		var label := _T(item.display_name_key) if not item.display_name_key.is_empty() else String(item.id)
-		entry.setup(item.id, label, item.icon)
+	_item_filter_list.configure_query({
+		"archetype_tags": tags,
+		"exclude_placeholders": true,
+		"empty_message": _T("npc_editor.hint.no_items_for_tags") % ", ".join(_string_list(tags)),
+		"row_builder": _build_compatible_item_row,
+	})
+	_item_filter_list.set_archetype_tags(tags)
+	_item_filter_list.refresh_tag_picker()
+	_item_filter_list.refresh()
+
+func _build_compatible_item_row(item: ItemDef) -> Control:
+	var entry := _ITEM.new()
+	entry.custom_minimum_size = Vector2(0, 36)
+	var label := _T(item.display_name_key) if not item.display_name_key.is_empty() else String(item.id)
+	entry.setup(item.id, label, item.icon)
+	return entry
 
 func _rebuild_details() -> void:
 	for child in _details_box.get_children():
