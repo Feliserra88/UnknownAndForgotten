@@ -1,0 +1,41 @@
+---
+description: Layout de herramientas de editor — sin hints redundantes, botones en grid uniforme
+globs: addons/uf_*_editor/**
+alwaysApply: true
+---
+
+# UI de herramientas de editor (`uf_*_editor`)
+
+Norma general: `editor-artist-tools.mdc`, `docs/GAME_DESIGN.md` §11.
+
+## Sin texto de ayuda redundante
+
+- **No** añadir `Label` descriptivos que repitan lo obvio del bloque (título del bloque, controles adyacentes o tooltips).
+- Ejemplos prohibidos: «Activa etiquetas para filtrar…», «Arrastra etiquetas a la caja…», párrafos de modo en la barra central.
+- **Sí** usar: título de bloque (`editor_block`), etiquetas de campo, tooltips en controles, mensajes de estado/error cuando falta dato o falla una acción.
+- Zonas vacías (drop target, lista vacía): marco visual mínimo; sin párrafo instructivo.
+
+## Botones y chips en grid
+
+- Grupos de **2+ botones** del mismo bloque → `GridContainer`, no `VBoxContainer` ni `HBoxContainer` sueltos.
+- `columns`: 2 por defecto en paneles laterales; 3–4 si el bloque es ancho (p. ej. orientación en vista previa).
+- Cada celda: `size_flags_horizontal = SIZE_EXPAND_FILL` para **mismo ancho** en la fila.
+- Reutilizar `EditorBlock.create_button_grid()` / `EditorLayout.create_button_grid()` del addon; no duplicar lógica de estilos de botón.
+
+```gdscript
+# ✅ Bloque de acciones
+var grid := _BLOCK.create_button_grid()
+for spec in action_specs:
+    var btn := _BLOCK.add_grid_button(grid, _BTN_H)
+    btn.pressed.connect(spec.callback)
+
+# ❌ Columna vertical de botones de ancho variable
+for spec in action_specs:
+    var btn := Button.new()
+    actions_vbox.add_child(btn)
+```
+
+## Chips / toggles de filtro
+
+- Paleta, filtro y asignación de tags → `GridContainer` (no `FlowContainer`) con la misma regla de ancho uniforme.
+- Estado activo/inactivo y acciones secundarias → **tooltip**, no label bajo el bloque.

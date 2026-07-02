@@ -26,6 +26,7 @@ func setup(tag_id: StringName, label: String, mode: Mode, chip_color: Color = Co
 	_base_color = chip_color
 	_label_text = label
 	tooltip_text = _tooltip_for_mode()
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for child in get_children():
 		child.queue_free()
 	var margin := MarginContainer.new()

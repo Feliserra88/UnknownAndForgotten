@@ -143,8 +143,6 @@ modifier.enchanted.name,Enchanted,Encantado
 modifier.oiled.name,Oiled,Aceitado
 item_editor.tab.art_library,Art library,Biblioteca de arte
 item_editor.tab.saved_items,Saved items,Items guardados
-item_editor.hint.art_library,PNG files from assets/visuals/equipment. Pick one and press New to create an item definition.,Archivos PNG en assets/visuals/equipment. Elige uno y pulsa New para crear una definición de item.
-item_editor.hint.saved_items,Item definitions (.tres) already saved in assets/data/items.,Definiciones de item (.tres) ya guardadas en assets/data/items.
 item_editor.row.art_source,Art reference (not saved yet),Arte de referencia (aún no guardado)
 item_editor.list.no_art,No art files for this category.,No hay archivos de arte para esta categoría.
 item_editor.list.no_items,No saved items for this category.,No hay items guardados para esta categoría.
@@ -218,9 +216,6 @@ item_editor.field.stackable,stackable,apilable
 item_editor.field.merchant_category,merchant_category,categoría_mercader
 item_editor.action.reset_state_tiers,Reset default state tiers,Restablecer tiers de estado
 item_editor.action.reset_quality_tiers,Reset default quality tiers,Restablecer tiers de calidad
-item_editor.tags.palette_hint,Drag tags into the box below (or click a tag).,Arrastra etiquetas a la caja inferior (o haz clic en una).
-item_editor.tags.filter_hint,Toggle tags to filter the list (OR — any match).,Activa etiquetas para filtrar la lista (OR — cualquier coincidencia).
-item_editor.tags.drop_hint,Drop tags here or click palette tags.,Suelta etiquetas aquí o haz clic en la paleta.
 item_editor.tags.filter_active,Active filter — click to disable,Filtro activo — clic para desactivar
 item_editor.tags.filter_inactive,Inactive filter — click to enable,Filtro inactivo — clic para activar
 item_editor.tags.remove_hint,Right-click to remove,Clic derecho para quitar

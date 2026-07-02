@@ -1,27 +1,24 @@
 @tool
 extends VBoxContainer
-## Flow of tag chips for list filtering (toggle) or palette (drag source).
+## Grid of tag chips for list filtering (toggle) or palette (drag source).
 
 signal filter_changed(active_tags: Array[StringName])
 signal palette_tag_selected(tag_id: StringName)
 
 const _CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
+const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
 const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
 const _FILTER_BTN_H := 28
 
 var _mode: int = _CHIP.Mode.FILTER
 var _items: ItemsModule
-var _flow: FlowContainer
+var _grid: GridContainer
 var _active: Dictionary = {}
 
 func _init() -> void:
 	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_flow = FlowContainer.new()
-	_flow.add_theme_constant_override("h_separation", 6)
-	_flow.add_theme_constant_override("v_separation", 6)
-	_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	add_child(_flow)
+	_grid = _BLOCK.create_button_grid()
+	add_child(_grid)
 
 func configure(mode: int, items: ItemsModule, category_id: StringName) -> void:
 	_mode = mode
@@ -43,7 +40,7 @@ func get_active_filter_tags() -> Array[StringName]:
 
 func clear_filter() -> void:
 	_active.clear()
-	for child in _flow.get_children():
+	for child in _grid.get_children():
 		if child is Button:
 			var btn := child as Button
 			btn.button_pressed = false
@@ -52,7 +49,7 @@ func clear_filter() -> void:
 			(child as _CHIP).set_filter_active(false)
 
 func _rebuild(defs: Array[ItemTagDef]) -> void:
-	for child in _flow.get_children():
+	for child in _grid.get_children():
 		child.queue_free()
 	for def in defs:
 		if def == null:
@@ -62,23 +59,21 @@ func _rebuild(defs: Array[ItemTagDef]) -> void:
 		else:
 			var chip := _CHIP.new()
 			chip.setup(def.id, _tag_label(def), _CHIP.Mode.PALETTE, def.chip_color)
+			chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			chip.activated.connect(_on_palette_chip.bind(def.id))
-			_flow.add_child(chip)
+			_grid.add_child(chip)
 
 func _add_filter_button(def: ItemTagDef) -> void:
 	var key := String(def.id)
-	var btn := Button.new()
+	var btn := _BLOCK.add_grid_button(_grid, _FILTER_BTN_H)
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.toggle_mode = true
 	btn.text = _tag_label(def)
 	btn.button_pressed = _active.get(key, false)
-	btn.custom_minimum_size = Vector2(0, _FILTER_BTN_H)
-	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	btn.set_meta("chip_color", def.chip_color)
 	btn.set_meta("tag_id", def.id)
 	_apply_filter_button_style(btn, def.chip_color, btn.button_pressed)
 	btn.toggled.connect(_on_filter_button_toggled.bind(def.id, btn))
-	_flow.add_child(btn)
 
 func _on_filter_button_toggled(pressed: bool, tag_id: StringName, btn: Button) -> void:
 	var key := String(tag_id)

@@ -5,7 +5,7 @@ extends PanelContainer
 signal tags_changed(tags: Array[StringName])
 
 const _CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
 const _DROP_BG := Color(0.1, 0.11, 0.13, 0.6)
 const _DROP_BORDER := Color(0.28, 0.34, 0.42, 1.0)
 const _DROP_HOVER := Color(0.16, 0.22, 0.3, 0.85)
@@ -13,7 +13,7 @@ const _EMPTY_H := 40
 
 var _items: ItemsModule
 var _tags: Array[StringName] = []
-var _flow: FlowContainer
+var _grid: GridContainer
 var _hover_drop: bool = false
 var _pending_rebuild: bool = false
 
@@ -32,13 +32,9 @@ func _ready() -> void:
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	add_child(margin)
-	_flow = FlowContainer.new()
-	_flow.add_theme_constant_override("h_separation", 6)
-	_flow.add_theme_constant_override("v_separation", 6)
-	_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_flow.mouse_filter = Control.MOUSE_FILTER_PASS
-	margin.add_child(_flow)
+	_grid = _BLOCK.create_button_grid()
+	_grid.mouse_filter = Control.MOUSE_FILTER_PASS
+	margin.add_child(_grid)
 	if _pending_rebuild:
 		_pending_rebuild = false
 		_rebuild_chips()
@@ -51,28 +47,20 @@ func get_tags() -> Array[StringName]:
 
 func set_tags(tags: Array[StringName]) -> void:
 	_tags = _items.normalize_tags(tags, &"") if _items != null else []
-	if _flow == null:
+	if _grid == null:
 		_pending_rebuild = true
 		return
 	_rebuild_chips()
 
 func _rebuild_chips() -> void:
-	if _flow == null:
+	if _grid == null:
 		_pending_rebuild = true
 		return
 	_pending_rebuild = false
-	for child in _flow.get_children():
+	for child in _grid.get_children():
 		child.queue_free()
 	if _tags.is_empty():
 		custom_minimum_size = Vector2(0, _EMPTY_H)
-		var hint := Label.new()
-		hint.text = _I18N.translate_key("item_editor.tags.drop_hint")
-		hint.autowrap_mode = TextServer.AUTOWRAP_OFF
-		hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		hint.add_theme_color_override("font_color", Color(0.55, 0.6, 0.66))
-		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hint.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		_flow.add_child(hint)
 		return
 	custom_minimum_size = Vector2(0, 0)
 	for tid in _tags:
@@ -81,8 +69,9 @@ func _rebuild_chips() -> void:
 		var label := _tag_label(def, tid)
 		var chip := _CHIP.new()
 		chip.setup(tid, label, _CHIP.Mode.ASSIGNED, color)
+		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		chip.remove_requested.connect(_on_remove_tag)
-		_flow.add_child(chip)
+		_grid.add_child(chip)
 
 func _on_remove_tag(tag_id: StringName) -> void:
 	_tags.erase(tag_id)
@@ -130,3 +119,5 @@ func _tag_label(def: ItemTagDef, tag_id: StringName) -> String:
 	if def != null and not def.display_name_key.is_empty():
 		return _I18N.translate_key(def.display_name_key)
 	return String(tag_id)
+
+const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")

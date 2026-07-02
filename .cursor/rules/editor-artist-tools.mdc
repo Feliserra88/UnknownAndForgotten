@@ -29,3 +29,4 @@ Si un módulo se usará **muchas veces** y requiere **fine-tuning manual** por u
 - [ ] ¿API pública suficiente? → extender módulo antes del plugin.
 - [ ] ¿Arte en `assets/` sigue `world-assets-layout.mdc` (`.tres` + `art/` mismo nivel)?
 - [ ] Documentar formato de asset y registrar en §12 de `GAME_DESIGN.md`.
+- [ ] UI del addon sigue `editor-ui-layout.mdc` (sin hints redundantes; botones en grid uniforme).

@@ -1,9 +1,10 @@
 @tool
 extends Control
-## NPC editor workspace (debug skeleton). Three columns: details, rig preview, inspection + item list.
+## NPC editor workspace (debug skeleton). Three columns: details, preview + items, inspection.
 
 const _ITEM := preload("res://addons/uf_npc_editor/compatible_item.gd")
 const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
+const _LAYOUT := preload("res://addons/uf_npc_editor/editor_layout.gd")
 const _DEFAULT_ARCHETYPE_ID := &"humanoid"
 const _LOG := "NPC"
 const _STARTER_EQUIPMENT: Array = [
@@ -22,15 +23,14 @@ const _FIELD_SEP := 6
 const _SECTION_SEP := 8
 const _LABEL_WIDTH := 96
 const _BTN_H := 26
-const _INSPECTION_SCROLL_MIN := Vector2(200, 80)
+const _INSPECTION_PANEL_MIN := UfInspectionPanel.PANEL_MIN_SIZE
 const _ITEMS_PANEL_MIN_H := 160
-const _INSPECTION_CHROME_H := 28
 const _COL_LEFT := 0.30
 const _COL_CENTER := 0.40
 const _COL_RIGHT := 0.30
 const _COL_MIN_LEFT := 200
 const _COL_MIN_CENTER := 260
-const _COL_MIN_RIGHT := 200
+const _COL_MIN_RIGHT := int(UfInspectionPanel.PANEL_MIN_SIZE.x)
 
 var _npc: NpcModule
 var _gui: GuiModule
@@ -61,7 +61,6 @@ var _cols: HBoxContainer
 var _col_left: Control
 var _col_center: Control
 var _col_right: Control
-var _right_split: VSplitContainer
 var _details_scroll: ScrollContainer
 var _inspection_scroll: ScrollContainer
 var _items_scroll: ScrollContainer
@@ -133,7 +132,7 @@ func _finalize_layout() -> void:
 		return
 	call_deferred("_apply_column_splits")
 	_sync_preview_viewport_size()
-	_sync_right_vertical_split()
+	_sync_inspection_scroll()
 	_center_preview_rig()
 
 func _apply_column_splits() -> void:
@@ -142,41 +141,34 @@ func _apply_column_splits() -> void:
 	var min_total := _COL_MIN_LEFT + _COL_MIN_CENTER + _COL_MIN_RIGHT + 16
 	if _cols.size.x < min_total:
 		return
-	for col in [_col_left, _col_center, _col_right]:
+	for col in [_col_left, _col_center]:
 		if col == null:
 			continue
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		col.custom_minimum_size.x = 0.0
+	if _col_right != null:
+		_col_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_col_right.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_col_right.custom_minimum_size.x = _INSPECTION_PANEL_MIN.x
 	if _col_left != null:
 		_col_left.size_flags_stretch_ratio = _COL_LEFT
 	if _col_center != null:
 		_col_center.size_flags_stretch_ratio = _COL_CENTER
 	if _col_right != null:
 		_col_right.size_flags_stretch_ratio = _COL_RIGHT
-	if _right_split != null and _right_split.size.y > _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
-		_sync_right_vertical_split()
 
-func _sync_right_vertical_split() -> void:
-	if _right_split == null or _inspection_holder == null:
+func _sync_inspection_scroll() -> void:
+	if _inspection_scroll == null or _inspection_holder == null:
 		return
 	_inspection_holder.update_minimum_size()
 	var content_h := int(_inspection_holder.get_combined_minimum_size().y)
 	if content_h < 8 and _inspection_panel != null:
 		content_h = int(_inspection_panel.get_combined_minimum_size().y)
-	var sep := _right_split.get_theme_constant("separation", "VSplitContainer")
-	var avail := _right_split.size.y - sep
-	if avail < _ITEMS_PANEL_MIN_H + _INSPECTION_SCROLL_MIN.y:
-		return
-	var top_h := clampi(
-		content_h + _INSPECTION_CHROME_H,
-		_INSPECTION_SCROLL_MIN.y,
-		avail - _ITEMS_PANEL_MIN_H,
+	_inspection_scroll.custom_minimum_size = Vector2(
+		_INSPECTION_PANEL_MIN.x,
+		maxi(content_h, int(_INSPECTION_PANEL_MIN.y)),
 	)
-	_right_split.split_offset = top_h
-	if _inspection_scroll != null:
-		_inspection_scroll.custom_minimum_size.y = maxi(content_h, 1)
-		_inspection_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 func _sync_preview_viewport_size() -> void:
 	if _preview_viewport == null:
@@ -324,73 +316,57 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	_preview_camera.name = "PreviewCamera"
 	_preview_viewport.add_child(_preview_camera)
 
-	var orient := HBoxContainer.new()
-	orient.alignment = BoxContainer.ALIGNMENT_CENTER
-	orient.add_theme_constant_override("separation", _FIELD_SEP)
+	var orient := _LAYOUT.create_button_grid(2)
 	center.add_child(orient)
 	for o in _ORIENTATIONS:
-		var b := Button.new()
-		b.custom_minimum_size = Vector2(64, _BTN_H)
+		var b := _LAYOUT.add_grid_button(orient, _BTN_H)
 		b.pressed.connect(_on_orientation_pressed.bind(o))
 		_orientation_buttons.append({"button": b, "key": "npc_editor.orient.%s" % o})
 		b.text = _T("npc_editor.orient.%s" % o)
-		orient.add_child(b)
+
+	center.add_child(_tracked_section_label("npc_editor.compatible_items"))
+	center.add_child(HSeparator.new())
+
+	var items_scroll := ScrollContainer.new()
+	items_scroll.custom_minimum_size = Vector2(0, _ITEMS_PANEL_MIN_H)
+	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	items_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	items_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	center.add_child(items_scroll)
+	_items_scroll = items_scroll
+	_items_box = VBoxContainer.new()
+	_items_box.add_theme_constant_override("separation", 6)
+	_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	items_scroll.add_child(_items_box)
 	return center
 
 func _build_right_column(parent: HBoxContainer) -> Control:
-	var right := VSplitContainer.new()
+	var right := VBoxContainer.new()
 	right.name = "RightColumn"
-	right.custom_minimum_size.x = 0
+	right.custom_minimum_size.x = _INSPECTION_PANEL_MIN.x
 	right.size_flags_stretch_ratio = _COL_RIGHT
+	right.add_theme_constant_override("separation", _FIELD_SEP)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(right)
-	_right_split = right
 
-	var top_inspection := VBoxContainer.new()
-	top_inspection.add_theme_constant_override("separation", _FIELD_SEP)
-	top_inspection.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_inspection.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	right.add_child(top_inspection)
-
-	top_inspection.add_child(_tracked_section_label("npc_editor.inspection"))
-	top_inspection.add_child(HSeparator.new())
+	right.add_child(_tracked_section_label("npc_editor.inspection"))
+	right.add_child(HSeparator.new())
 
 	var inspection_scroll := ScrollContainer.new()
-	inspection_scroll.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, 0)
+	inspection_scroll.custom_minimum_size = Vector2(_INSPECTION_PANEL_MIN.x, int(_INSPECTION_PANEL_MIN.y))
 	inspection_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	inspection_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	inspection_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inspection_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	inspection_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	top_inspection.add_child(inspection_scroll)
+	right.add_child(inspection_scroll)
 	_inspection_scroll = inspection_scroll
 	_inspection_holder = VBoxContainer.new()
 	_inspection_holder.add_theme_constant_override("separation", _FIELD_SEP)
 	_inspection_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inspection_holder.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	inspection_scroll.add_child(_inspection_holder)
-
-	var items_panel := VBoxContainer.new()
-	items_panel.add_theme_constant_override("separation", _FIELD_SEP)
-	items_panel.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, _ITEMS_PANEL_MIN_H)
-	items_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	items_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	right.add_child(items_panel)
-	items_panel.add_child(_tracked_section_label("npc_editor.compatible_items"))
-	items_panel.add_child(HSeparator.new())
-
-	var items_scroll := ScrollContainer.new()
-	items_scroll.custom_minimum_size = Vector2(_INSPECTION_SCROLL_MIN.x, 80)
-	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	items_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	items_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	items_panel.add_child(items_scroll)
-	_items_scroll = items_scroll
-	_items_box = VBoxContainer.new()
-	_items_box.add_theme_constant_override("separation", 6)
-	_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	items_scroll.add_child(_items_box)
 	return right
 
 # --- Population ---------------------------------------------------------------
@@ -441,7 +417,7 @@ func _rebuild_all() -> void:
 	_rebuild_items()
 	_rebuild_details()
 	call_deferred("_refresh_scroll_areas")
-	call_deferred("_sync_right_vertical_split")
+	call_deferred("_sync_inspection_scroll")
 	call_deferred("_finalize_layout")
 
 func _refresh_scroll_areas() -> void:
@@ -540,9 +516,9 @@ func _rebuild_inspection() -> void:
 	_inspection_panel.show_close_button = false
 	_inspection_panel.show_minimize_button = false
 	_inspection_panel.show_drag_handle = false
-	_inspection_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inspection_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_inspection_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_inspection_panel.custom_minimum_size = Vector2(260, 360)
+	_inspection_panel.custom_minimum_size = _inspection_panel.custom_minimum_size.max(_INSPECTION_PANEL_MIN)
 	_inspection_holder.add_child(_inspection_panel)
 	if not _inspection_panel.item_dropped.is_connected(_on_item_dropped):
 		_inspection_panel.item_dropped.connect(_on_item_dropped)
@@ -600,44 +576,6 @@ func _rebuild_details() -> void:
 	_section_gap(_details_box)
 	_details_box.add_child(_section_label(_T("npc_editor.section.vitals")))
 	_details_box.add_child(_body_label(_T("npc_editor.detail.health_energy") % [_instance.vitals.health, _instance.vitals.energy]))
-	_section_gap(_details_box)
-	_details_box.add_child(_section_label(_T("npc_editor.section.factions")))
-	var factions := _string_list(_instance.faction_ids)
-	_details_box.add_child(_body_label(", ".join(factions) if not factions.is_empty() else _T("npc_editor.hint.none")))
-	_section_gap(_details_box)
-	_details_box.add_child(_section_label(_T("npc_editor.section.modifiers")))
-	_append_modifiers_by_kind()
-	_section_gap(_details_box)
-	_details_box.add_child(_section_label(_T("npc_editor.section.equipped_items")))
-	_append_equipped_item_stats()
-
-func _append_equipped_item_stats() -> void:
-	if _instance == null:
-		return
-	for slot in _instance.equipment.occupied_slots():
-		var inst := _instance.equipment.get_instance(slot)
-		if inst == null:
-			continue
-		var item := _equipment.load_item(inst.def_id)
-		var name := _T(item.display_name_key) if item != null and not item.display_name_key.is_empty() else String(inst.def_id)
-		_details_box.add_child(_body_label(_T("npc_editor.detail.slot_item") % [slot, name]))
-		var bonus := _items.resolve_effective_attributes(inst, _modifier)
-		var lines: Array[String] = []
-		for attr in _ATTR_NAMES:
-			var val := int(bonus.get(attr))
-			if val != 0:
-				lines.append("%s %+d" % [attr, val])
-		if lines.is_empty():
-			lines.append(_T("npc_editor.hint.no_stat_bonus"))
-		_details_box.add_child(_body_label("  " + ", ".join(lines)))
-		if not inst.modifier_ids.is_empty():
-			_details_box.add_child(_body_label("  " + _T("npc_editor.detail.mods") % ", ".join(_string_list(inst.modifier_ids))))
-
-func _append_modifiers_by_kind() -> void:
-	var defs := _modifier.resolve(_instance.modifier_ids)
-	for def in defs:
-		var name := _T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id)
-		_details_box.add_child(_body_label("• %s (%s)" % [name, def.id]))
 
 func _attribute_row(attr_name: String) -> Control:
 	var row := HBoxContainer.new()
@@ -696,7 +634,6 @@ func _on_faction_selected(index: int) -> void:
 	_instance.faction_ids.append(fid)
 	_instance.modifier_ids = _archetype.resolve_default_modifiers()
 	_npc.assemble(_instance)
-	_rebuild_details()
 
 func _on_modifier_selected(index: int) -> void:
 	if _instance == null or index <= 0:
@@ -705,7 +642,6 @@ func _on_modifier_selected(index: int) -> void:
 	if not String(mid).is_empty() and not _instance.modifier_ids.has(mid):
 		_instance.modifier_ids.append(mid)
 	_modifier_option.select(0)
-	_rebuild_details()
 
 func _on_orientation_pressed(orientation: StringName) -> void:
 	if _instance == null:

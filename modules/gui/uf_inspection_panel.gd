@@ -7,7 +7,8 @@ extends UfPanelIngame
 ## Presentational only; it relays slot signals and never touches domain modules.
 
 const _LabelScript := preload("res://modules/gui/widgets/uf_label.gd")
-const _PLACEHOLDER_MIN_SIZE := Vector2(240, 300)
+## Minimum panel footprint (matches ui/templates/uf_panel_ingame_equipment.tscn). Editors must reserve this space.
+const PANEL_MIN_SIZE := Vector2(400, 600)
 const _PLACEHOLDER_DETAIL_COLOR := Color(1, 0.45, 0.45)
 ## Maps legacy uf_gui_tools slot node names to equipment slot_id when the saved scene omits slot_id.
 const _LEGACY_SLOT_NODE_MAP := {
@@ -36,7 +37,7 @@ func show_asset_missing_placeholder(failed_path: String = "") -> void:
 
 	var region := UfLayoutRegion.new()
 	region.name = "MissingPanelPlaceholder"
-	region.region_min_size = _PLACEHOLDER_MIN_SIZE
+	region.region_min_size = PANEL_MIN_SIZE
 	content.add_child(region)
 
 	var frame := Panel.new()

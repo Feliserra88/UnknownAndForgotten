@@ -35,7 +35,6 @@ var _selected_meta: Dictionary = {}
 var _selected_list_key: String = ""
 var _browse_mode: StringName = &"saved"
 var _back_to_saved_btn: Button
-var _browse_hint: Label
 var _preview_state: int = 0
 var _preview_modifier_ids: Array[StringName] = []
 
@@ -299,6 +298,7 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(column)
 	var browse_bar := HBoxContainer.new()
+	browse_bar.name = "BrowseBar"
 	browse_bar.add_theme_constant_override("separation", _FIELD_SEP)
 	column.add_child(browse_bar)
 	_back_to_saved_btn = Button.new()
@@ -307,11 +307,6 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	_back_to_saved_btn.pressed.connect(_on_back_to_saved_pressed)
 	_action_buttons.append({"button": _back_to_saved_btn, "key": "item_editor.action.back_to_saved"})
 	browse_bar.add_child(_back_to_saved_btn)
-	_browse_hint = Label.new()
-	_browse_hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_browse_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_browse_hint.add_theme_color_override("font_color", Color(0.62, 0.67, 0.72))
-	browse_bar.add_child(_browse_hint)
 	_set_browse_mode(&"saved", false)
 	_center_split = VSplitContainer.new()
 	_center_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -390,9 +385,7 @@ func _build_right_column(parent: HBoxContainer) -> Control:
 	var actions_wrap := _BLOCK.create("item_editor.block.actions")
 	_register_block_title(actions_wrap)
 	box.add_child(actions_wrap.block)
-	var actions := VBoxContainer.new()
-	actions.add_theme_constant_override("separation", 4)
-	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var actions := _BLOCK.create_button_grid()
 	actions_wrap.body.add_child(actions)
 	for spec in [
 		["item_editor.action.new", _on_new_pressed],
@@ -401,12 +394,9 @@ func _build_right_column(parent: HBoxContainer) -> Control:
 		["item_editor.action.edit", _on_edit_pressed],
 		["item_editor.action.delete", _on_delete_pressed],
 	]:
-		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
-		btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		var btn := _BLOCK.add_grid_button(actions, _BTN_H)
 		btn.pressed.connect(spec[1])
 		_action_buttons.append({"button": btn, "key": spec[0]})
-		actions.add_child(btn)
 	_section_gap(box)
 	var filters_wrap := _BLOCK.create("item_editor.block.preview_filters")
 	_register_block_title(filters_wrap)
@@ -421,9 +411,6 @@ func _build_right_column(parent: HBoxContainer) -> Control:
 	var tag_filter_wrap := _BLOCK.create("item_editor.block.tag_filter")
 	_register_block_title(tag_filter_wrap)
 	box.add_child(tag_filter_wrap.block)
-	var filter_hint := _tracked_label("item_editor.tags.filter_hint")
-	filter_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tag_filter_wrap.body.add_child(filter_hint)
 	_tag_filter_flow = _TAG_FLOW.new()
 	_tag_filter_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_filter_flow.filter_changed.connect(_on_tag_filter_changed)
@@ -457,9 +444,6 @@ func _rebuild_details_form() -> void:
 	var tags_wrap := _BLOCK.create("item_editor.block.tags")
 	_register_block_title(tags_wrap)
 	_details_box.add_child(tags_wrap.block)
-	var palette_hint := _tracked_label("item_editor.tags.palette_hint")
-	palette_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tags_wrap.body.add_child(palette_hint)
 	_tag_palette_flow = _TAG_FLOW.new()
 	_tag_palette_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_palette_flow.palette_tag_selected.connect(_on_palette_tag_selected)
@@ -477,20 +461,18 @@ func _rebuild_details_form() -> void:
 	_tier_state_box.add_theme_constant_override("separation", _FIELD_SEP)
 	tiers_wrap.body.add_child(_tracked_label("item_editor.block.state_tiers"))
 	tiers_wrap.body.add_child(_tier_state_box)
-	var reset_state := Button.new()
-	reset_state.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
-	reset_state.pressed.connect(_on_reset_state_tiers)
-	_locale_labels.append({"label": reset_state, "key": "item_editor.action.reset_state_tiers", "is_button": true})
-	tiers_wrap.body.add_child(reset_state)
 	_tier_quality_box = VBoxContainer.new()
 	_tier_quality_box.add_theme_constant_override("separation", _FIELD_SEP)
 	tiers_wrap.body.add_child(_tracked_label("item_editor.block.quality_tiers"))
 	tiers_wrap.body.add_child(_tier_quality_box)
-	var reset_quality := Button.new()
-	reset_quality.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
+	var tier_actions := _BLOCK.create_button_grid()
+	tiers_wrap.body.add_child(tier_actions)
+	var reset_state := _BLOCK.add_grid_button(tier_actions, _BTN_H)
+	reset_state.pressed.connect(_on_reset_state_tiers)
+	_locale_labels.append({"label": reset_state, "key": "item_editor.action.reset_state_tiers", "is_button": true})
+	var reset_quality := _BLOCK.add_grid_button(tier_actions, _BTN_H)
 	reset_quality.pressed.connect(_on_reset_quality_tiers)
 	_locale_labels.append({"label": reset_quality, "key": "item_editor.action.reset_quality_tiers", "is_button": true})
-	tiers_wrap.body.add_child(reset_quality)
 	_section_gap(_details_box)
 	var weapon_wrap := _BLOCK.create("item_editor.block.weapon_payload")
 	_register_block_title(weapon_wrap)
@@ -639,8 +621,9 @@ func _set_browse_mode(mode: StringName, rebuild: bool = true) -> void:
 	_browse_mode = mode
 	if _back_to_saved_btn != null:
 		_back_to_saved_btn.visible = mode == &"art"
-	if _browse_hint != null:
-		_browse_hint.text = _T("item_editor.hint.art_library") if mode == &"art" else _T("item_editor.hint.saved_items")
+	var browse_bar := _back_to_saved_btn.get_parent() as Control
+	if browse_bar != null:
+		browse_bar.visible = mode == &"art"
 	if mode == &"saved" and _selected_list_key.begins_with("art:"):
 		_selected_list_key = ""
 		_selected_meta = {}
