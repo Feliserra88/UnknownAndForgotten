@@ -1,11 +1,9 @@
 [gd_resource type="Resource" script_class="InspectionLayoutDef" format=3 uid="uid://80rbw4orj42n"]
 
 [ext_resource type="Script" uid="uid://cmxwts3fswhoc" path="res://modules/appearance/inspection_layout_def.gd" id="1_layout"]
-[ext_resource type="Texture2D" uid="uid://cga20c0po7tp1" path="res://assets/visuals/parts/icons/humanoid_silhouette.svg" id="2_bg"]
 
 [resource]
 script = ExtResource("1_layout")
-background_texture = ExtResource("2_bg")
 slots = Array[Dictionary]([{
 "rect": Rect2(0.42, 0.04, 0.16, 0.12),
 "slot_id": &"head"

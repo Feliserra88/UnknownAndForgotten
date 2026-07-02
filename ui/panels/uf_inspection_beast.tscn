@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://bnnuqjrtfchu3"]
+
+[ext_resource type="PackedScene" uid="uid://cs124hen41ls2" path="res://ui/templates/uf_panel_ingame_inspection.tscn" id="1_spc51"]
+[ext_resource type="Texture2D" uid="uid://bx5qs13m6vaqu" path="res://assets/visuals/parts/art/beast_silhouette_se.png" id="3_silhouette"]
+
+[node name="UfInspectionPanel" unique_id=1540991670 instance=ExtResource("1_spc51")]
+
+[node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
+texture = ExtResource("3_silhouette")
+
+[node name="@TextureRect@70706" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" parent_id_path=PackedInt32Array(981317227) index="7" unique_id=656274376]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70707" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" parent_id_path=PackedInt32Array(311245213) index="7" unique_id=796693465]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70708" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" parent_id_path=PackedInt32Array(1111039831) index="7" unique_id=85709514]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70709" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" parent_id_path=PackedInt32Array(384866164) index="7" unique_id=1853512720]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70710" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" parent_id_path=PackedInt32Array(678117324) index="7" unique_id=944341054]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70711" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" parent_id_path=PackedInt32Array(1283183109) index="7" unique_id=600254568]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

@@ -27,7 +27,7 @@ func build_from_layout(layout: InspectionLayoutDef) -> void:
 	_region.name = "InspectionArea"
 	var region_size := layout.background_size
 	if region_size.x < 16.0 or region_size.y < 16.0:
-		region_size = Vector2(220, 320)
+		region_size = Vector2(240, 300)
 	_region.region_min_size = region_size
 	content.add_child(_region)
 
@@ -37,6 +37,7 @@ func build_from_layout(layout: InspectionLayoutDef) -> void:
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.modulate = Color(1, 1, 1, 0.5)
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_region.add_child(background)
 

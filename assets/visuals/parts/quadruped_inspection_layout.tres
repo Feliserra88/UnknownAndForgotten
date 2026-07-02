@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="InspectionLayoutDef" format=3 uid="uid://28yjcg8fju2b"]
+
+[ext_resource type="Script" uid="uid://cmxwts3fswhoc" path="res://modules/appearance/inspection_layout_def.gd" id="1_layout"]
+[ext_resource type="Texture2D" uid="uid://fce0r1qxk76" path="res://assets/visuals/parts/art/quadruped_silhouette_se.png" id="2_bg"]
+
+[resource]
+script = ExtResource("1_layout")
+background_texture = ExtResource("2_bg")

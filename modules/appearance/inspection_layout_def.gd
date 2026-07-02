@@ -9,7 +9,7 @@ extends Resource
 ## Background image drawn behind the slot squares (e.g. a humanoid silhouette).
 @export var background_texture: Texture2D
 ## Panel size hint in pixels for the background area.
-@export var background_size: Vector2 = Vector2(220, 320)
+@export var background_size: Vector2 = Vector2(240, 300)
 ## Slot placements: each entry is { "slot_id": StringName, "rect": Rect2 (normalized 0..1) }.
 ## Rect is expressed as a fraction of the background so it scales with the panel.
 @export var slots: Array[Dictionary] = []

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dbcykjt237grq"]
 
 [ext_resource type="Script" uid="uid://cll0gvenwo4n1" path="res://modules/gui/widgets/uf_list.gd" id="1_list"]
+[ext_resource type="PackedScene" uid="uid://dd1t0mh3qlb3y" path="res://ui/widgets/uf_label.tscn" id="2_label"]
 
 [node name="UfList" type="ScrollContainer" unique_id=880794120]
 custom_minimum_size = Vector2(0, 80)
@@ -13,3 +14,8 @@ script = ExtResource("1_list")
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
+
+[node name="PlaceholderLabel" parent="Items" unique_id=151333113 instance=ExtResource("2_label")]
+layout_mode = 2
+text = "gui.placeholder.list_item"
+label_key = "gui.placeholder.list_item"

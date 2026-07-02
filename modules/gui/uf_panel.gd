@@ -66,7 +66,8 @@ func _assign_editor_owner_tree(node: Node) -> void:
 		var current: Node = pending.pop_back()
 		current.owner = root
 		for child in current.get_children():
-			pending.append(child)
+			if child.scene_file_path.is_empty():
+				pending.append(child)
 
 ## No-op on bare panels; [class UfPanelIngame] overrides to set the header title.
 func set_title_key(_key: String) -> void:

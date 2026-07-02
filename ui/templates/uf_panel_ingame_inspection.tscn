@@ -5,6 +5,9 @@
 [ext_resource type="Texture2D" uid="uid://ci5xo6ba54ckv" path="res://assets/ui/icons/art/icon_minus.png" id="3_uhwyk"]
 [ext_resource type="Texture2D" uid="uid://b44y6yhdyfhdg" path="res://assets/ui/icons/art/icon_menu.png" id="4_i4id2"]
 [ext_resource type="Texture2D" uid="uid://dqtye7gq8uagc" path="res://assets/ui/icons/art/icon_close.png" id="5_w3774"]
+[ext_resource type="PackedScene" uid="uid://dqly2vgtcsdyd" path="res://ui/widgets/uf_layout_region.tscn" id="6_jxm2h"]
+[ext_resource type="PackedScene" uid="uid://dp6ydmn6l7wxf" path="res://ui/widgets/uf_equipment_slot.tscn" id="8_se78u"]
+[ext_resource type="PackedScene" uid="uid://dbcykjt237grq" path="res://ui/widgets/uf_list.tscn" id="9_jblaq"]
 
 [node name="UfInspectionPanel" type="PanelContainer" unique_id=1540991670]
 custom_minimum_size = Vector2(260, 360)
@@ -81,3 +84,504 @@ flat = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="UfLayoutRegion" parent="Layout/ContentSlot" unique_id=847991059 instance=ExtResource("6_jxm2h")]
+custom_minimum_size = Vector2(240, 300)
+layout_mode = 2
+region_min_size = Vector2(240, 300)
+
+[node name="Silhouette" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=861024505]
+modulate = Color(1, 1, 1, 0.49019608)
+custom_minimum_size = Vector2(240, 300)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=981317227 instance=ExtResource("8_se78u")]
+layout_mode = 0
+offset_left = 169.0
+offset_top = 25.0
+offset_right = 209.0
+offset_bottom = 65.0
+
+[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=159877636]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_32741" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=1921472495]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_45542" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=221461430]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21245" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=669940467]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21474" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=1781429053]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@51406" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=789246119]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@62838" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=710720460]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70664" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=2106333386]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@84214" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentHead" unique_id=366964277]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfEquipmentLeftHand" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=311245213 instance=ExtResource("8_se78u")]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 92.0
+offset_right = 280.0
+offset_bottom = 132.0
+
+[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=337097665]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_32742" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=1209531850]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_45543" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=482375664]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21246" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=1496016884]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21475" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=872611347]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@51407" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=774184075]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@62839" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=1074965937]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70665" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=84338905]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@84215" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLeftHand" unique_id=1147952202]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfEquipmentRightHand" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=1111039831 instance=ExtResource("8_se78u")]
+layout_mode = 0
+offset_left = 102.0
+offset_top = 104.0
+offset_right = 142.0
+offset_bottom = 144.0
+
+[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=627762496]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_32743" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=1792571831]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_45544" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=704002978]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21247" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=1136277426]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21476" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=2047994408]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@51408" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=1869427596]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@62840" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=1416324440]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70666" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=1233037242]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@84216" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentRightHand" unique_id=717603707]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfEquipmentLegs" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=384866164 instance=ExtResource("8_se78u")]
+layout_mode = 0
+offset_left = 170.0
+offset_top = 163.0
+offset_right = 210.0
+offset_bottom = 203.0
+
+[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=292129717]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_32744" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=1795496596]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_45545" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=852145072]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21248" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=747402252]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21477" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=634603047]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@51409" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=1539387396]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@62841" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=1482241837]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70667" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=834004057]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@84217" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentLegs" unique_id=71685824]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfEquipmentBody" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=678117324 instance=ExtResource("8_se78u")]
+layout_mode = 0
+offset_left = 170.0
+offset_top = 69.0
+offset_right = 210.0
+offset_bottom = 109.0
+
+[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=1868298132]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_32746" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=1272213357]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_45547" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=1883215525]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21249" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=484334105]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21478" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=700966467]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@51410" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=707755183]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@62842" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=1805986652]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70668" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=1009235537]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@84218" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentBody" unique_id=307771615]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfEquipmentWaist" parent="Layout/ContentSlot/UfLayoutRegion" unique_id=1283183109 instance=ExtResource("8_se78u")]
+layout_mode = 0
+offset_left = 171.0
+offset_top = 115.0
+offset_right = 211.0
+offset_bottom = 155.0
+
+[node name="Icon" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=1864383446]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_32740" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=495653321]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_45548" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=735806190]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21250" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=1773917610]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TextureRect_21479" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=1638791100]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@51411" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=509434056]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@62843" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=974908327]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@70669" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=1258297794]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="@TextureRect@84219" type="TextureRect" parent="Layout/ContentSlot/UfLayoutRegion/UfEquipmentWaist" unique_id=70501325]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UfList" parent="Layout/ContentSlot" unique_id=880794120 instance=ExtResource("9_jblaq")]
+layout_mode = 2
