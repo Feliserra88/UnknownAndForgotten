@@ -173,9 +173,12 @@ item_editor.block.food_payload,Food data,Datos de comida
 item_editor.block.valuable_payload,Valuable data,Datos de valioso
 item_editor.block.browse,Browse,Explorar
 item_editor.block.draft_preview,Draft preview,Vista previa del borrador
+item_editor.preview.empty,Select or create an item to preview.,Selecciona o crea un item para previsualizar.
+item_editor.preview.tags,tags,etiquetas
+item_editor.preview.archetype,archetype,arquetipo
 item_editor.block.selectable_items,Selectable items,Items seleccionables
 item_editor.block.actions,Actions,Acciones
-item_editor.block.preview_filters,List preview,Previsualización de lista
+item_editor.block.preview_filters,List display,Visualización de lista
 item_editor.block.tag_filter,Tag filter,Filtro por etiquetas
 item_editor.field.id,id,id
 item_editor.field.display_name_key,display_name_key,display_name_key
@@ -186,9 +189,9 @@ item_editor.field.max_durability,max_durability,durabilidad_máx
 item_editor.field.grid_w,grid_w,grid_w
 item_editor.field.grid_h,grid_h,grid_h
 item_editor.field.family,family,familia
-item_editor.field.preview_state,Preview state,Estado preview
-item_editor.field.preview_quality,Preview quality,Calidad preview
-item_editor.field.preview_modifier,Preview modifier,Modificador preview
+item_editor.field.preview_state,State,Estado
+item_editor.field.preview_quality,Quality,Calidad
+item_editor.field.preview_modifier,Modifier,Modificador
 item_editor.field.weapon_family,weapon_family,familia_arma
 item_editor.field.design_type,design_type,tipo_diseño
 item_editor.field.equip_slot,equip slot,ranura equipo

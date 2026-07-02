@@ -63,6 +63,7 @@ const _PATHS := [
 	"res://addons/uf_item_editor/plugin.gd",
 	"res://addons/uf_item_editor/workspace.gd",
 	"res://addons/uf_item_editor/item_list_row.gd",
+	"res://addons/uf_item_editor/item_preview_summary.gd",
 	"res://addons/uf_item_editor/editor_i18n.gd",
 	"res://addons/uf_item_editor/editor_block.gd",
 	"res://addons/uf_item_editor/tag_chip.gd",

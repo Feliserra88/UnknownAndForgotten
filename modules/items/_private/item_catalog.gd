@@ -46,18 +46,23 @@ static func _matches_filter(item: ItemDef, filter: Dictionary) -> bool:
 			return false
 	if filter.has("tags_any"):
 		var wanted: Array = filter["tags_any"]
-		if not wanted.is_empty():
-			var hit := false
-			for tid in wanted:
-				if item.tags.has(tid):
-					hit = true
-					break
-			if not hit:
-				return false
+		if not wanted.is_empty() and not tags_overlap_any(item.tags, wanted):
+			return false
 	if filter.has("equip_slot"):
 		if item.get_equip_slot() != filter["equip_slot"]:
 			return false
 	return true
+
+## True when [param item_tags] contains at least one id from [param filter_tags].
+static func tags_overlap_any(item_tags: Array, filter_tags: Array) -> bool:
+	if filter_tags.is_empty():
+		return true
+	for raw in filter_tags:
+		var wanted := StringName(String(raw))
+		for item_tag in item_tags:
+			if StringName(String(item_tag)) == wanted:
+				return true
+	return false
 
 static func _open_dir(dir_path: String) -> DirAccess:
 	var dir := DirAccess.open(dir_path)

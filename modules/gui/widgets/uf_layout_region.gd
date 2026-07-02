@@ -8,6 +8,10 @@ extends Control
 ##
 ## [UfEquipmentSlot] children with [member UfEquipmentSlot.layout_center_anchored] keep a fixed pixel
 ## size and reposition from the region center when the region is resized.
+##
+## Scene inheritance: open a child panel (e.g. [code]uf_inspection_quadruped.tscn[/code]), select a slot
+## under this region, move it in the 2D editor or edit [member UfEquipmentSlot.layout_center_norm] in the
+## Inspector. Saving stores only that override; anchor mode and other slot settings stay inherited.
 
 @export var region_min_size: Vector2 = Vector2(240, 160):
 	set(value):
@@ -32,7 +36,8 @@ func _enter_tree() -> void:
 	_request_layout()
 
 func _ready() -> void:
-	_request_layout()
+	if not Engine.is_editor_hint():
+		_request_layout()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
@@ -89,6 +94,7 @@ func _layout_center_anchored_child(child: Node) -> void:
 		_bootstrap_slot_center_anchor(slot)
 	if not slot.layout_center_anchored:
 		return
+	slot.begin_layout_apply()
 	var half := slot.layout_fixed_size * 0.5
 	var region_center := size * 0.5
 	var offset := Vector2(
@@ -108,6 +114,7 @@ func _layout_center_anchored_child(child: Node) -> void:
 	slot.position = region_center + offset - half
 	slot.size = slot.layout_fixed_size
 	slot.custom_minimum_size = slot.layout_fixed_size
+	slot.end_layout_apply()
 
 func _bootstrap_slot_center_anchor(slot: UfEquipmentSlot) -> void:
 	var width := slot.offset_right - slot.offset_left
@@ -126,7 +133,8 @@ func _bootstrap_slot_center_anchor(slot: UfEquipmentSlot) -> void:
 		center = slot.position + slot.size * 0.5
 	else:
 		return
-	var norm := pixel_center_to_norm(center, layout_reference_size)
+	var ref_size := size if size.x >= 16.0 and size.y >= 16.0 else layout_reference_size
+	var norm := pixel_center_to_norm(center, ref_size)
 	apply_center_anchored_slot(slot, norm, fixed_size)
 
 ## Offset of a normalized top-left rect center from region center (0..1 space).

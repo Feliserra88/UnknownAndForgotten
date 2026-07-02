@@ -47,6 +47,48 @@ func load_category(category_id: StringName) -> ItemCategoryDef:
 func list_sprite_templates(category_id: StringName, family: StringName = &"") -> Array[Dictionary]:
 	return _SpriteLibrary.list_templates(category_id, family)
 
+## Infers tag ids for a sprite template row (art library; not yet saved as ItemDef).
+func infer_template_tags(entry: Dictionary) -> Array[StringName]:
+	var out: Array[StringName] = []
+	var cat_id: StringName = entry.get("category_id", &"")
+	var family := String(entry.get("family", "")).to_lower()
+	if family.is_empty():
+		family = String(entry.get("label", "")).to_lower()
+	for def in list_tag_defs(cat_id):
+		var tid := String(def.id).to_lower()
+		if family == tid or (tid.length() >= 3 and family.contains(tid)):
+			if not out.has(def.id):
+				out.append(def.id)
+	var root := load_tag_def(cat_id)
+	if root != null and not out.has(root.id):
+		out.append(root.id)
+	return out
+
+## True when [param item_tags] contains at least one id from [param filter_tags].
+func tags_overlap_any(item_tags: Array, filter_tags: Array) -> bool:
+	return _Catalog.tags_overlap_any(item_tags, filter_tags)
+
+## Returns one frame from a horizontal state strip PNG (editor art library).
+func resolve_strip_icon(
+	library_path: String,
+	state_index: int = 0,
+	state_tiers: Array[ItemStateTierDef] = [],
+	cell_size: Vector2i = Vector2i(64, 64),
+) -> Texture2D:
+	if library_path.is_empty() or not ResourceLoader.exists(library_path):
+		return null
+	var tex := load(library_path) as Texture2D
+	if tex == null:
+		return null
+	var column := state_index
+	if state_index >= 0 and state_index < state_tiers.size():
+		var tier := state_tiers[state_index]
+		if tier != null:
+			column = tier.sprite_index
+	var columns := maxi(1, int(tex.get_width() / maxi(cell_size.x, 1)))
+	column = clampi(column, 0, columns - 1)
+	return _slice_strip(tex, column, cell_size)
+
 ## Returns every ItemTagDef, optionally limited to [param category_id].
 func list_tag_defs(category_id: StringName = &"") -> Array[ItemTagDef]:
 	if String(category_id).is_empty():

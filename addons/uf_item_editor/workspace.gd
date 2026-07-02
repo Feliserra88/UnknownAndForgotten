@@ -7,6 +7,7 @@ const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
 const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
 const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
 const _TAG_ZONE := preload("res://addons/uf_item_editor/tag_assign_zone.gd")
+const _PREVIEW_SUMMARY := preload("res://addons/uf_item_editor/item_preview_summary.gd")
 const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
 const _LOG := "ITM"
 const _MARGIN := 8
@@ -54,7 +55,7 @@ var _tag_assign_zone: _TAG_ZONE
 var _details_box: VBoxContainer
 var _list_box: VBoxContainer
 var _preview_icon: TextureRect
-var _preview_size_label: Label
+var _preview_summary: _PREVIEW_SUMMARY
 var _cols: HSplitContainer
 var _center_right: HSplitContainer
 var _center_split: VSplitContainer
@@ -128,19 +129,25 @@ func _bootstrap_data() -> void:
 	_populate_weapon_families()
 	_populate_preview_tiers()
 	_populate_item_modifiers()
-	_refresh_tag_pickers()
+	_refresh_tag_pickers(true)
 	_refresh_localized_strings()
 	_rebuild_list()
 	_set_status(_T("item_editor.status.ready"))
 	_data_ready = true
 	call_deferred("_finalize_layout")
 
-func _refresh_tag_pickers() -> void:
+func _refresh_tag_pickers(reset_filters: bool = false) -> void:
 	var cat := _current_category_id()
 	if _tag_filter_flow != null:
-		_tag_filter_flow.configure(_TAG_CHIP.Mode.FILTER, _items, cat)
+		if reset_filters:
+			_tag_filter_flow.configure(_TAG_CHIP.Mode.FILTER, _items, cat)
+		else:
+			_tag_filter_flow.refresh(cat)
 	if _tag_palette_flow != null:
-		_tag_palette_flow.configure(_TAG_CHIP.Mode.PALETTE, _items, cat)
+		if reset_filters:
+			_tag_palette_flow.configure(_TAG_CHIP.Mode.PALETTE, _items, cat)
+		else:
+			_tag_palette_flow.refresh(cat)
 
 func _finalize_layout() -> void:
 	_apply_column_splits()
@@ -166,10 +173,13 @@ func _apply_center_split() -> void:
 	if _center_split == null:
 		return
 	var avail := _center_split.size.y
-	if avail < _CENTER_LIST_MIN + 48:
+	if avail < _CENTER_LIST_MIN + 72:
 		return
 	var sprite_h := int(_preview_icon.custom_minimum_size.y) if _preview_icon != null else int(_SPRITE_PREVIEW_FALLBACK.y)
-	var top_h := clampi(_CENTER_PREVIEW_CHROME + sprite_h, 72, avail - _CENTER_LIST_MIN)
+	var top_h := maxi(_CENTER_PREVIEW_CHROME + sprite_h, 96)
+	if _preview_summary != null:
+		top_h = maxi(top_h, _CENTER_PREVIEW_CHROME + sprite_h + 24)
+	top_h = clampi(top_h, 72, avail - _CENTER_LIST_MIN)
 	_center_split.split_offset = top_h
 
 func _build_ui() -> void:
@@ -324,12 +334,12 @@ func _build_center_column(parent: HSplitContainer) -> void:
 	_preview_icon.custom_minimum_size = _SPRITE_PREVIEW_FALLBACK
 	_preview_icon.expand_mode = TextureRect.EXPAND_KEEP_SIZE
 	_preview_icon.stretch_mode = TextureRect.STRETCH_KEEP
-	_preview_pad.add_child(_preview_icon)
-	_preview_size_label = Label.new()
-	_preview_size_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_preview_size_label.add_theme_color_override("font_color", Color(0.58, 0.63, 0.68))
-	_preview_size_label.text = "%d×%d" % [int(_SPRITE_PREVIEW_FALLBACK.x), int(_SPRITE_PREVIEW_FALLBACK.y)]
-	preview_row.add_child(_preview_size_label)
+	preview_pad.add_child(_preview_icon)
+	_preview_summary = _PREVIEW_SUMMARY.new()
+	_preview_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_preview_summary.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	preview_row.add_child(_preview_summary)
+	_preview_summary.show_empty()
 	var list_pane := VBoxContainer.new()
 	list_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -350,6 +360,7 @@ func _build_center_column(parent: HSplitContainer) -> void:
 
 func _build_right_column(parent: HSplitContainer) -> void:
 	var column := VBoxContainer.new()
+	column.custom_minimum_size.x = 0
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(column)
@@ -406,7 +417,7 @@ func _build_right_column(parent: HSplitContainer) -> void:
 	tag_filter_wrap.body.add_child(filter_hint)
 	_tag_filter_flow = _TAG_FLOW.new()
 	_tag_filter_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_tag_filter_flow.filter_changed.connect(func(_t: Array[StringName]) -> void: _rebuild_list())
+	_tag_filter_flow.filter_changed.connect(_on_tag_filter_changed)
 	tag_filter_wrap.body.add_child(_tag_filter_flow)
 
 func _rebuild_details_form() -> void:
@@ -615,8 +626,7 @@ func _update_list_selection() -> void:
 func _rebuild_list() -> void:
 	if _list_box == null:
 		return
-	for child in _list_box.get_children():
-		child.queue_free()
+	_clear_list_box()
 	var tag_filter: Array[StringName] = []
 	if _tag_filter_flow != null:
 		tag_filter = _tag_filter_flow.get_active_filter_tags()
@@ -625,6 +635,14 @@ func _rebuild_list() -> void:
 	else:
 		_append_item_rows(tag_filter)
 	_update_list_selection()
+
+func _clear_list_box() -> void:
+	for child in _list_box.get_children():
+		_list_box.remove_child(child)
+		child.free()
+
+func _on_tag_filter_changed(_active_tags: Array[StringName]) -> void:
+	call_deferred("_rebuild_list")
 
 func _append_sprite_rows(active_tags: Array[StringName]) -> void:
 	var family := _current_family_filter()
@@ -637,22 +655,27 @@ func _append_sprite_rows(active_tags: Array[StringName]) -> void:
 		return
 	for entry in entries:
 		if not active_tags.is_empty():
-			var label := String(entry.get("label", "")).to_lower()
-			var fam := String(entry.get("family", "")).to_lower()
-			var hit := false
-			for tid in active_tags:
-				var token := String(tid).to_lower()
-				if label.contains(token) or fam.contains(token):
-					hit = true
-					break
-			if not hit:
+			var entry_tags := _items.infer_template_tags(entry)
+			if not _items.tags_overlap_any(entry_tags, active_tags):
 				continue
+		var row_data := entry.duplicate()
+		row_data["icon"] = _items.resolve_strip_icon(
+			String(entry.get("library_path", "")),
+			_preview_state,
+			_preview_state_tiers(),
+		)
 		var row := _ROW.new()
 		row.custom_minimum_size = Vector2(0, 64)
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_list_box.add_child(row)
-		row.setup(entry, true)
+		row.setup(row_data, true)
 		row.row_selected.connect(_on_row_selected)
+
+func _preview_state_tiers() -> Array[ItemStateTierDef]:
+	var cat := _items.load_category(_current_category_id())
+	if cat != null and not cat.default_state_tiers.is_empty():
+		return cat.default_state_tiers
+	return _items.default_weapon_state_tiers()
 
 func _append_item_rows(active_tags: Array[StringName]) -> void:
 	var filter := {"category_id": _current_category_id()}
@@ -683,22 +706,21 @@ func _on_row_selected(meta: Dictionary) -> void:
 	_selected_meta = meta
 	_selected_list_key = _row_selection_key(meta)
 	_update_list_selection()
-	_refresh_preview_icon()
+	_refresh_preview_panel()
 
 func _on_category_changed(_idx: int) -> void:
 	_update_category_sections_visibility()
-	_refresh_tag_pickers()
+	_refresh_tag_pickers(true)
 	_rebuild_list()
 
 func _on_preview_state_changed(idx: int) -> void:
 	_preview_state = idx
-	_refresh_preview_icon()
-	if _browse_mode == &"saved":
-		_rebuild_list()
+	_refresh_preview_panel()
+	_rebuild_list()
 
 func _on_preview_quality_changed(idx: int) -> void:
 	_preview_quality = idx
-	_refresh_preview_icon()
+	_refresh_preview_panel()
 	if _browse_mode == &"saved":
 		_rebuild_list()
 
@@ -708,7 +730,7 @@ func _on_preview_modifier_changed(idx: int) -> void:
 		var mid: StringName = _modifier_option.get_item_metadata(idx)
 		if not String(mid).is_empty():
 			_preview_modifier_ids.append(mid)
-	_refresh_preview_icon()
+	_refresh_preview_panel()
 	if _browse_mode == &"saved":
 		_rebuild_list()
 
@@ -734,25 +756,69 @@ func _on_reset_quality_tiers() -> void:
 	_draft.quality_tiers = _items.default_quality_tiers()
 	_set_status(_T("item_editor.status.quality_tiers_reset"))
 
+func _refresh_preview_panel() -> void:
+	_refresh_preview_icon()
+	_refresh_preview_summary()
+
 func _refresh_preview_icon() -> void:
 	if _preview_icon == null:
 		return
+	var tex: Texture2D = null
 	if _draft != null:
 		var inst := ItemInstance.new()
 		inst.def_id = _draft.id
 		inst.state_index = _preview_state
 		inst.quality_index = _preview_quality
 		inst.modifier_ids = _preview_modifier_ids.duplicate()
-		_preview_icon.texture = _items.resolve_icon(inst, _draft)
-		return
-	if _selected_meta.has("icon"):
-		_preview_icon.texture = _selected_meta.get("icon")
+		tex = _items.resolve_icon(inst, _draft)
+	elif _selected_meta.has("icon"):
+		tex = _selected_meta.get("icon")
 	elif _selected_meta.has("library_path"):
 		var path: String = _selected_meta.get("library_path", "")
-		if ResourceLoader.exists(path):
-			_preview_icon.texture = load(path) as Texture2D
-	else:
-		_preview_icon.texture = null
+		tex = _items.resolve_strip_icon(path, _preview_state, _preview_state_tiers())
+	_preview_icon.texture = tex
+	_sync_preview_icon_size(tex)
+
+func _sync_preview_icon_size(tex: Texture2D) -> void:
+	if _preview_icon == null:
+		return
+	var sz := tex.get_size() if tex != null else _SPRITE_PREVIEW_FALLBACK
+	if sz.x < 1.0 or sz.y < 1.0:
+		sz = _SPRITE_PREVIEW_FALLBACK
+	_preview_icon.custom_minimum_size = sz
+	_preview_icon.size = sz
+	call_deferred("_apply_center_split")
+
+func _refresh_preview_summary() -> void:
+	if _preview_summary == null:
+		return
+	if _draft != null and _id_field != null:
+		_apply_form_to_draft()
+		var row := _items.resolve_list_row(
+			_draft,
+			_preview_state,
+			_preview_quality,
+			_preview_modifier_ids,
+			_modifier,
+		)
+		_preview_summary.show_item(_items, row, _draft)
+		return
+	if _browse_mode == &"art" and _selected_meta.get("is_sprite_template", false):
+		_preview_summary.show_sprite_template(_selected_meta)
+		return
+	if _selected_meta.has("id"):
+		var def := _items.load_def(_selected_meta.get("id"))
+		if def != null:
+			var row := _items.resolve_list_row(
+				def,
+				_preview_state,
+				_preview_quality,
+				_preview_modifier_ids,
+				_modifier,
+			)
+			_preview_summary.show_item(_items, row, def)
+			return
+	_preview_summary.show_empty()
 
 func _update_category_sections_visibility() -> void:
 	var cat := _current_category_id()
@@ -768,6 +834,7 @@ func _update_category_sections_visibility() -> void:
 func _on_draft_tags_changed(tags: Array[StringName]) -> void:
 	if _draft != null:
 		_draft.tags = _items.normalize_tags(tags, _current_category_id())
+	_refresh_preview_panel()
 
 func _on_palette_tag_selected(tag_id: StringName) -> void:
 	if _tag_assign_zone == null:
@@ -795,7 +862,7 @@ func _on_new_pressed() -> void:
 			_draft.id = &""
 	_sync_form_from_draft()
 	_selected_list_key = _draft_selection_key()
-	_refresh_preview_icon()
+	_refresh_preview_panel()
 	_update_list_selection()
 	_set_status(_T("item_editor.status.new_draft"))
 
@@ -829,7 +896,7 @@ func _on_edit_pressed() -> void:
 		return
 	_sync_form_from_draft()
 	_selected_list_key = _draft_selection_key()
-	_refresh_preview_icon()
+	_refresh_preview_panel()
 	_update_list_selection()
 	_set_status(_T("item_editor.status.editing") % _draft.id)
 
@@ -965,7 +1032,7 @@ func _sync_form_from_draft() -> void:
 		var v := _draft.category_data as ValuableItemData
 		_valuable_stackable.button_pressed = v.stackable
 		_valuable_merchant_field.text = String(v.merchant_category)
-	_refresh_preview_icon()
+	_refresh_preview_panel()
 
 func _add_line_field(placeholder: String) -> LineEdit:
 	var field := LineEdit.new()

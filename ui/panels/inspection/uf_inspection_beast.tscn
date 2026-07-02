@@ -7,3 +7,15 @@
 
 [node name="Silhouette" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="0" unique_id=861024505]
 texture = ExtResource("3_silhouette")
+
+[node name="UfEquipmentHead" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="1" unique_id=981317227]
+offset_left = 151.0
+offset_top = 26.0
+offset_right = 191.0
+offset_bottom = 66.0
+
+[node name="UfEquipmentArmR" parent="Layout/ContentSlot/UfLayoutRegion" parent_id_path=PackedInt32Array(847991059) index="2" unique_id=311245213]
+offset_left = 42.399994
+offset_top = 88.0
+offset_right = 82.399994
+offset_bottom = 128.0
