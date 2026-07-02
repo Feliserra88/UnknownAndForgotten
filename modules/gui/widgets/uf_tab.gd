@@ -22,15 +22,24 @@ func _notification(what: int) -> void:
 ## Returns the container where this tab's body widgets must be added.
 func get_content_slot() -> Container:
 	_ensure_structure()
-	return get_node_or_null("Content") as Container
+	return get_node_or_null("ContentSlot") as Container
 
 func _ensure_structure() -> void:
-	if get_node_or_null("Content") == null:
-		var content := VBoxContainer.new()
-		content.name = "Content"
-		content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		add_child(content)
+	var slot := get_node_or_null("ContentSlot") as Container
+	if slot == null:
+		var legacy := get_node_or_null("Content") as Container
+		if legacy != null:
+			legacy.name = "ContentSlot"
+			slot = legacy
+		else:
+			slot = VBoxContainer.new()
+			slot.name = "ContentSlot"
+			slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			add_child(slot)
+	for child in get_children():
+		if child != slot and (child.name == "Content" or child.name.begins_with("Content")):
+			child.queue_free()
 
 func _sync_tab_title() -> void:
 	var parent := get_parent()

@@ -1,5 +1,5 @@
 @tool
-@icon("res://ui/templates/icons/info.svg")
+@icon("res://ui/templates/icons/panel_info.svg")
 class_name UfInfoPanel
 extends UfPanel
 ## Bare informational panel shell (see docs/GAME_DESIGN.md section 10.5). No in-game header chrome;

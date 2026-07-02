@@ -10,11 +10,11 @@ Ver `docs/GAME_DESIGN.md` §10. Basado en controles Godot (`Control`, contenedor
 
 ## Reglas
 
-- Toda ventana/panel de juego → **`UfPanel`** o subclase; ventanas HUD con barra de título → **`UfPanelIngame`** o **`UfInspectionPanel`**.
+- Toda ventana/panel de juego → **`UfPanel`** o subclase; ventanas HUD con barra de título → **`UfPanelIngame`**, **`UfInspectionPanel`** o **`UfLootPanel`**.
 - **Movible** solo vía asa/barra de arrastre (`DragHandle` + `gui_input`); no arrastrar desde contenido interactivo.
 - Especializaciones **no** reimplementan drag ni chrome común del padre.
-- Widgets atómicos en `res://ui/widgets/` (`UfButton`, `UfGridContainer`, `UfList`, `UfLayoutRegion`…); sin lógica de dominio.
-- Plantillas base en `res://ui/templates/` (`uf_panel`, `uf_tabbed_panel`, …).
+- Widgets atómicos en `res://ui/widgets/` (`UfButton`, `UfItemSlot`, `UfEquipmentSlot`, `UfGridContainer`, …); sin lógica de dominio.
+- Plantillas base en `res://ui/templates/` (`uf_panel`, `uf_panel_tabbed`, `uf_panel_ingame_inspection`, …). Convención de nombre: `uf_<padre>_<…>_<tipo>` reflejando la jerarquía de herencia (`uf_panel_ingame_inspection` = `UfInspectionPanel` bajo `UfPanelIngame`).
 - Paneles de juego en `res://ui/panels/`; artistas los componen instanciando `ui/templates/` + `ui/widgets/` (§10.9).
 - Herramientas de editor opcionales en `res://addons/uf_gui_tools/` (`EditorPlugin`); ver norma general `editor-artist-tools.mdc`.
 - Texto visible → claves + `tr()` (`label_key`, `title_key`).
@@ -24,8 +24,9 @@ Ver `docs/GAME_DESIGN.md` §10. Basado en controles Godot (`Control`, contenedor
 ```
 UfPanel (shell vacío: Layout + ContentSlot)
 ├── UfPanelIngame (+ header: título + minimizar / arrastrar / cerrar)
-│   └── UfInspectionPanel
-├── UfTabbedPanel (+ TabContainer de UfTab)
+│   ├── UfInspectionPanel
+│   └── UfLootPanel (+ rejilla 4×4 de items arrastrables)
+├── UfTabbedPanel (sustituye ContentSlot del padre por Tabs; cada UfTab tiene ContentSlot)
 ├── UfInfoPanel
 ├── UfDialogPanel (+ accept / cancel)
 └── paneles de juego en ui/panels/ (composición)
@@ -36,3 +37,11 @@ UfPanel (shell vacío: Layout + ContentSlot)
 - `Window`/`Panel` sueltos sin heredar/componer `UfPanel` para UI de juego.
 - Literales de UI en escenas.
 - Lógica de `equipment`/`status` dentro de scripts de `UfButton` o widgets genéricos.
+
+## Marco de panel (nine-patch)
+
+Godot usa **9-slice / nine-patch**: **un** PNG con esquinas, laterales y centro. En el `Theme` → **`StyleBoxTexture`** con `texture_margin_*` (igual que `NinePatchRect`).
+
+- Asset: `res://ui/theme/art/panel_frame.png` (reemplaza placeholder `panel_frame.svg`).
+- Márgenes: medir grosor del borde (`texture_margin_*`). Paneles grandes: `axis_stretch_*` = `TILE` o `TILE_FIT` para repetir el centro en vez de estirarlo (`uf_theme.tres`).
+- Generación PixelLab: `create_ui_asset` (ver `pixellab-art.mdc` §UI).

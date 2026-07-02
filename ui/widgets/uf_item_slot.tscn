@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://c8item_slot_widget"]
+
+[ext_resource type="Script" path="res://modules/gui/widgets/uf_item_slot.gd" id="1_slot"]
+
+[node name="UfItemSlot" type="Panel"]
+custom_minimum_size = Vector2(40, 40)
+script = ExtResource("1_slot")

@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://cc3yg5url8itu"]
+
+[ext_resource type="PackedScene" uid="uid://1ro8v8hbpg1g" path="res://ui/templates/uf_panel_ingame.tscn" id="1_ingame"]
+
+[node name="UfPanelIngame" unique_id=29036860 instance=ExtResource("1_ingame")]
+offset_right = 382.0
+offset_bottom = 556.0
+title_key = "gui.sample.label"
+
+[node name="Title" parent="Layout/Header" parent_id_path=PackedInt32Array(1699614358) index="0" unique_id=1612274018]
+text = "gui.sample.label"
+
+[node name="Chrome" parent="Layout/Header" parent_id_path=PackedInt32Array(1699614358) index="1" unique_id=1287497840]
+layout_mode = 1
+anchors_preset = 1
+offset_left = -126.0
+offset_top = -34.0
+offset_right = 32.0
+offset_bottom = 20.0

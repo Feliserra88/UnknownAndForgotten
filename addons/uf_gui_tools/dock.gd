@@ -13,6 +13,7 @@ const _WIDGET_IDS: Array[String] = [
 	"grid",
 	"layout_region",
 	"equipment_slot",
+	"item_slot",
 	"progress_bar",
 	"separator",
 	"tab",

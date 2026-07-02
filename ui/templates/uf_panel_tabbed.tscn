@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://mkig2h803pge"]
+
+[ext_resource type="Theme" uid="uid://bnwrjf00wajqt" path="res://ui/theme/uf_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://g3fmg7qjqagv" path="res://modules/gui/uf_tabbed_panel.gd" id="2_tabbed"]
+[ext_resource type="PackedScene" uid="uid://bqx7uf_tab_widget" path="res://ui/widgets/uf_tab.tscn" id="3_tab"]
+
+[node name="UfTabbedPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 200)
+theme = ExtResource("1_theme")
+script = ExtResource("2_tabbed")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Tabs" type="TabContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="TabOne" parent="Layout/Tabs" instance=ExtResource("3_tab")]
+layout_mode = 2
+title_key = "gui.tab.placeholder.one"
+
+[node name="TabTwo" parent="Layout/Tabs" instance=ExtResource("3_tab")]
+visible = false
+layout_mode = 2
+title_key = "gui.tab.placeholder.two"

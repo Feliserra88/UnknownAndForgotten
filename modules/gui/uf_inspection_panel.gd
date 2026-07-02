@@ -1,5 +1,5 @@
 @tool
-@icon("res://ui/templates/icons/inspection.svg")
+@icon("res://ui/templates/icons/panel_ingame_inspection.svg")
 class_name UfInspectionPanel
 extends UfPanelIngame
 ## Reusable NPC inspection panel (see docs/GAME_DESIGN.md section 10.6): a background silhouette with

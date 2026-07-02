@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvhysw3tr0ulp"
-path="res://.godot/imported/inspection.svg-eb015a4d04f51486ef5ae4e5867a8f15.ctex"
+uid="uid://4krucnfomc1"
+path="res://.godot/imported/panel_frame.png-acadddb5c0112371daaac2b70c440f89.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/templates/icons/inspection.svg"
-dest_files=["res://.godot/imported/inspection.svg-eb015a4d04f51486ef5ae4e5867a8f15.ctex"]
+source_file="res://ui/theme/art/panel_frame.png"
+dest_files=["res://.godot/imported/panel_frame.png-acadddb5c0112371daaac2b70c440f89.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

@@ -1,9 +1,10 @@
 @tool
-@icon("res://ui/templates/icons/tabbed.svg")
+@icon("res://ui/templates/icons/panel_tabbed.svg")
 class_name UfTabbedPanel
 extends UfPanel
 ## Panel whose body is a full-size [TabContainer] of [class UfTab] pages (see docs/GAME_DESIGN.md
-## section 10.5). Extends bare [class UfPanel]; each tab has its own [code]Content[/code] slot.
+## section 10.5). Replaces the bare panel [code]ContentSlot[/code] with tabs; each tab has its own
+## [code]ContentSlot[/code].
 
 const _TAB_SCENE := preload("res://ui/widgets/uf_tab.tscn")
 const _PLACEHOLDER_TAB_KEYS: Array[String] = [
@@ -31,7 +32,7 @@ func get_active_tab() -> UfTab:
 		return null
 	return tabs.get_current_tab_control() as UfTab
 
-## Returns the content slot of the active tab, or the first tab when none is selected yet.
+## Returns the [code]ContentSlot[/code] of the active tab, or the first tab when none is selected.
 func get_content_slot() -> Container:
 	var active := get_active_tab()
 	if active != null:
@@ -41,7 +42,7 @@ func get_content_slot() -> Container:
 		var first := tabs.get_child(0) as UfTab
 		if first != null:
 			return first.get_content_slot()
-	return super.get_content_slot()
+	return null
 
 ## Adds a new tab page. When [param tab_title_key] is omitted, an empty [UfTab] is created.
 func add_tab(tab_title_key: String, body: Control = null) -> UfTab:
@@ -70,23 +71,27 @@ func _ensure_structure() -> void:
 	var layout := get_node_or_null("Layout") as VBoxContainer
 	if layout == null:
 		return
+	_remove_stray_layout_nodes(layout)
 	if layout.get_node_or_null("Tabs") != null:
 		_ensure_placeholder_tabs()
 		return
-	var slot := layout.get_node_or_null("ContentSlot")
-	var insert_idx := 1
-	if slot != null:
-		insert_idx = slot.get_index()
-		layout.remove_child(slot)
-		slot.free()
 	var tabs := TabContainer.new()
 	tabs.name = "Tabs"
 	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tabs.custom_minimum_size = Vector2(0, 120)
 	_add_structural_child(layout, tabs)
-	layout.move_child(tabs, insert_idx)
 	_ensure_placeholder_tabs()
+
+func _remove_stray_layout_nodes(layout: VBoxContainer) -> void:
+	var header := layout.get_node_or_null("Header")
+	if header != null:
+		layout.remove_child(header)
+		header.free()
+	var slot := layout.get_node_or_null("ContentSlot")
+	if slot != null:
+		layout.remove_child(slot)
+		slot.free()
 
 func _ensure_placeholder_tabs() -> void:
 	var tabs := _tabs()

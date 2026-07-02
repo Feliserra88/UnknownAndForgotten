@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bpnu58mmmekqu"
-path="res://.godot/imported/tabbed.svg-6a017ada8254302e3e139cd92a7dde6c.ctex"
+uid="uid://d00l3n8tlwrt8"
+path="res://.godot/imported/panel_info.svg-e5608e08aa25621cfb78584508b407fd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/templates/icons/tabbed.svg"
-dest_files=["res://.godot/imported/tabbed.svg-6a017ada8254302e3e139cd92a7dde6c.ctex"]
+source_file="res://ui/templates/icons/panel_info.svg"
+dest_files=["res://.godot/imported/panel_info.svg-e5608e08aa25621cfb78584508b407fd.ctex"]
 
 [params]
 

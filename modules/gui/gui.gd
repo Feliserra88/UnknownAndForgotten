@@ -18,16 +18,18 @@ const _PANEL_SCRIPTS := {
 	&"dialog": "res://modules/gui/uf_dialog_panel.gd",
 	&"tabbed": "res://modules/gui/uf_tabbed_panel.gd",
 	&"inspection": "res://modules/gui/uf_inspection_panel.gd",
+	&"loot": "res://modules/gui/uf_panel_ingame_loot.gd",
 }
 
 ## Base PackedScene paths for editor palette drag-and-drop (see GAME_DESIGN section 10.9).
 const PANEL_SCENES := {
 	&"panel": "res://ui/templates/uf_panel.tscn",
 	&"ingame": "res://ui/templates/uf_panel_ingame.tscn",
-	&"info": "res://ui/templates/uf_info_panel.tscn",
-	&"dialog": "res://ui/templates/uf_dialog_panel.tscn",
-	&"tabbed": "res://ui/templates/uf_tabbed_panel.tscn",
-	&"inspection": "res://ui/templates/uf_inspection_panel.tscn",
+	&"info": "res://ui/templates/uf_panel_info.tscn",
+	&"dialog": "res://ui/templates/uf_panel_dialog.tscn",
+	&"tabbed": "res://ui/templates/uf_panel_tabbed.tscn",
+	&"inspection": "res://ui/templates/uf_panel_ingame_inspection.tscn",
+	&"loot": "res://ui/templates/uf_panel_ingame_loot.tscn",
 }
 
 const WIDGET_SCENES := {
@@ -38,6 +40,7 @@ const WIDGET_SCENES := {
 	"grid": "res://ui/widgets/uf_grid_container.tscn",
 	"layout_region": "res://ui/widgets/uf_layout_region.tscn",
 	"equipment_slot": "res://ui/widgets/uf_equipment_slot.tscn",
+	"item_slot": "res://ui/widgets/uf_item_slot.tscn",
 	"progress_bar": "res://ui/widgets/uf_progress_bar.tscn",
 	"separator": "res://ui/widgets/uf_separator.tscn",
 	"tab": "res://ui/widgets/uf_tab.tscn",

@@ -97,6 +97,22 @@ Estado o decoración dispersa sobre un tile existente → capa `modifiers`, **no
 
 **Prohibido para paredes/tejados:** `create_isometric_tile` (`block` o `thin` con costados), `create_tiles_pro` batch mixto.
 
+## UI — marco de panel (nine-patch)
+
+**Godot:** un solo PNG + `StyleBoxTexture.texture_margin_*` en `ui/theme/uf_theme.tres` (no sprites sueltos por esquina salvo composición manual).
+
+**Herramienta:** `create_ui_asset` (no `create_map_object` ni tiles isométricos).
+
+**Prompt:** `pixel art`, `dark medieval wooden RPG UI panel frame`, `flat 2D front view`, `thick border corners and edges`, `center fill tileable`, `lineless`, `gloomy`.
+
+**Parámetros:** `width`/`height` ≥ 192 (mín. API); `seed: 42100`; `color_palette: dark brown wood, iron gray`; `no_background: false` (centro opaco del panel).
+
+**Destino:** `res://ui/theme/art/panel_frame.png` → `uf_theme.tres` → `PanelContainer/styles/panel`.
+
+**Márgenes:** tras importar, medir grosor del borde en px y asignar `texture_margin_*` + `content_margin_*`.
+
+**Tiling (paneles enormes):** `axis_stretch_horizontal` / `axis_stretch_vertical` → `TILE` (1) o `TILE_FIT` (2). El tramo central del PNG debe ser **seamless** al repetirse.
+
 ## Arte descartado
 
 PNG que no cumplen → **`res://local/art/`** (ver `world-assets-layout.mdc`). Quitar textura del `.tres` en `assets/`.

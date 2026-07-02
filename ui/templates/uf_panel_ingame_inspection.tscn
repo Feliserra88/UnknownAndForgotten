@@ -8,6 +8,10 @@
 
 [node name="UfInspectionPanel" type="PanelContainer" unique_id=1540991670]
 custom_minimum_size = Vector2(260, 360)
+offset_left = 1.0
+offset_top = 13.0
+offset_right = 464.0
+offset_bottom = 541.0
 theme = ExtResource("1_theme")
 script = ExtResource("2_inspection")
 title_key = "gui.inspection.title"

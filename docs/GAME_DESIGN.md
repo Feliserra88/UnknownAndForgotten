@@ -936,12 +936,13 @@ Contenedores anidados para layouts complejos (patrón recomendado por Godot para
 res://ui/
 ├── theme/                    # Theme global
 ├── templates/                # Escenas base reutilizables (plantillas)
-│   ├── uf_panel.tscn         # Shell vacío: Layout + ContentSlot
-│   ├── uf_panel_ingame.tscn  # Panel de juego: header + chrome
-│   ├── uf_tabbed_panel.tscn
-│   ├── uf_dialog_panel.tscn  # Aceptar / Cancelar
-│   ├── uf_info_panel.tscn    # Informativo + cerrar
-│   └── uf_inspection_panel.tscn
+│   ├── uf_panel.tscn                      # Shell vacío: Layout + ContentSlot
+│   ├── uf_panel_ingame.tscn               # Panel de juego: header + chrome
+│   ├── uf_panel_tabbed.tscn
+│   ├── uf_panel_dialog.tscn               # Aceptar / Cancelar
+│   ├── uf_panel_info.tscn                 # Informativo + cerrar
+│   ├── uf_panel_ingame_inspection.tscn
+│   └── uf_panel_ingame_loot.tscn       # Rejilla 4×4 de items arrastrables
 ├── widgets/                  # Elementos atómicos reutilizables
 │   ├── uf_button.tscn
 │   ├── uf_grid_container.tscn
@@ -996,10 +997,11 @@ func _on_drag_handle_input(event: InputEvent) -> void:
 | Clase / escena | Extiende | Añade |
 |----------------|----------|-------|
 | `UfPanelIngame` | `UfPanel` | Header con título (`title_key`) + chrome (minimizar, arrastrar, cerrar) |
-| `UfTabbedPanel` | `UfPanel` | `TabContainer` a pantalla completa; hijos [class UfTab] |
+| `UfTabbedPanel` | `UfPanel` | Sustituye `ContentSlot` del padre por `TabContainer`; cada [class UfTab] tiene su `ContentSlot` |
 | `UfInfoPanel` | `UfPanel` | Shell informativo sin chrome de ventana |
-| `UfDialogPanel` | `UfPanel` | Botones **accept** / **cancel** en footer + señales `confirmed`, `cancelled` |
+| `UfDialogPanel` | `UfPanel` | `ContentSlot` + footer `Chrome` (Aceptar/Cancelar, tamaño fijo alineados a la derecha) + señales `confirmed`, `cancelled` |
 | `UfInspectionPanel` | `UfPanelIngame` | Silueta + slots de equipo desde `InspectionLayoutDef`; señales drag-drop (§5.5.5) |
+| `UfLootPanel` | `UfPanelIngame` | Rejilla `LootGrid` 4×4 (tunable) de `UfItemSlot`; move/swap interno + señales drag-drop |
 | `UfInventoryPanel` | `UfPanelIngame` o `UfTabbedPanel` | Componer `UfGridContainer` + lógica vía módulo `equipment` |
 | `UfStatusPanel` | `UfPanel` | Vitals, efectos; datos desde módulo `status` |
 | `UfSkillsPanel` / `UfSpellsPanel` | `UfPanel` | Dominio combate/magia (futuro) |
@@ -1023,8 +1025,9 @@ Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 | `UfProgressBar` | `ProgressBar` | Barras reutilizables para vitals, carga o progreso |
 | `UfSeparator` | `HSeparator` / `VSeparator` | Divisores |
 | `UfLayoutRegion` | `Control` | Zona de layout libre (anclas) dentro de un `ContentSlot` en flujo |
-| `UfEquipmentSlot` | `Panel` | Celda de slot de equipo (icono + drag-drop); usada por `UfInspectionPanel` |
-| `UfTab` | `MarginContainer` | Una pestaña de `UfTabbedPanel`; `title_key` + `Content` para widgets hijos |
+| `UfItemSlot` | `Panel` | Celda genérica (icono + drag-drop `uf_item`); usada por `UfLootPanel` |
+| `UfEquipmentSlot` | `UfItemSlot` | Celda de equipo (`uf_equipment_item`); usada por `UfInspectionPanel` |
+| `UfTab` | `MarginContainer` | Una pestaña de `UfTabbedPanel`; `title_key` + `ContentSlot` para widgets hijos |
 
 Cada widget: escena `.tscn` + script mínimo; expone API pequeña (`set_items()`, `set_label_key()`, etc.).
 
@@ -1064,7 +1067,7 @@ El panel se suscribe a datos del módulo `equipment` / `NpcInstanceData` vía AP
 - Toda ventana de juego es un **`UfPanel`** o subclase.
 - Arrastre solo desde **asa/barra** definida, no desde todo el panel (evita conflictos con clics en contenido).
 - Nuevos paneles (mapa, diálogo NPC, crafteo…) → extender base o componer widgets existentes.
-- Estilos centralizados en **`Theme`** (`res://ui/theme/uf_theme.tres`); marco con sprites vía **`StyleBoxTexture`** y márgenes nine-patch (`ui/theme/panel_frame.*` placeholder); evitar StyleBox duplicados por escena.
+- Estilos centralizados en **`Theme`** (`res://ui/theme/uf_theme.tres`); marco nine-patch en `ui/theme/art/panel_frame.png` vía **`StyleBoxTexture`** (`texture_margin_*`); evitar StyleBox duplicados por escena.
 - Identificadores en **inglés**; textos en `res://locale/`.
 
 ### 10.9 Herramientas de editor para GUI
@@ -1079,14 +1082,14 @@ Los artistas pueden montar paneles concretos (inventario, hechizos, etc.) **a ma
 
 | Mecanismo Godot | Uso para artistas |
 |-----------------|-------------------|
-| **Escena instanciada / heredada** | Duplicar `uf_panel.tscn` o `uf_tabbed_panel.tscn` desde `ui/templates/` → guardar en `ui/panels/` como `uf_inventory.tscn` |
+| **Escena instanciada / heredada** | Duplicar `uf_panel.tscn` o `uf_panel_tabbed.tscn` desde `ui/templates/` → guardar en `ui/panels/` como `uf_inventory.tscn` |
 | **`class_name` + `@icon`** en `UfPanel`, widgets | Nodos aparecen en el diálogo “Añadir nodo” con icono |
 | **`@tool`** en scripts base | Previsualización en editor (layout, asa de arrastre) |
 | **`Theme`** en `ui/theme/` | Estilo unificado; artista retoca una vez, aplica a todos los widgets |
 
 Flujo típico del artista:
 
-1. Instanciar `uf_panel.tscn` (o `uf_tabbed_panel.tscn`) desde `res://ui/templates/`.
+1. Instanciar `uf_panel.tscn` (o `uf_panel_tabbed.tscn`) desde `res://ui/templates/`.
 2. Dentro de `ContentSlot`, instanciar `UfGridContainer`, `UfList`, `UfButton`, etc. desde `res://ui/widgets/`.
 3. Ajustar layout con contenedores Godot (arrastrar en el editor 2D).
 4. Guardar en `res://ui/panels/uf_inventory.tscn` (u otro nombre descriptivo).
