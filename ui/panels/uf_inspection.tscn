@@ -1,5 +1,82 @@
 [gd_scene format=3 uid="uid://1u12p8pj2baq"]
 
 [ext_resource type="PackedScene" uid="uid://1ro8v8hbpg1g" path="res://ui/templates/uf_panel_ingame.tscn" id="1_bix6e"]
+[ext_resource type="PackedScene" uid="uid://dqly2vgtcsdyd" path="res://ui/widgets/uf_layout_region.tscn" id="2_gibtr"]
+[ext_resource type="PackedScene" uid="uid://dp6ydmn6l7wxf" path="res://ui/widgets/uf_equipment_slot.tscn" id="3_gibtr"]
+[ext_resource type="PackedScene" uid="uid://dbcykjt237grq" path="res://ui/widgets/uf_list.tscn" id="4_iy5xd"]
+[ext_resource type="PackedScene" uid="uid://dd1t0mh3qlb3y" path="res://ui/widgets/uf_label.tscn" id="5_or3ko"]
 
 [node name="UfPanelIngame" unique_id=1509646719 instance=ExtResource("1_bix6e")]
+offset_left = 21.0
+offset_top = 52.0
+offset_right = 518.0
+offset_bottom = 659.0
+
+[node name="UfLayoutRegion" parent="Layout/ContentSlot" parent_id_path=PackedInt32Array(1022281880) index="0" unique_id=847991059 instance=ExtResource("2_gibtr")]
+layout_mode = 2
+
+[node name="UfEquipmentSlot7" parent="Layout/ContentSlot/UfLayoutRegion" index="0" unique_id=981317227 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 171.0
+offset_top = 119.0
+offset_right = 211.0
+offset_bottom = 159.0
+
+[node name="UfEquipmentSlot6" parent="Layout/ContentSlot/UfLayoutRegion" index="1" unique_id=2093043047 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 167.0
+offset_top = 13.0
+offset_right = 207.0
+offset_bottom = 53.0
+
+[node name="UfEquipmentSlot5" parent="Layout/ContentSlot/UfLayoutRegion" index="2" unique_id=1825317155 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 230.0
+offset_top = 64.0
+offset_right = 270.0
+offset_bottom = 104.0
+
+[node name="UfEquipmentSlot4" parent="Layout/ContentSlot/UfLayoutRegion" index="3" unique_id=1273616448 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 106.0
+offset_top = 66.0
+offset_right = 146.0
+offset_bottom = 106.0
+
+[node name="UfEquipmentSlot" parent="Layout/ContentSlot/UfLayoutRegion" index="4" unique_id=837719773 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 214.0
+offset_top = 179.0
+offset_right = 254.0
+offset_bottom = 219.0
+
+[node name="UfEquipmentSlot2" parent="Layout/ContentSlot/UfLayoutRegion" index="5" unique_id=652566804 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 175.0
+offset_right = 170.0
+offset_bottom = 215.0
+
+[node name="UfEquipmentSlot3" parent="Layout/ContentSlot/UfLayoutRegion" index="6" unique_id=1054792637 instance=ExtResource("3_gibtr")]
+layout_mode = 0
+offset_left = 171.0
+offset_top = 73.0
+offset_right = 211.0
+offset_bottom = 113.0
+
+[node name="UfList" parent="Layout" parent_id_path=PackedInt32Array(1804362020) index="2" unique_id=880794120 instance=ExtResource("4_iy5xd")]
+layout_mode = 2
+
+[node name="Items" type="VBoxContainer" parent="Layout/UfList" index="0" unique_id=1373673428]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="UfLabel3" parent="Layout/UfList/Items" index="0" unique_id=583800110 instance=ExtResource("5_or3ko")]
+layout_mode = 2
+
+[node name="UfLabel2" parent="Layout/UfList/Items" index="1" unique_id=914853647 instance=ExtResource("5_or3ko")]
+layout_mode = 2
+
+[node name="UfLabel" parent="Layout/UfList/Items" index="2" unique_id=512292861 instance=ExtResource("5_or3ko")]
+layout_mode = 2

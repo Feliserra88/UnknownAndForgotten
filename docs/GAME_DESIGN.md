@@ -1020,7 +1020,7 @@ Elementos recurrentes, **sin** acoplamiento a un panel concreto:
 | `UfButton` | `Button` | Acciones; texto vía `label_key` |
 | `UfCheckButton` | `CheckButton` | Switch / toggle localizado para opciones binarias |
 | `UfGridContainer` | `GridContainer` + celdas custom | Inventario, tiles de habilidad |
-| `UfList` | `ItemList` o `VBoxContainer` en `ScrollContainer` | Listas de items, hechizos, log |
+| `UfList` | `VBoxContainer` / `HBoxContainer` en `ScrollContainer` | Listas con scroll; filas en `get_items_slot()`; `flow` vertical/horizontal; `set_items()` para texto localizado |
 | `UfLabel` | `Label` | Texto localizado |
 | `UfProgressBar` | `ProgressBar` | Barras reutilizables para vitals, carga o progreso |
 | `UfSeparator` | `HSeparator` / `VSeparator` | Divisores |
