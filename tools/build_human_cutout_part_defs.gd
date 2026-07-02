@@ -55,8 +55,11 @@ func _build_def(part_id: StringName, art_root: String, def_prefix: String) -> vo
 		push_error("Failed to save %s: %s" % [out_path, error_string(err)])
 
 func _cmdline_set_name() -> String:
+	var user_args := OS.get_cmdline_user_args()
+	if user_args.size() > 0:
+		return user_args[0]
 	var args := OS.get_cmdline_args()
 	for i in args.size():
 		if args[i] == "--" and i + 1 < args.size():
 			return args[i + 1]
-	return ""
+	return "naked"

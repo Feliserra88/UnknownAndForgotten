@@ -1,9 +1,25 @@
-[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://dfh5af1bv5ku3"]
+[gd_resource type="Resource" script_class="PartVisualDef" format=3]
 
-[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1"]
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_sc1bv"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/arm_right/front_idle.png" id="2_rxbw1"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/arm_right/back_idle.png" id="3_iorev"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/arm_right/side_right_idle.png" id="4_rtakl"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/arm_right/front_walk.png" id="5_bnvrn"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/arm_right/back_walk.png" id="6_vutwa"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/arm_right/side_right_walk.png" id="7_bmbm0"]
 
 [resource]
-script = ExtResource("1")
+script = ExtResource("1_sc1bv")
 part_id = &"arm_right"
+textures = {
+&"back": ExtResource("3_iorev"),
+&"front": ExtResource("2_rxbw1"),
+&"side_right": ExtResource("4_rtakl")
+}
+walk_textures = {
+&"back": ExtResource("6_vutwa"),
+&"front": ExtResource("5_bnvrn"),
+&"side_right": ExtResource("7_bmbm0")
+}
 offset = Vector2(13, -2)
 z_index = 1

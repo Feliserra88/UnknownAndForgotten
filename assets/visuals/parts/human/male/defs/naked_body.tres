@@ -1,7 +1,23 @@
-[gd_resource type="Resource" script_class="PartVisualDef" format=3 uid="uid://gb4ygaw0b4g2"]
+[gd_resource type="Resource" script_class="PartVisualDef" format=3]
 
-[ext_resource type="Script" uid="uid://dc6fr0my07q3u" path="res://modules/appearance/part_visual_def.gd" id="1"]
+[ext_resource type="Script" path="res://modules/appearance/part_visual_def.gd" id="1_y5gx5"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/body/front_idle.png" id="2_g08bq"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/body/back_idle.png" id="3_v5efl"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/body/side_right_idle.png" id="4_bmwgy"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/body/front_walk.png" id="5_xy5wg"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/body/back_walk.png" id="6_vslok"]
+[ext_resource type="Texture2D" path="res://assets/visuals/parts/human/male/naked/body/side_right_walk.png" id="7_fhpmm"]
 
 [resource]
-script = ExtResource("1")
+script = ExtResource("1_y5gx5")
 part_id = &"body"
+textures = {
+&"back": ExtResource("3_v5efl"),
+&"front": ExtResource("2_g08bq"),
+&"side_right": ExtResource("4_bmwgy")
+}
+walk_textures = {
+&"back": ExtResource("6_vslok"),
+&"front": ExtResource("5_xy5wg"),
+&"side_right": ExtResource("7_fhpmm")
+}

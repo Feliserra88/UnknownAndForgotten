@@ -73,14 +73,14 @@ godot --headless --path . --script res://tools/build_human_cutout_part_defs.gd -
 
 ## PixelLab jobs (naked v1, 8-frame walk)
 
-| Part | Object ID | Walk anim |
-|------|-----------|-----------|
-| body | `94b4cf33-4ee5-45f4-9bbe-8ead919f9e29` | pending |
-| head | `631723ae-b945-4d30-9711-1da007134fb3` | pending |
-| arm_left | `767f7691-310a-4570-9559-dfa69af88221` | pending |
-| arm_right | `983b377e-0200-4c79-8f5c-d9fdab824369` | pending |
-| leg_left | `52e1a633-54d6-4115-a801-140a5b053f70` | pending |
-| leg_right | `47c4f359-12ef-4b59-b11f-a4b454f58f46` | pending |
+| Part | Object ID | Walk group |
+|------|-----------|------------|
+| body | `94b4cf33-4ee5-45f4-9bbe-8ead919f9e29` | `60e39fb2-6cbd-4a97-9aea-3f0d401d738d` ✓ |
+| head | `631723ae-b945-4d30-9711-1da007134fb3` | `bb598f53-53e9-4efd-bb7c-9c5552c20be8` ✓ |
+| arm_left | `767f7691-310a-4570-9559-dfa69af88221` | `e29ea847-f224-41f0-a3f4-20b945280cd1` ✓ |
+| arm_right | `983b377e-0200-4c79-8f5c-d9fdab824369` | `8c6a136a-1399-4f3f-8471-e6a4dc1efe6f` ✓ |
+| leg_left | `52e1a633-54d6-4115-a801-140a5b053f70` | `5f5ff146-4ef3-4525-aa43-9f03a39fcf3a` (east pending) |
+| leg_right | `47c4f359-12ef-4b59-b11f-a4b454f58f46` | `1d859d77-fbcd-434a-a4d7-1ac63b3dbcb3` (pending) |
 
 ## Asymmetry (injuries, equipment, tattoos)
 

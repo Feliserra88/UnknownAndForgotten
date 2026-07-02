@@ -14,7 +14,7 @@ const _MARGIN := 8
 const _PANEL_SEP := 6
 const _FIELD_SEP := 6
 const _SECTION_SEP := 8
-const _LABEL_WIDTH := 108
+const _LABEL_WIDTH := 80
 const _BTN_H := 26
 const _BTN_MIN_W := 88
 const _SPRITE_PREVIEW_FALLBACK := Vector2(64, 64)
@@ -38,6 +38,7 @@ var _back_to_saved_btn: Button
 var _preview_state: int = 0
 var _preview_modifier_ids: Array[StringName] = []
 
+var _definition_scroll: ScrollContainer
 var _category_option: OptionButton
 var _family_option: OptionButton
 var _state_option: OptionButton
@@ -68,28 +69,6 @@ var _grid_w_field: SpinBox
 var _grid_h_field: SpinBox
 var _def_state_option: OptionButton
 var _def_quality_option: OptionButton
-var _weapon_family_field: LineEdit
-var _weapon_type_field: LineEdit
-var _weapon_slot_option: OptionButton
-var _weapon_hands_field: SpinBox
-var _weapon_modifier_field: LineEdit
-var _weapon_section: VBoxContainer
-var _weapon_block: PanelContainer
-var _armor_section: VBoxContainer
-var _armor_block: PanelContainer
-var _food_section: VBoxContainer
-var _food_block: PanelContainer
-var _valuable_section: VBoxContainer
-var _valuable_block: PanelContainer
-var _armor_slot_option: OptionButton
-var _armor_modifier_field: LineEdit
-var _food_nutrition_field: SpinBox
-var _food_spoilage_field: SpinBox
-var _food_stackable: CheckBox
-var _valuable_stackable: CheckBox
-var _valuable_merchant_field: LineEdit
-var _tier_state_box: VBoxContainer
-var _tier_quality_box: VBoxContainer
 var _localizing: bool = false
 
 func setup() -> void:
@@ -132,6 +111,7 @@ func _bootstrap_data() -> void:
 	_populate_item_modifiers()
 	_refresh_tag_pickers(true)
 	_refresh_localized_strings()
+	_sync_def_tier_option_menus()
 	_rebuild_list()
 	_set_status(_T("item_editor.status.ready"))
 	_data_ready = true
@@ -167,13 +147,19 @@ func _apply_column_splits() -> void:
 			continue
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		col.custom_minimum_size.x = 0.0
 	if _col_left != null:
 		_col_left.size_flags_stretch_ratio = _COL_LEFT
+		_col_left.custom_minimum_size.x = _COL_MIN_LEFT
+		_col_left.clip_contents = true
 	if _col_center != null:
 		_col_center.size_flags_stretch_ratio = _COL_CENTER
+		_col_center.custom_minimum_size.x = _COL_MIN_CENTER
+		_col_center.clip_contents = true
 	if _col_right != null:
 		_col_right.size_flags_stretch_ratio = _COL_RIGHT
+		_col_right.custom_minimum_size.x = _COL_MIN_RIGHT
+		_col_right.clip_contents = true
+	_sync_definition_scroll_width()
 
 func _apply_center_split() -> void:
 	if _center_split == null:
@@ -254,11 +240,6 @@ func _build_toolbar(parent: VBoxContainer) -> void:
 	_category_option.custom_minimum_size = Vector2(140, _BTN_H)
 	_category_option.item_selected.connect(_on_category_changed)
 	bar.add_child(_category_option)
-	_save_btn = Button.new()
-	_save_btn.custom_minimum_size = Vector2(_BTN_MIN_W, _BTN_H)
-	_save_btn.pressed.connect(_on_save_pressed)
-	_action_buttons.append({"button": _save_btn, "key": "item_editor.action.save"})
-	bar.add_child(_save_btn)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
@@ -270,20 +251,24 @@ func _build_left_column(parent: HBoxContainer) -> Control:
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.size_flags_stretch_ratio = _COL_LEFT
 	column.custom_minimum_size.x = 0
+	column.clip_contents = true
 	column.add_theme_constant_override("separation", 4)
 	parent.add_child(column)
 	var header := _section_header("item_editor.block.definition")
 	column.add_child(header)
 	var left := ScrollContainer.new()
+	_definition_scroll = left
 	left.name = "DefinitionScroll"
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	left.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	left.clip_contents = true
 	column.add_child(left)
 	_details_box = VBoxContainer.new()
 	_details_box.add_theme_constant_override("separation", _PANEL_SEP)
 	_details_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_details_box.custom_minimum_size.x = 0
 	left.add_child(_details_box)
 	_rebuild_details_form()
 	return column
@@ -388,6 +373,7 @@ func _build_right_column(parent: HBoxContainer) -> Control:
 	var actions := _BLOCK.create_button_grid()
 	actions_wrap.body.add_child(actions)
 	for spec in [
+		["item_editor.action.save", _on_save_pressed],
 		["item_editor.action.new", _on_new_pressed],
 		["item_editor.action.new_from_art", _on_new_from_art_pressed],
 		["item_editor.action.clone", _on_clone_pressed],
@@ -397,6 +383,8 @@ func _build_right_column(parent: HBoxContainer) -> Control:
 		var btn := _BLOCK.add_grid_button(actions, _BTN_H)
 		btn.pressed.connect(spec[1])
 		_action_buttons.append({"button": btn, "key": spec[0]})
+		if spec[0] == "item_editor.action.save":
+			_save_btn = btn
 	_section_gap(box)
 	var filters_wrap := _BLOCK.create("item_editor.block.preview_filters")
 	_register_block_title(filters_wrap)
@@ -453,78 +441,9 @@ func _rebuild_details_form() -> void:
 	_tag_assign_zone.setup(_items)
 	_tag_assign_zone.tags_changed.connect(_on_draft_tags_changed)
 	tags_wrap.body.add_child(_tag_assign_zone)
-	_section_gap(_details_box)
-	var tiers_wrap := _BLOCK.create("item_editor.block.tiers")
-	_register_block_title(tiers_wrap)
-	_details_box.add_child(tiers_wrap.block)
-	_tier_state_box = VBoxContainer.new()
-	_tier_state_box.add_theme_constant_override("separation", _FIELD_SEP)
-	tiers_wrap.body.add_child(_tracked_label("item_editor.block.state_tiers"))
-	tiers_wrap.body.add_child(_tier_state_box)
-	_tier_quality_box = VBoxContainer.new()
-	_tier_quality_box.add_theme_constant_override("separation", _FIELD_SEP)
-	tiers_wrap.body.add_child(_tracked_label("item_editor.block.quality_tiers"))
-	tiers_wrap.body.add_child(_tier_quality_box)
-	var tier_actions := _BLOCK.create_button_grid()
-	tiers_wrap.body.add_child(tier_actions)
-	var reset_state := _BLOCK.add_grid_button(tier_actions, _BTN_H)
-	reset_state.pressed.connect(_on_reset_state_tiers)
-	_locale_labels.append({"label": reset_state, "key": "item_editor.action.reset_state_tiers", "is_button": true})
-	var reset_quality := _BLOCK.add_grid_button(tier_actions, _BTN_H)
-	reset_quality.pressed.connect(_on_reset_quality_tiers)
-	_locale_labels.append({"label": reset_quality, "key": "item_editor.action.reset_quality_tiers", "is_button": true})
-	_section_gap(_details_box)
-	var weapon_wrap := _BLOCK.create("item_editor.block.weapon_payload")
-	_register_block_title(weapon_wrap)
-	_details_box.add_child(weapon_wrap.block)
-	_weapon_block = weapon_wrap.block
-	_weapon_section = weapon_wrap.body
-	_weapon_family_field = _add_line_field_to(_weapon_section, _T("item_editor.field.weapon_family"))
-	_weapon_type_field = _add_line_field_to(_weapon_section, _T("item_editor.field.design_type"))
-	_weapon_slot_option = _add_option_field_to(_weapon_section, _T("item_editor.field.equip_slot"))
-	for slot in [&"arm_right", &"arm_left", &"belt", &"back"]:
-		_weapon_slot_option.add_item(String(slot), -1)
-		_weapon_slot_option.set_item_metadata(_weapon_slot_option.item_count - 1, slot)
-	_weapon_hands_field = _add_spin_field_to(_weapon_section, _T("item_editor.field.hands"), 1, 2, 1)
-	_weapon_modifier_field = _add_line_field_to(_weapon_section, _T("item_editor.field.attribute_modifier_id"))
-	_section_gap(_details_box)
-	var armor_wrap := _BLOCK.create("item_editor.block.armor_payload")
-	_register_block_title(armor_wrap)
-	_details_box.add_child(armor_wrap.block)
-	_armor_block = armor_wrap.block
-	_armor_section = armor_wrap.body
-	_armor_slot_option = _add_option_field_to(_armor_section, _T("item_editor.field.equip_slot"))
-	for slot in [&"head", &"body", &"arm_left", &"arm_right", &"belt", &"neck", &"ring_1", &"ring_2", &"feet", &"back"]:
-		_armor_slot_option.add_item(String(slot), -1)
-		_armor_slot_option.set_item_metadata(_armor_slot_option.item_count - 1, slot)
-	_armor_modifier_field = _add_line_field_to(_armor_section, _T("item_editor.field.attribute_modifier_id"))
-	_section_gap(_details_box)
-	var food_wrap := _BLOCK.create("item_editor.block.food_payload")
-	_register_block_title(food_wrap)
-	_details_box.add_child(food_wrap.block)
-	_food_block = food_wrap.block
-	_food_section = food_wrap.body
-	_food_nutrition_field = _add_spin_field_to(_food_section, _T("item_editor.field.nutrition"), 0, 999, 1)
-	_food_spoilage_field = _add_spin_field_to(_food_section, _T("item_editor.field.spoilage_hours"), 0, 9999, 1)
-	_food_stackable = CheckBox.new()
-	_food_stackable.button_pressed = true
-	_locale_labels.append({"label": _food_stackable, "key": "item_editor.field.stackable", "is_button": true})
-	_food_section.add_child(_food_stackable)
-	_section_gap(_details_box)
-	var valuable_wrap := _BLOCK.create("item_editor.block.valuable_payload")
-	_register_block_title(valuable_wrap)
-	_details_box.add_child(valuable_wrap.block)
-	_valuable_block = valuable_wrap.block
-	_valuable_section = valuable_wrap.body
-	_valuable_stackable = CheckBox.new()
-	_valuable_stackable.button_pressed = true
-	_locale_labels.append({"label": _valuable_stackable, "key": "item_editor.field.stackable", "is_button": true})
-	_valuable_section.add_child(_valuable_stackable)
-	_valuable_merchant_field = _add_line_field_to(_valuable_section, _T("item_editor.field.merchant_category"))
 	_refresh_tag_pickers()
 	if not saved_tags.is_empty():
 		_tag_assign_zone.set_tags(saved_tags)
-	_update_category_sections_visibility()
 	_sync_form_from_draft()
 
 func _populate_categories() -> void:
@@ -566,38 +485,82 @@ func _populate_art_strip_states() -> void:
 func _sync_def_tier_option_menus() -> void:
 	if _def_state_option == null or _def_quality_option == null:
 		return
-	var state_tiers: Array[ItemStateTierDef] = []
-	var quality_tiers: Array[ItemQualityTierDef] = []
+	var state_tiers := _resolve_state_tiers_for_form()
+	var quality_tiers := _resolve_quality_tiers_for_form()
 	var state_idx := 0
 	var quality_idx := 0
 	if _draft != null:
-		state_tiers = _draft.state_tiers
-		quality_tiers = _draft.quality_tiers
+		_ensure_draft_tiers()
 		state_idx = _draft.default_state_index
 		quality_idx = _draft.default_quality_index
-	else:
-		var cat := _items.load_category(_current_category_id())
-		if cat != null and not cat.default_state_tiers.is_empty():
-			state_tiers = cat.default_state_tiers
-		else:
-			state_tiers = _items.default_weapon_state_tiers()
-		if cat != null and not cat.default_quality_tiers.is_empty():
-			quality_tiers = cat.default_quality_tiers
-		else:
-			quality_tiers = _items.default_quality_tiers()
 	_def_state_option.clear()
 	for tier in state_tiers:
-		_def_state_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+		_def_state_option.add_item(_tier_option_label(tier.display_name_key, tier.id))
 	_def_quality_option.clear()
 	for tier in quality_tiers:
-		_def_quality_option.add_item(_T(tier.display_name_key) if not tier.display_name_key.is_empty() else String(tier.id))
+		_def_quality_option.add_item(_tier_option_label(tier.display_name_key, tier.id))
+	_def_state_option.set_block_signals(true)
+	_def_quality_option.set_block_signals(true)
 	if _def_state_option.item_count > 0:
 		_def_state_option.select(clampi(state_idx, 0, _def_state_option.item_count - 1))
 	if _def_quality_option.item_count > 0:
 		_def_quality_option.select(clampi(quality_idx, 0, _def_quality_option.item_count - 1))
+	_def_state_option.set_block_signals(false)
+	_def_quality_option.set_block_signals(false)
 	var editable := _draft != null
 	_def_state_option.disabled = not editable
 	_def_quality_option.disabled = not editable
+
+func _resolve_state_tiers_for_form() -> Array[ItemStateTierDef]:
+	if _draft != null and not _draft.state_tiers.is_empty():
+		return _draft.state_tiers
+	var cat := _items.load_category(_current_category_id())
+	if cat != null and not cat.default_state_tiers.is_empty():
+		return cat.default_state_tiers
+	return _items.default_weapon_state_tiers()
+
+func _resolve_quality_tiers_for_form() -> Array[ItemQualityTierDef]:
+	if _draft != null and not _draft.quality_tiers.is_empty():
+		return _draft.quality_tiers
+	var cat := _items.load_category(_current_category_id())
+	if cat != null and not cat.default_quality_tiers.is_empty():
+		return cat.default_quality_tiers
+	return _items.default_quality_tiers()
+
+func _ensure_draft_tiers() -> void:
+	if _draft == null:
+		return
+	if _draft.state_tiers.is_empty():
+		var cat := _items.load_category(_current_category_id())
+		if cat != null and not cat.default_state_tiers.is_empty():
+			_draft.state_tiers = cat.default_state_tiers.duplicate(true)
+		else:
+			_draft.state_tiers = _items.default_weapon_state_tiers()
+	if _draft.quality_tiers.is_empty():
+		var cat := _items.load_category(_current_category_id())
+		if cat != null and not cat.default_quality_tiers.is_empty():
+			_draft.quality_tiers = cat.default_quality_tiers.duplicate(true)
+		else:
+			_draft.quality_tiers = _items.default_quality_tiers()
+	_draft.default_state_index = clampi(_draft.default_state_index, 0, maxi(0, _draft.state_tiers.size() - 1))
+	_draft.default_quality_index = clampi(_draft.default_quality_index, 0, maxi(0, _draft.quality_tiers.size() - 1))
+
+func _tier_option_label(display_key: String, tier_id: StringName) -> String:
+	if not display_key.is_empty():
+		var translated := _T(display_key)
+		if not translated.is_empty():
+			return translated
+	return String(tier_id)
+
+func _sync_definition_scroll_width() -> void:
+	if _definition_scroll == null or _details_box == null:
+		return
+	var w := int(_definition_scroll.size.x)
+	if w <= 0:
+		return
+	if int(_details_box.custom_minimum_size.x) == w:
+		return
+	_details_box.custom_minimum_size.x = w
 
 func _update_art_strip_filter_visibility() -> void:
 	if _state_option == null:
@@ -743,11 +706,9 @@ func _on_row_selected(meta: Dictionary) -> void:
 	_refresh_preview_panel()
 
 func _on_category_changed(_idx: int) -> void:
-	_update_category_sections_visibility()
 	_refresh_tag_pickers(true)
 	_populate_art_strip_states()
-	if _draft != null:
-		_sync_def_tier_option_menus()
+	_sync_def_tier_option_menus()
 	_rebuild_list()
 
 func _on_art_strip_state_changed(idx: int) -> void:
@@ -792,25 +753,7 @@ func _populate_item_modifiers() -> void:
 		_modifier_option.add_item(_T(def.display_name_key) if not def.display_name_key.is_empty() else String(def.id))
 		_modifier_option.set_item_metadata(_modifier_option.item_count - 1, def.id)
 
-func _on_reset_state_tiers() -> void:
-	if _draft == null:
-		return
-	_draft.state_tiers = _items.default_weapon_state_tiers()
-	_draft.default_state_index = clampi(_draft.default_state_index, 0, maxi(0, _draft.state_tiers.size() - 1))
-	_sync_def_tier_option_menus()
-	_refresh_preview_panel()
-	_set_status(_T("item_editor.status.state_tiers_reset"))
-
-func _on_reset_quality_tiers() -> void:
-	if _draft == null:
-		return
-	_draft.quality_tiers = _items.default_quality_tiers()
-	_draft.default_quality_index = clampi(_draft.default_quality_index, 0, maxi(0, _draft.quality_tiers.size() - 1))
-	_sync_def_tier_option_menus()
-	_refresh_preview_panel()
-	_set_status(_T("item_editor.status.quality_tiers_reset"))
-
-func _refresh_preview_panel() -> void:
+func _refresh_preview_summary() -> void:
 	_refresh_preview_icon()
 	_refresh_preview_summary()
 
@@ -861,17 +804,6 @@ func _refresh_preview_summary() -> void:
 			_preview_summary.show_item(_items, row, def)
 			return
 	_preview_summary.show_empty()
-
-func _update_category_sections_visibility() -> void:
-	var cat := _current_category_id()
-	if _weapon_block != null:
-		_weapon_block.visible = cat == &"weapon"
-	if _armor_block != null:
-		_armor_block.visible = cat == &"armor"
-	if _food_block != null:
-		_food_block.visible = cat == &"food"
-	if _valuable_block != null:
-		_valuable_block.visible = cat == &"valuable"
 
 func _on_draft_tags_changed(tags: Array[StringName]) -> void:
 	if _draft != null:
@@ -1013,28 +945,7 @@ func _apply_form_to_draft() -> void:
 	if _tag_assign_zone != null:
 		_draft.tags = _items.normalize_tags(_tag_assign_zone.get_tags(), _current_category_id())
 	_draft.category_id = _current_category_id()
-	if _draft.category_data is WeaponItemData:
-		var w := _draft.category_data as WeaponItemData
-		w.weapon_family = StringName(_weapon_family_field.text.strip_edges())
-		w.design_type = StringName(_weapon_type_field.text.strip_edges())
-		w.hands = int(_weapon_hands_field.value)
-		w.attribute_modifier_id = StringName(_weapon_modifier_field.text.strip_edges())
-		if _weapon_slot_option.selected >= 0:
-			w.slot = _weapon_slot_option.get_item_metadata(_weapon_slot_option.selected)
-	elif _draft.category_data is ArmorItemData:
-		var a := _draft.category_data as ArmorItemData
-		a.attribute_modifier_id = StringName(_armor_modifier_field.text.strip_edges())
-		if _armor_slot_option.selected >= 0:
-			a.slot = _armor_slot_option.get_item_metadata(_armor_slot_option.selected)
-	elif _draft.category_data is FoodItemData:
-		var f := _draft.category_data as FoodItemData
-		f.nutrition = _food_nutrition_field.value
-		f.spoilage_hours = _food_spoilage_field.value
-		f.stackable = _food_stackable.button_pressed
-	elif _draft.category_data is ValuableItemData:
-		var v := _draft.category_data as ValuableItemData
-		v.stackable = _valuable_stackable.button_pressed
-		v.merchant_category = StringName(_valuable_merchant_field.text.strip_edges())
+	_ensure_draft_tiers()
 
 func _sync_form_from_draft() -> void:
 	if _details_box == null:
@@ -1044,6 +955,7 @@ func _sync_form_from_draft() -> void:
 			_id_field.text = ""
 		_sync_def_tier_option_menus()
 		return
+	_ensure_draft_tiers()
 	_id_field.text = String(_draft.id)
 	_name_key_field.text = _draft.display_name_key
 	_desc_key_field.text = _draft.description_key
@@ -1055,33 +967,6 @@ func _sync_form_from_draft() -> void:
 	_sync_def_tier_option_menus()
 	if _tag_assign_zone != null:
 		_tag_assign_zone.set_tags(_draft.tags)
-	_update_category_sections_visibility()
-	if _draft.category_data is WeaponItemData:
-		var w := _draft.category_data as WeaponItemData
-		_weapon_family_field.text = String(w.weapon_family)
-		_weapon_type_field.text = String(w.design_type)
-		_weapon_hands_field.value = w.hands
-		_weapon_modifier_field.text = String(w.attribute_modifier_id)
-		for i in _weapon_slot_option.item_count:
-			if _weapon_slot_option.get_item_metadata(i) == w.slot:
-				_weapon_slot_option.select(i)
-				break
-	elif _draft.category_data is ArmorItemData:
-		var a := _draft.category_data as ArmorItemData
-		_armor_modifier_field.text = String(a.attribute_modifier_id)
-		for i in _armor_slot_option.item_count:
-			if _armor_slot_option.get_item_metadata(i) == a.slot:
-				_armor_slot_option.select(i)
-				break
-	elif _draft.category_data is FoodItemData:
-		var f := _draft.category_data as FoodItemData
-		_food_nutrition_field.value = f.nutrition
-		_food_spoilage_field.value = f.spoilage_hours
-		_food_stackable.button_pressed = f.stackable
-	elif _draft.category_data is ValuableItemData:
-		var v := _draft.category_data as ValuableItemData
-		_valuable_stackable.button_pressed = v.stackable
-		_valuable_merchant_field.text = String(v.merchant_category)
 	_refresh_preview_panel()
 
 func _add_line_field(placeholder: String) -> LineEdit:
@@ -1128,8 +1013,11 @@ func _add_form_row(parent: Control, label_text: String, field: Control) -> void:
 	var lbl := Label.new()
 	lbl.text = label_text
 	lbl.custom_minimum_size = Vector2(_LABEL_WIDTH, 0)
+	lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(lbl)
+	field.custom_minimum_size.x = 0
 	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	field.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(field)
