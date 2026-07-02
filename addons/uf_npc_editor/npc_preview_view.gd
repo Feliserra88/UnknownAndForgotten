@@ -5,8 +5,8 @@ extends PanelContainer
 signal orientation_changed(orientation: StringName)
 signal moving_changed(moving: bool)
 
-const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
-const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
+const _BLOCK := preload("res://addons/uf_editor_ui/editor_block.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _TITLE_KEY := "npc_editor.block.npc_viewer"
 
 const VIEWPORT_SIZE := Vector2i(320, 320)

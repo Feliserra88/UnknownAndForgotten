@@ -3,8 +3,8 @@ extends Control
 ## NPC editor workspace (debug skeleton). Three columns: details, preview + items, inspection.
 
 const _ITEM := preload("res://addons/uf_npc_editor/compatible_item.gd")
-const _I18N := preload("res://addons/uf_npc_editor/editor_i18n.gd")
-const _ITEM_FILTER_LIST := preload("res://addons/uf_item_editor/item_filter_list.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
+const _ITEM_FILTER_LIST := preload("res://addons/uf_editor_ui/item_filter_list.gd")
 const _NPC_PREVIEW := preload("res://addons/uf_npc_editor/npc_preview_view.gd")
 const _DEFAULT_ARCHETYPE_ID := &"humanoid"
 const _LOG := "NPC"
@@ -451,7 +451,6 @@ func _rebuild_items() -> void:
 		"row_builder": _build_compatible_item_row,
 	})
 	_item_filter_list.set_archetype_tags(tags)
-	_item_filter_list.refresh_tag_picker()
 	_item_filter_list.refresh()
 	_update_compatible_list_selection()
 

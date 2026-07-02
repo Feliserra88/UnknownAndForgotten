@@ -1,6 +1,6 @@
 @tool
 extends RefCounted
-## CSV-backed translations for the NPC editor (@tool plugins must not touch TranslationServer.set_locale).
+## CSV-backed translations for @tool editor plugins (must not touch TranslationServer.set_locale).
 
 const _CSV_PATH := "res://locale/translations.csv"
 
@@ -36,7 +36,7 @@ static func _load_csv() -> void:
 	_csv_by_locale.clear()
 	var file := FileAccess.open(_CSV_PATH, FileAccess.READ)
 	if file == null:
-		push_warning("NPC editor i18n: cannot read %s" % _CSV_PATH)
+		push_warning("Editor UI i18n: cannot read %s" % _CSV_PATH)
 		return
 	var header := file.get_csv_line()
 	if header.is_empty() or header.size() < 2:

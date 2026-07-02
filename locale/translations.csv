@@ -167,6 +167,13 @@ item_editor.filter.none,(none),(ninguno)
 item_editor.block.definition,Item definition,Definición del item
 item_editor.block.properties,Core properties,Propiedades base
 item_editor.block.tags,Tags,Tags
+item_editor.tag_tab.weapon,Weapons,Armas
+item_editor.tag_tab.armor,Armor,Armaduras
+item_editor.tag_tab.food,Food,Comida
+item_editor.tag_tab.valuable,Valuables,Valiosos
+item_editor.tag_tab.ammo,Ammunition,Munición
+item_editor.tag_tab.quest,Quest,Misión
+item_editor.tag_tab.general,General,General
 item_editor.block.tiers,State and quality tiers,Tiers de estado y calidad
 item_editor.block.state_tiers,State tiers,Tiers de estado
 item_editor.block.quality_tiers,Quality tiers,Tiers de calidad

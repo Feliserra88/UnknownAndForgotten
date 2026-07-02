@@ -4,7 +4,7 @@ extends PanelContainer
 
 signal tags_changed(tags: Array[StringName])
 
-const _CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
+const _CHIP := preload("res://addons/uf_editor_ui/tag_chip.gd")
 const _DROP_BG := Color(0.1, 0.11, 0.13, 0.6)
 const _DROP_BORDER := Color(0.28, 0.34, 0.42, 1.0)
 const _DROP_HOVER := Color(0.16, 0.22, 0.3, 0.85)
@@ -143,4 +143,4 @@ func _tag_label(def: ItemTagDef, tag_id: StringName) -> String:
 		return _I18N.translate_key(def.display_name_key)
 	return String(tag_id)
 
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")

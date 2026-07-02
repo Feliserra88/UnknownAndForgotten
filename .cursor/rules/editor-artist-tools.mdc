@@ -19,8 +19,10 @@ Si un módulo se usará **muchas veces** y requiere **fine-tuning manual** por u
 
 | Addon | Módulos | Uso |
 |-------|---------|-----|
+| `uf_editor_ui` | — | Widgets `@tool` compartidos (lista, tags, bloques); consumidos por otros addons |
 | `uf_map_editor` | `world`, `world_gen` | Mapas x/y/z, biomas, estructuras |
 | `uf_npc_editor` | `npc`, `appearance` | Arquetipos, rig, equipo/lesiones visual |
+| `uf_item_editor` | `items` | CRUD `ItemDef`, lista y filtros |
 | `uf_gui_tools` | `gui` | Paneles domain desde `UfPanel` + widgets |
 
 ## Al implementar módulo artístico

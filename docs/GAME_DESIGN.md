@@ -1235,6 +1235,7 @@ Si se cumplen **reuso + fine-tuning**, la herramienta pasa de “deseable” a *
 
 | Herramienta | Addon | Módulos | Qué hace el artista |
 |-------------|-------|---------|---------------------|
+| **Editor UI compartido** | `uf_editor_ui` | (ninguno; solo `@tool` UI) | Bloques reutilizables entre editores: lista filtrable, filas, tags, chrome de sección, i18n CSV |
 | **Editor de mapas** | `uf_map_editor` | `world`, `world_gen`, `grid` | Pintar rejilla **x/y/z**, overlay de altura en viewport, biomas, zonas manuales, colocar estructuras prefab (`TileMapPattern`, scene tiles), máscaras de bioma; exportar escenas/recursos en `assets/world/` |
 | **Editor de NPCs** | `uf_npc_editor` | `npc`, `appearance`, `attributes`, `equipment`, `items`, `faction`, `modifier`, `gui` | Pantalla principal 3 columnas; equipa `ItemInstance` |
 | **Editor de items** | `uf_item_editor` | `items` | Pantalla principal 3 columnas: propiedades `ItemDef`, lista sprites/items, CRUD y filtros; v1 completo en `weapon` |
@@ -1279,6 +1280,7 @@ Assets en res://assets/…  ←  guarda  ←  EditorPlugin (@tool)
 | Atributos | `attributes` | `AttributeSet` Resource | ATR |
 | Jugador | `player` | Misma escena NPC + grupo `"player"` | PLR |
 | GUI / paneles | `gui` | `UfPanel`, `TabContainer`, widgets `Control` | GUI |
+| Editor UI compartido | `addons/uf_editor_ui` | Scripts `@tool` (lista, tags, bloques); sin `EditorPlugin` | — |
 | Editor de mapas | `addons/uf_map_editor` | `EditorPlugin` + API `world` / `world_gen` | — |
 | Editor de NPCs | `addons/uf_npc_editor` | `EditorPlugin` (main screen) + API `npc` / `appearance` / `equipment` / `items` / `faction` / `modifier` / `gui` | — |
 | Editor de items | `addons/uf_item_editor` | `EditorPlugin` (main screen) + API `items` | — |

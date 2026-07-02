@@ -69,7 +69,7 @@ func set_filter_active(active: bool) -> void:
 	_update_label_appearance()
 	_apply_style()
 
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 
 func _tooltip_for_mode() -> String:
 	match _mode:

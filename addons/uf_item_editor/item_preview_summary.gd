@@ -2,7 +2,7 @@
 extends VBoxContainer
 ## Text summary beside draft sprite preview (mirrors browse list row info + category payload).
 
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _SEP := 2
 
 func clear_summary() -> void:

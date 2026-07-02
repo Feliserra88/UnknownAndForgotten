@@ -75,6 +75,7 @@ res://
 └── ui/                    # GUI: theme/, widgets/, panels/, domain/ (ver GAME_DESIGN §10)
 
 addons/                    # Plugins de editor (uf_map_editor, uf_npc_editor, uf_item_editor, uf_gui_tools)
+│   ├── uf_editor_ui/      # Widgets @tool compartidos entre editores de dominio (lista, tags, bloques)
 │   ├── uf_map_editor/     # Editor de mapas → API world / world_gen
 │   ├── uf_npc_editor/     # Editor de NPCs → API npc / appearance
 │   └── uf_gui_tools/      # Composición paneles GUI
@@ -397,6 +398,7 @@ Mantener tabla actualizada al crear módulos:
 | Equipment | `modules/equipment/` | EQP | `LOG_EQUIPMENT_LEVEL` | Fachada `EquipmentModule`; `EquipmentVisualDef`, `EquipmentSlotMap`, `EquipmentState` (runtime slot→`ItemInstance`, inventario/death_loot); validación equipar y resolución de visuales (depende de `items`) |
 | Items | `modules/items/` | ITM | `LOG_ITEMS_LEVEL` | Fachada `ItemsModule`; `ItemDef`, `ItemInstance`, `ItemCategoryDef`, tiers estado/calidad, payloads por categoría (`WeaponItemData`, `FoodItemData`, …); catálogo y resolución de icono/precio |
 | GUI | `modules/gui/` | GUI | `LOG_GUI_LEVEL` | `UfPanel` movible + especializados (`UfInfoPanel`, `UfDialogPanel`, `UfTabbedPanel`, `UfInspectionPanel`, `UfStatusPanel`, `UfLootPanel`), widgets `Uf*` (`modules/gui/widgets/`, incl. `UfEquipmentSlot`), theme; plantillas en `ui/templates/`; fachada `GuiModule` que crea paneles y carga assets de `ui/panels/` |
+| Editor UI compartido | `addons/uf_editor_ui/` | — | — | Scripts `@tool` reutilizables entre editores: `editor_block`, `editor_i18n`, `item_filter_list`, `item_list_row`, tags (`tag_flow`, `tag_picker_panel`, …). Sin `EditorPlugin`; los consumen `uf_item_editor`, `uf_npc_editor`, etc. |
 | Editor de mapas | `addons/uf_map_editor/` | — | — | `EditorPlugin` sobre API `world`/`world_gen`: generar, pintar tiles, editar altura, colocar piezas de estructura (`StructurePieceDef`), guardar presets/mapas |
 | Herramientas GUI | `addons/uf_gui_tools/` | — | — | `EditorPlugin` sobre API `gui`: compone paneles de juego (`UfPanel` + widgets desde `ui/templates/` y `ui/widgets/`) y los guarda como `PackedScene` en `res://ui/panels/` |
 | Editor de NPCs | `addons/uf_npc_editor/` | — | — | `EditorPlugin` de pantalla principal sobre API `npc`/`appearance`/`equipment`/`faction`/`modifier`/`gui`/`items`: 3 columnas (detalles, preview del rig, panel de inspección con drag-drop); equipa `ItemInstance` |

@@ -1,12 +1,12 @@
 @tool
 extends RefCounted
-## Section block with title + horizontal rule for item editor zones.
+## Section block with title + horizontal rule for domain editor zones.
 
 const _HEADER_COLOR := Color(0.72, 0.84, 1.0)
 const _PANEL_BG := Color(0.11, 0.12, 0.14, 0.92)
 const _PANEL_BORDER := Color(0.26, 0.30, 0.36, 1.0)
 
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 
 static func create(title_key: String, expand_vertical: bool = false) -> Dictionary:
 	_I18N.ensure_loaded()

@@ -1,27 +1,23 @@
 @tool
 extends PanelContainer
-## Tag-filter block + scrollable item list for editor tools (NPC editor, item browser, …).
+## Scrollable item list panel for editor tools (NPC editor, item browser, …).
 
-signal filter_changed(active_tags: Array[StringName])
 signal item_selected(meta: Dictionary)
 
-const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
-const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
-const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _BLOCK := preload("res://addons/uf_editor_ui/editor_block.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _TITLE_KEY := "item_editor.block.items"
 
 var _items: ItemsModule
 var _header_label: Label
 var _title_key: String = _TITLE_KEY
-var _tag_flow: _TAG_FLOW
 var _scroll: ScrollContainer
 var _list_box: VBoxContainer
 var _built: bool = false
 var _pending_setup: Dictionary = {}
 
-var _tag_category_id: StringName = &""
 var _filter_category_id: StringName = &""
+var _filter_tags: Array[StringName] = []
 var _archetype_tags: Array = []
 var _exclude_placeholders: bool = true
 var _equippable_only: bool = false
@@ -64,12 +60,6 @@ func _ensure_built() -> void:
 	_BLOCK.style_block_header(_header_label)
 	inner.add_child(_header_label)
 
-	_tag_flow = _TAG_FLOW.new()
-	_tag_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tag_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_tag_flow.filter_changed.connect(_on_tag_filter_changed)
-	inner.add_child(_tag_flow)
-
 	_scroll = ScrollContainer.new()
 	_scroll.name = "ItemListScroll"
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -90,11 +80,10 @@ func _ensure_built() -> void:
 	if not _pending_setup.is_empty():
 		_apply_setup(_pending_setup)
 
-## Binds [param items] and configures the tag chip palette ([param tag_category_id] empty = all tags).
-func setup(items: ItemsModule, tag_category_id: StringName = &"", list_min_height: int = 160) -> void:
+## Binds [param items] and sets minimum list height.
+func setup(items: ItemsModule, _tag_category_id: StringName = &"", list_min_height: int = 160) -> void:
 	_pending_setup = {
 		"items": items,
-		"tag_category_id": tag_category_id,
 		"list_min_height": list_min_height,
 	}
 	if _built:
@@ -102,12 +91,9 @@ func setup(items: ItemsModule, tag_category_id: StringName = &"", list_min_heigh
 
 func _apply_setup(options: Dictionary) -> void:
 	_items = options.get("items") as ItemsModule
-	_tag_category_id = options.get("tag_category_id", &"")
 	var list_min_height: int = int(options.get("list_min_height", 160))
 	if _scroll != null:
 		_scroll.custom_minimum_size = Vector2(0, list_min_height)
-	if _tag_flow != null and _items != null:
-		_tag_flow.configure(_TAG_CHIP.Mode.FILTER, _items, _tag_category_id)
 
 ## Sets list query options: [code]archetype_tags[/code], [code]category_id[/code], [code]row_builder[/code], …
 func configure_query(options: Dictionary) -> void:
@@ -141,10 +127,11 @@ func set_archetype_tags(tags: Array) -> void:
 func set_list_populator(callable: Callable) -> void:
 	_list_populator = callable
 
-func set_tag_category(category_id: StringName) -> void:
-	_tag_category_id = category_id
-	if _items != null and _tag_flow != null:
-		_tag_flow.configure(_TAG_CHIP.Mode.FILTER, _items, category_id)
+func set_filter_tags(tags: Array[StringName]) -> void:
+	_filter_tags = tags.duplicate()
+
+func get_filter_tags() -> Array[StringName]:
+	return _filter_tags.duplicate()
 
 func set_selection_key_fn(callable: Callable) -> void:
 	_selection_key_fn = callable
@@ -181,8 +168,7 @@ func refresh() -> void:
 	if _items == null:
 		return
 	if _list_populator.is_valid():
-		var tag_filter := _tag_flow.get_active_filter_tags() if _tag_flow != null else []
-		var rows: Array = _list_populator.call(tag_filter)
+		var rows: Array = _list_populator.call(_filter_tags)
 		if rows.is_empty():
 			_add_empty_row()
 		else:
@@ -233,18 +219,12 @@ func _finish_refresh() -> void:
 	_sync_scroll_area()
 	_apply_row_selection()
 
-func refresh_tag_picker() -> void:
-	_ensure_built()
-	if _tag_flow != null and _items != null:
-		_tag_flow.refresh(_tag_category_id)
-
 func _query_defs() -> Array[ItemDef]:
 	var filter: Dictionary = {"exclude_placeholders": _exclude_placeholders}
 	if not String(_filter_category_id).is_empty():
 		filter["category_id"] = _filter_category_id
-	var tag_filter := _tag_flow.get_active_filter_tags() if _tag_flow != null else []
-	if not tag_filter.is_empty():
-		filter["tags_any"] = tag_filter
+	if not _filter_tags.is_empty():
+		filter["tags_any"] = _filter_tags
 	var defs := _items.list_defs(filter)
 	var out: Array[ItemDef] = []
 	for item in defs:
@@ -284,7 +264,3 @@ func _deferred_sync_scroll_area() -> void:
 		return
 	_scroll.update_minimum_size()
 	_scroll.queue_sort()
-
-func _on_tag_filter_changed(active_tags: Array[StringName]) -> void:
-	refresh()
-	filter_changed.emit(active_tags)

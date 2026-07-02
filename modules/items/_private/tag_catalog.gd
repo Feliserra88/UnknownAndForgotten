@@ -26,6 +26,21 @@ static func list_for_category(category_id: StringName) -> Array[ItemTagDef]:
 			out.append(def)
 	return out
 
+## Tags shown on a picker tab ([code]general[/code] = tags with no category list).
+static func list_for_group(group_id: StringName) -> Array[ItemTagDef]:
+	var out: Array[ItemTagDef] = []
+	for def in list_all():
+		if _tag_in_group(def, group_id):
+			out.append(def)
+	return out
+
+static func _tag_in_group(def: ItemTagDef, group_id: StringName) -> bool:
+	if def == null:
+		return false
+	if group_id == &"general":
+		return def.categories.is_empty()
+	return def.categories.has(group_id)
+
 static func load_def(id: StringName) -> ItemTagDef:
 	if String(id).is_empty():
 		return null

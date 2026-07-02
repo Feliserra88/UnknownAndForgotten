@@ -6,7 +6,7 @@ signal row_selected(meta: Dictionary)
 
 const _PAD := 8
 const _ROW_SEP := 10
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _ITEMS := preload("res://modules/items/items.gd")
 
 var _meta: Dictionary = {}

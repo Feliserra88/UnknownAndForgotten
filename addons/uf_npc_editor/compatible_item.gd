@@ -1,5 +1,5 @@
 @tool
-extends "res://addons/uf_item_editor/item_list_row.gd"
+extends "res://addons/uf_editor_ui/item_list_row.gd"
 ## Compatible-items row in the NPC editor: same layout as the item editor list, draggable onto inspection slots.
 
 var _item_id: StringName = &""

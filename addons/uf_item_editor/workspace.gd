@@ -2,14 +2,12 @@
 extends Control
 ## Item editor workspace: left properties, center browse list, right actions and filters.
 
-const _ROW := preload("res://addons/uf_item_editor/item_list_row.gd")
-const _ITEM_FILTER_LIST := preload("res://addons/uf_item_editor/item_filter_list.gd")
-const _BLOCK := preload("res://addons/uf_item_editor/editor_block.gd")
-const _TAG_CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
-const _TAG_FLOW := preload("res://addons/uf_item_editor/tag_flow.gd")
-const _TAG_ZONE := preload("res://addons/uf_item_editor/tag_assign_zone.gd")
+const _ROW := preload("res://addons/uf_editor_ui/item_list_row.gd")
+const _ITEM_FILTER_LIST := preload("res://addons/uf_editor_ui/item_filter_list.gd")
+const _BLOCK := preload("res://addons/uf_editor_ui/editor_block.gd")
+const _TAG_PICKER := preload("res://addons/uf_editor_ui/tag_picker_panel.gd")
 const _PREVIEW_SUMMARY := preload("res://addons/uf_item_editor/item_preview_summary.gd")
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _LOG := "ITM"
 const _MARGIN := 8
 const _PANEL_SEP := 6
@@ -48,8 +46,7 @@ var _status_label: Label
 var _save_btn: Button
 var _action_buttons: Array[Dictionary] = []
 var _locale_labels: Array[Dictionary] = []
-var _tag_palette_flow: _TAG_FLOW
-var _tag_assign_zone: _TAG_ZONE
+var _tag_picker: _TAG_PICKER
 var _details_box: VBoxContainer
 var _item_filter_list: _ITEM_FILTER_LIST
 var _preview_icon: TextureRect
@@ -119,16 +116,12 @@ func _bootstrap_data() -> void:
 
 func _refresh_tag_pickers(reset_filters: bool = false) -> void:
 	var cat := _current_category_id()
-	if _item_filter_list != null:
+	if _tag_picker != null:
+		_tag_picker.set_item_category(cat)
 		if reset_filters:
-			_item_filter_list.set_tag_category(cat)
+			_tag_picker.setup(_items)
 		else:
-			_item_filter_list.refresh_tag_picker()
-	if _tag_palette_flow != null:
-		if reset_filters:
-			_tag_palette_flow.configure(_TAG_CHIP.Mode.PALETTE, _items, cat)
-		else:
-			_tag_palette_flow.refresh(cat)
+			_tag_picker.refresh()
 
 func _finalize_layout() -> void:
 	if not is_visible_in_tree():
@@ -336,7 +329,6 @@ func _build_center_column(parent: HBoxContainer) -> Control:
 	_item_filter_list = _ITEM_FILTER_LIST.new()
 	_item_filter_list.setup(_items, &"", _CENTER_LIST_MIN)
 	_item_filter_list.set_selection_key_fn(_row_selection_key)
-	_item_filter_list.filter_changed.connect(_on_item_list_filter_changed)
 	_item_filter_list.item_selected.connect(_on_row_selected)
 	_item_filter_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_item_filter_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -397,8 +389,8 @@ func _rebuild_details_form() -> void:
 	if _details_box == null:
 		return
 	var saved_tags: Array[StringName] = []
-	if _tag_assign_zone != null:
-		saved_tags = _tag_assign_zone.get_tags()
+	if _tag_picker != null:
+		saved_tags = _tag_picker.get_tags()
 	for child in _details_box.get_children():
 		child.queue_free()
 	var props_wrap := _BLOCK.create("item_editor.block.properties")
@@ -417,20 +409,13 @@ func _rebuild_details_form() -> void:
 	_def_quality_option = _add_option_field_to(props_wrap.body, _T("item_editor.field.quality"))
 	_def_quality_option.item_selected.connect(_on_def_quality_changed)
 	_section_gap(_details_box)
-	var tags_wrap := _BLOCK.create_bordered_panel("item_editor.block.tags")
-	_details_box.add_child(tags_wrap.panel)
-	_tag_palette_flow = _TAG_FLOW.new()
-	_tag_palette_flow.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_tag_palette_flow.palette_tag_selected.connect(_on_palette_tag_selected)
-	tags_wrap.body.add_child(_tag_palette_flow)
-	_tag_assign_zone = _TAG_ZONE.new()
-	_tag_assign_zone.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_tag_assign_zone.setup(_items)
-	_tag_assign_zone.tags_changed.connect(_on_draft_tags_changed)
-	tags_wrap.body.add_child(_tag_assign_zone)
-	_refresh_tag_pickers()
+	_tag_picker = _TAG_PICKER.new()
+	_tag_picker.setup(_items)
+	_tag_picker.tags_changed.connect(_on_draft_tags_changed)
+	_details_box.add_child(_tag_picker)
+	_tag_picker.set_item_category(_current_category_id())
 	if not saved_tags.is_empty():
-		_tag_assign_zone.set_tags(saved_tags)
+		_tag_picker.set_tags(saved_tags)
 	_sync_form_from_draft()
 
 func _populate_categories() -> void:
@@ -631,12 +616,19 @@ func _configure_item_filter_list() -> void:
 func _rebuild_list() -> void:
 	if _item_filter_list == null:
 		return
+	_apply_list_tag_filter()
 	_configure_item_filter_list()
 	_item_filter_list.refresh()
 	_update_list_selection()
 
-func _on_item_list_filter_changed(_active_tags: Array[StringName]) -> void:
-	_update_list_selection()
+func _apply_list_tag_filter() -> void:
+	if _item_filter_list == null:
+		return
+	var tags: Array[StringName] = []
+	if _tag_picker != null:
+		tags = _tag_picker.get_tags()
+	_item_filter_list.set_filter_tags(tags)
+
 
 func _build_item_editor_row(item: ItemDef) -> Control:
 	var row := _ROW.new()
@@ -785,16 +777,9 @@ func _refresh_preview_summary() -> void:
 func _on_draft_tags_changed(tags: Array[StringName]) -> void:
 	if _draft != null:
 		_draft.tags = _items.normalize_tags(tags, _current_category_id())
+	_apply_list_tag_filter()
+	_rebuild_list()
 	_refresh_preview_panel()
-
-func _on_palette_tag_selected(tag_id: StringName) -> void:
-	if _tag_assign_zone == null:
-		return
-	var tags := _tag_assign_zone.get_tags()
-	if tags.has(tag_id):
-		return
-	tags.append(tag_id)
-	_tag_assign_zone.set_tags(_items.normalize_tags(tags, _current_category_id()))
 
 func _on_new_pressed() -> void:
 	var cat := _current_category_id()
@@ -919,8 +904,8 @@ func _apply_form_to_draft() -> void:
 		_draft.default_state_index = _def_state_option.selected
 	if _def_quality_option != null and _def_quality_option.item_count > 0:
 		_draft.default_quality_index = _def_quality_option.selected
-	if _tag_assign_zone != null:
-		_draft.tags = _items.normalize_tags(_tag_assign_zone.get_tags(), _current_category_id())
+	if _tag_picker != null:
+		_draft.tags = _items.normalize_tags(_tag_picker.get_tags(), _current_category_id())
 	_draft.category_id = _current_category_id()
 	_ensure_draft_tiers()
 
@@ -942,8 +927,9 @@ func _sync_form_from_draft() -> void:
 	_grid_w_field.value = _draft.inventory_size.x
 	_grid_h_field.value = _draft.inventory_size.y
 	_sync_def_tier_option_menus()
-	if _tag_assign_zone != null:
-		_tag_assign_zone.set_tags(_draft.tags)
+	if _tag_picker != null:
+		_tag_picker.set_item_category(_draft.category_id)
+		_tag_picker.set_tags(_draft.tags)
 	_refresh_preview_panel()
 
 func _add_line_field(placeholder: String) -> LineEdit:
@@ -1077,15 +1063,15 @@ func _refresh_localized_ui() -> void:
 		_populate_categories()
 		_populate_art_strip_states()
 		_populate_item_modifiers()
-		if _tag_palette_flow != null:
-			_tag_palette_flow.refresh(_current_category_id())
+		if _tag_picker != null:
+			_tag_picker.setup(_items)
+			_tag_picker.set_item_category(_current_category_id())
+			if _draft != null:
+				_tag_picker.set_tags(_draft.tags)
+			_tag_picker.refresh_localized_controls()
 		if _item_filter_list != null:
 			_configure_item_filter_list()
-			_item_filter_list.refresh_tag_picker()
-		if _tag_assign_zone != null and _draft != null:
-			_tag_assign_zone.set_tags(_draft.tags)
-		elif _tag_assign_zone != null:
-			_tag_assign_zone.set_tags(_tag_assign_zone.get_tags())
+			_apply_list_tag_filter()
 		if _draft != null:
 			_sync_def_tier_option_menus()
 		_update_art_strip_filter_visibility()

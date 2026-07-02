@@ -5,8 +5,8 @@ extends VBoxContainer
 signal filter_changed(active_tags: Array[StringName])
 signal palette_tag_selected(tag_id: StringName)
 
-const _CHIP := preload("res://addons/uf_item_editor/tag_chip.gd")
-const _I18N := preload("res://addons/uf_item_editor/editor_i18n.gd")
+const _CHIP := preload("res://addons/uf_editor_ui/tag_chip.gd")
+const _I18N := preload("res://addons/uf_editor_ui/editor_i18n.gd")
 const _FILTER_BTN_H := 22
 const _FLOW_SEP := 4
 
@@ -35,6 +35,17 @@ func refresh(category_id: StringName) -> void:
 	if _items == null:
 		return
 	_rebuild(_items.list_tag_defs(category_id))
+
+func show_palette_defs(defs: Array[ItemTagDef]) -> void:
+	_mode = _CHIP.Mode.PALETTE
+	_rebuild(defs)
+
+func show_filter_defs(defs: Array[ItemTagDef], active_tags: Array[StringName]) -> void:
+	_mode = _CHIP.Mode.FILTER
+	_active.clear()
+	for tid in active_tags:
+		_active[String(tid)] = true
+	_rebuild(defs)
 
 func get_active_filter_tags() -> Array[StringName]:
 	var out: Array[StringName] = []

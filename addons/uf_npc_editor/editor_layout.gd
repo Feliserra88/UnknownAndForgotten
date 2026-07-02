@@ -1,6 +1,6 @@
 @tool
 extends RefCounted
-## Editor UI layout helpers (keep in sync with uf_item_editor/editor_block.gd).
+## Editor UI layout helpers (keep in sync with uf_editor_ui/editor_block.gd).
 
 const BTN_GRID_COLS := 2
 

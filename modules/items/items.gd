@@ -11,6 +11,10 @@ const DEFAULT_STATE_INDEX_GOOD := 1
 ## Default quality tier: `common` (index 0).
 const DEFAULT_QUALITY_INDEX_COMMON := 0
 const _STRIP_CATEGORIES: Array[StringName] = [&"weapon", &"armor"]
+## Tag picker tabs in the item editor (general = unrestricted tags).
+const TAG_PICKER_GROUPS: Array[StringName] = [
+	&"weapon", &"armor", &"food", &"valuable", &"ammo", &"quest", &"general",
+]
 
 const _Catalog := preload("res://modules/items/_private/item_catalog.gd")
 const _SpriteLibrary := preload("res://modules/items/_private/sprite_library.gd")
@@ -123,6 +127,10 @@ func list_tag_defs(category_id: StringName = &"") -> Array[ItemTagDef]:
 	if String(category_id).is_empty():
 		return _TagCatalog.list_all()
 	return _TagCatalog.list_for_category(category_id)
+
+## Returns tags for one picker tab group (see [member TAG_PICKER_GROUPS]).
+func list_tag_defs_for_group(group_id: StringName) -> Array[ItemTagDef]:
+	return _TagCatalog.list_for_group(group_id)
 
 ## Returns the ItemTagDef for [param id], or null.
 func load_tag_def(id: StringName) -> ItemTagDef:
